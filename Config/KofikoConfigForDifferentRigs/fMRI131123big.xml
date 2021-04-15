@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Behavior GUI Configuration -->
+
+<Config>
+<!--PTB = psychophysics folder-->
+<Directories
+   LogFolder = "C:\Data\"
+   PTB_Folder = "C:\Toolbox\"
+> </Directories>
+<!--set static IP address for stimulus and stat servers-->
+<StimulusServer
+    SingleComputerMode = "0"
+    PTBScreen = "2"
+    Address = "192.168.0.105"
+    Port = "1502"
+> </StimulusServer>
+
+<!-- for accessing stimulus or stat server from each other?-->
+<RemoteAccess
+    Port = "2000"
+> </RemoteAccess>
+
+<!--unknown-->
+<VideoStreaming
+    DeviceName = ""
+    SampleRateHz = "0"
+> </VideoStreaming>
+
+<!--stat server info-->
+<RealTimeStatisticsServer
+    Address = "192.168.0.100"
+    Port = "4003"    
+> </RealTimeStatisticsServer>
+
+<!--get information from specific IScan hardware, fill in here-->
+<EyeCalib
+    CenterX = "1967"
+    CenterY = "2022"
+    ScaleX = ".3"
+    ScaleY = "-.6"
+> </EyeCalib>
+
+<!-- sounds and audiodevices added by josh, threw undefined field error otherwise-->
+<Sounds
+	DeviceName = "Primary Sound Capture Driver"
+></Sounds>
+
+<AudioDevices
+	AudioDeviceName = "Primary Sound Capture Driver"
+></AudioDevices>
+
+<VarSave
+    EyePos = "1"
+    EyePosSampleRateHz = "120"
+    ExternalTriggers = "1"
+    Spikes = "0"
+    Motion = "0"
+    MotionSampleRateHz = "10"
+    WaterLevelUponExit = "0"
+> </VarSave>
+
+<!--some unknown values here, will have to fiddle
+key numbers correspond to keys as per: http://help.adobe.com/en_US/AS2LCR/Flash_10.0/help.html?content=00000520.html
+PTB refers to psychophysics toolbox, screen = ? presumably PTB GUI
+-->
+<GUIParams
+    PTBScreen = "0"
+    Experimental = "0"
+    Debug = "0"
+    JuiceMl_To_Ms = "378"
+    JuiceTimeMS = "50"
+    JuiceKey = "74"
+    RecenterKey = "67"
+    DrawAttentionKey = "65"
+    EyeTracesKey = "69"
+    ResetStatKey = "82"
+    TogglePTB = "80"
+    ToggleStat = "72"
+	
+	
+    RefreshRateMS = "60"
+    SpikeRateUpdateMS = "500"
+    StatisticsRefreshRateMS = "1000"
+    SettingsRefreshRateMS = "1000"
+    MotionThreshold = "50000"
+    PauseTaskAfterMotionSec = "50"
+    MotionResumeTaskSec = ".01"
+    PSTHStartAvgAfterOnsetMS = "50"
+    PSTHEndAvgAfterOnsetMS = "200"
+
+> </GUIParams>
+
+<DAQ
+    VirtualDAQ = "0"
+    AcqusitionCard = "mc"
+    AcqusitionCardBoard = "0"
+    JuicePort = "16"
+    StartRecordPort = "17"
+    StimulationPort = "18"
+    UseMouseClickAsEyePosition = "0"
+    MonitorIndexForEyePosition = "2"
+    SimulateTouchScreenForDebug = "0"
+    
+    EyePortX = "0"
+    EyePortY = "1"
+    EyePortPupil = "2"
+    AnalogSpikePorts = "3 4 5 6"
+    AnalogSpikePortsMappingToChannels = "1 1 2 2"
+    AnalogSpikePortsMappingToUnits = "1 2 1 2"
+    LFPPorts = "8 9"
+    LFPPortsMappingToChannels = "1 2"
+    MotionPort = "7"
+    ExternalTriggers = "10"
+    ExternalTriggersNames = "MRI"
+    ExternalTriggerThreshold = "3000"
+    SpikeThreshold = "3000"
+    MouseWheelToMM = "115"
+    SystemStrobeFile = "SystemStrobeEvents.txt"
+> </DAQ>
+
+<Paradigms>
+	
+    
+   
+   <Paradigm Name = "fMRI training big"
+        Init = "fnParadigmfMRITrainingInitNew"
+        Cycle = "fnParadigmfMRITrainingCycleNew"
+        Draw = "fnParadigmfMRITrainingDraw"
+        DrawCycle = "fnParadigmfMRITrainingDrawCycle"
+        Callbacks = "fnParadigmfMRITrainingCallbacksNew"
+        GUI = "fnParadigmfMRITrainingGUINew"
+        Close = "fnParadigmPassiveFixationCloseNew"
+        ParadigmSwitch = "fnParadigmfMRITrainingParadigmSwitchNew"
+        StrobeCodes = "PassiveFixationStrobeCodesNew.txt"
+
+        Initial_ShowPhotodiodeRect = "1"
+
+        Initial_ShowImagesOnLoad = "0"
+        Initial_RescaleToPower2 = "0"
+        Initial_PreloadTexturesVRAM = "1"
+
+        Initial_GazeBoxPix = "100"
+        Initial_JuiceTimeMS = "45"
+        Initial_JuiceTimeHighMS = "55"
+        Initial_BlinkTimeMS = "300"
+        Initial_GazeTimeMS = "2000"
+        Initial_GazeTimeLowMS = "2000"
+        Initial_PositiveIncrementPercent = "10"
+
+        Initial_BackgroundColor = "0 0 0"
+        Initial_FixationSizePix = "4"
+        Initial_StimulusSizePix = "128"
+        Initial_StimulusON_MS = "1500"
+        Initial_StimulusOFF_MS = "1500"
+        Initial_RandomStimuli = "1"
+  
+        Initial_DefaultImageFolder = "Z:\StimulusSet\fMRI131123\big"
+        Initial_DefaultImageList = "Z:\StimulusSet\fMRI131123\fMRI131123big.xml"
+
+        Initial_RandomPosition = "0"
+        Initial_RandomPositionMin = "50"
+        Initial_RandomPositionMax = "90"
+        Initial_RandomPositionRadius = "150"
+
+        Initial_HideStimulusWhenNotLooking = "1"
+
+        Initial_ParameterSweep = "0"
+		Initial_FitToScreen = "1"
+
+   > </Paradigm>   
+	
+   
+</Paradigms>
+
+</Config>

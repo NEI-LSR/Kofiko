@@ -37,23 +37,23 @@ TRIAL_OUTCOME_TIMEOUT = 32694;
 % Handle microstim events
 % isfield(g_strctParadigm,'m_iLastKnownCueToBeDisplayedOnScreen') && g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen ~= 0 && ...
 if g_strctParadigm.m_bParadigmActive && g_strctParadigm.m_bMicroStimThisTrial ~= 0 && ...
-        ~isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim)
+        ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim)
     fCurrentTime = GetSecs();
-    if g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_bActive && ...
-            g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_iSpikeIterator <= length(...
-            g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_aSpikeTrain)
-        if fCurrentTime - g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_fSpikeTrainStartTS >=...
-                g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_aSpikeTrain(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(...
+    if g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_bActive && ...
+            g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_iSpikeIterator <= length(...
+            g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_aSpikeTrain)
+        if fCurrentTime - g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_fSpikeTrainStartTS >=...
+                g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_aSpikeTrain(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod(...
                 g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_iSpikeIterator)*1e-3
             % Send a spike request
-            fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim);
+            fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim);
             % Update the spike iterator
-            g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_iSpikeIterator =...
-                g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_iSpikeIterator + 1;
+            g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_iSpikeIterator =...
+                g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_iSpikeIterator + 1;
             
         end
-    elseif g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_bActive
-        g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_bActive = 0;
+    elseif g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_bActive
+        g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_bActive = 0;
         fnParadigmToKofikoComm('criticalsectionoff');
         %g_strctParadigm.m_bDoNotDrawDueToCriticalSection = 0;
     end
@@ -209,11 +209,11 @@ switch g_strctParadigm.m_iMachineState
         end
     case 4
         % Show fixation spot
-        if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation)
+        if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod)
             % Display fixation and wait until enough time has elapsed
             if ~fnParadigmToKofikoComm('IsTouchMode')
                 fnParadigmToStimulusServer('ShowFixationSpot');
-                fnParadigmToKofikoComm('SetFixationPosition', g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition);
+                fnParadigmToKofikoComm('SetFixationPosition', g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition);
                 
                 fnParadigmToKofikoComm('SetParadigmState', 'Waiting for  stimulus server...');
                 g_strctParadigm.m_iMachineState = 5;
@@ -239,8 +239,8 @@ switch g_strctParadigm.m_iMachineState
     case 6
         
         % Fixation spot is on screen. Wait until monkey look at it
-        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition(1);
-        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition(2);
+        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition(1);
+        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition(2);
         fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
         fnParadigmToKofikoComm('SetParadigmState', sprintf('Block %d : Waiting for fixation... (%.2f)',g_strctParadigm.m_strctCurrentTrial.m_iBlockIndex,fDistToFixationSpot));
         
@@ -250,12 +250,12 @@ switch g_strctParadigm.m_iMachineState
                 g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_pt2fTouchFixation = strctInputs.m_pt2iEyePosScreen;
                 g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_fDistToFixationSpot = fDistToFixationSpot;
                 g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_fTouchTS = GetSecs();
-                if fDistToFixationSpot < g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix
+                if fDistToFixationSpot < g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix
                     g_strctParadigm.m_fStartFixationTS = GetSecs();
                     
                     fnParadigmToKofikoComm('SetParadigmState', 'Monkey touched spot...');
-                    if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation) && ...
-                            g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fPreCueFixationPeriodMS == 0
+                    if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod) && ...
+                            g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueFixationPeriodMS == 0
                         g_strctParadigm.m_iMachineState = 9;
                     else
                         g_strctParadigm.m_iMachineState = 7;
@@ -263,7 +263,7 @@ switch g_strctParadigm.m_iMachineState
                 else
                     % Monkey touched outside fixation spot. what to do
                     % next?
-                    if g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_bAbortTrialUponTouchOutsideFixation
+                    if g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_bAbortTrialUponTouchOutsideFixation
                         % Clear the screen
                         g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult = 'Aborted;TouchOutsideFixation';
                         feval(g_strctParadigm.m_strCallbacks,'TrialOutcome',g_strctParadigm.m_strctCurrentTrial);
@@ -287,7 +287,7 @@ switch g_strctParadigm.m_iMachineState
             
         else
             % Is monkey looking at the fixation spot?
-            if fDistToFixationSpot <= g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix
+            if fDistToFixationSpot <= g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix
                 fnParadigmToKofikoComm('SetParadigmState', 'Inside Fixation region');
                 g_strctParadigm.m_fStartFixationTS = GetSecs();
                 
@@ -302,20 +302,20 @@ switch g_strctParadigm.m_iMachineState
         % Monkey is looking/ touching the fixation spot
         % If enough time has elapsed, go on with the trial (display cue,
         % etc)
-        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition(1);
-        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition(2);
+        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition(1);
+        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition(2);
         fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
         
         
         
         if fnParadigmToKofikoComm('IsTouchMode')
             
-            if fDistToFixationSpot >  g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix || ~strctInputs.m_abMouseButtons(1)
+            if fDistToFixationSpot >  g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix || ~strctInputs.m_abMouseButtons(1)
                 % Monkey moved his finger outside fixationi spot, or stopped
                 % pressing....
                 g_strctParadigm.m_iMachineState = 6;
             else
-                if (GetSecs()- g_strctParadigm.m_fStartFixationTS) >= g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fPreCueFixationPeriodMS/1e3
+                if (GetSecs()- g_strctParadigm.m_fStartFixationTS) >= g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueFixationPeriodMS/1e3
                     fnParadigmToKofikoComm('SetParadigmState', 'Trial Will start when touch released...');
                     g_strctParadigm.m_iMachineState = 9; % Monkey fixated for enough time. Wait until he releases touch
                 end
@@ -323,7 +323,7 @@ switch g_strctParadigm.m_iMachineState
         else
             
             % Is still looking?
-            if fDistToFixationSpot > g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix
+            if fDistToFixationSpot > g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix
                 %  Monkey broke fixation.
                 g_strctParadigm.m_iMachineState = 6;
 	
@@ -332,7 +332,7 @@ switch g_strctParadigm.m_iMachineState
             fnParadigmToKofikoComm('SetParadigmState', sprintf('Inside Fixation region for %.2f',GetSecs()- g_strctParadigm.m_fStartFixationTS ));
             
             % Eye tracking mode
-            if GetSecs()- g_strctParadigm.m_fStartFixationTS  >= g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fPreCueFixationPeriodMS/1e3
+            if GetSecs()- g_strctParadigm.m_fStartFixationTS  >= g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueFixationPeriodMS/1e3
                 
                 g_strctParadigm.m_iMachineState = 10; % Monkey fixated for enough time. Start the trial....
             end
@@ -350,10 +350,10 @@ switch g_strctParadigm.m_iMachineState
         
         
         % Send request to stimulus server to initiate the trial....
-        if isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia) && isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia)
-            if g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_bRewardTouchFixation
-                if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_strRewardSound)
-                    fnParadigmToKofikoComm('PlaySound',g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_strRewardSound);
+        if isempty(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod) && isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia)
+            if g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_bRewardTouchFixation
+                if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_strRewardSound)
+                    fnParadigmToKofikoComm('PlaySound',g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_strRewardSound);
                 end
                 
                 if fnParadigmToKofikoComm('IsTouchMode')
@@ -406,7 +406,7 @@ switch g_strctParadigm.m_iMachineState
                 else
                     % Which Cue was presented?
                     fnDAQWrapper('StrobeWord',g_strctParadigm.m_strctCurrentTrial.m_iTrialType);
-                    fnDAQWrapper('StrobeWord',g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia.m_iMediaIndex);
+                    fnDAQWrapper('StrobeWord',g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iMediaIndex);
                 end
                 % Delcare the trial type
                 fnParadigmToKofikoComm('TrialStart', g_strctParadigm.m_strctCurrentTrial.m_iTrialType);
@@ -481,12 +481,12 @@ switch g_strctParadigm.m_iMachineState
                 fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition(1);
                 fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition(2);
                 
-                if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Rect')
-                    bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize && ...
-                        abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
-                elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Circular')
+                if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Rect')
+                    bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize && ...
+                        abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
+                elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Circular')
                     fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
-                    bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
+                    bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
                 end
                 
                 if bInsideChoice
@@ -495,7 +495,7 @@ switch g_strctParadigm.m_iMachineState
                     g_strctParadigm.m_fTouchChoiceTS = GetSecs();
                     g_strctParadigm.m_iSelectedChoice = iChoiceIter;
                     
-                    if g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS == 0
+                    if g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS == 0
                         % This is considered a commitment!
                         fnParadigmToKofikoComm('SetParadigmState', sprintf('Selected %d', g_strctParadigm.m_iSelectedChoice ));
                         g_strctParadigm.m_iMachineState = 15;
@@ -554,7 +554,7 @@ switch g_strctParadigm.m_iMachineState
             g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
         else
             % Monkey selected a target with no reward. What do we do next?
-            if g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_bMultipleAttemptsUntilJuice
+            if g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_bMultipleAttemptsUntilJuice
                 % Record that an attempt was made at this target, Wait
                 % until release, and try again...
                 g_strctParadigm.m_iMachineState = 17;
@@ -593,19 +593,19 @@ switch g_strctParadigm.m_iMachineState
         % commit
         fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_pt2fPosition(1);
         fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_pt2fPosition(2);
-        if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Rect')
-            bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize && ...
-                abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
-        elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Circular')
+        if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Rect')
+            bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize && ...
+                abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
+        elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Circular')
             fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
-            bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
+            bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
         end
         if ~bInsideChoice || ~strctInputs.m_abMouseButtons(1)
             % Monkey switched his mind and moved his hand from this choice
             % before the time to commit elapsed...
             g_strctParadigm.m_iMachineState = 13;
         else
-            if GetSecs()-g_strctParadigm.m_fTouchChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS/1e3
+            if GetSecs()-g_strctParadigm.m_fTouchChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS/1e3
                 g_strctParadigm.m_iMachineState = 15; % Monkey committed to a decision
             end
         end
@@ -634,28 +634,28 @@ switch g_strctParadigm.m_iMachineState
         if g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen == 0
             bMaintainFixationOnCue = false; % we cannot maintain fixation on screen until we are informed where the cues are...
             bMaintainFixationOnFixationSpot = false;
-            if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation)
+            if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod)
                 bMaintainFixationOnFixationSpot = true;
-                pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition;
-                fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix;
+                pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition;
+                fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix;
             end
         else
-            bMaintainFixationOnCue = g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_bAbortTrialIfBreakFixationOnCue;
-            bMaintainFixationOnFixationSpot = g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_bAbortTrialIfBreakFixationDuringCue;
+            bMaintainFixationOnCue = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_bAbortTrialIfBreakFixationOnCue;
+            bMaintainFixationOnFixationSpot = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_bAbortTrialIfBreakFixationDuringCue;
             if bMaintainFixationOnFixationSpot
-                pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_pt2fFixationPosition;
-                fThreshold = g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_fFixationRegionPix;
+                pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_pt2fFixationPosition;
+                fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_fFixationRegionPix;
             end
         end
         
         % We need to monitor eye position during cues presentation.
         if bMaintainFixationOnCue
-            fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_pt2fCuePosition(1);
-            fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_pt2fCuePosition(2);
-            switch lower(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_strCueFixationRegion)
+            fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_pt2fCuePosition(1);
+            fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_pt2fCuePosition(2);
+            switch lower(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_strCueFixationRegion)
                 case 'entirecue'
-                    if (abs(fDistX) > g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_fCueSizePix || ...
-                            abs(fDistY) > g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_fCueSizePix)
+                    if (abs(fDistX) > g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_fCueSizePix || ...
+                            abs(fDistY) > g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_fCueSizePix)
                         bAbortTrial = true;
                     end
             end
@@ -717,25 +717,25 @@ switch g_strctParadigm.m_iMachineState
                         fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialAlignCode);  %Align spikes in real time to this time point.
                     end
                     
-                    %length(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_aSpikeTrain)
-                    %isfield(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen),'m_aSpikeTrain')
+                    %length(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_aSpikeTrain)
+                    %isfield(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod,'m_aSpikeTrain')
                     
                     % Micro stim
-                    if isfield(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim,'m_aSpikeTrain') && ...
-                            length(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_aSpikeTrain) > 1
+                    if isfield(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim,'m_aSpikeTrain') && ...
+                            length(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_aSpikeTrain) > 1
                         % Start with the first spike in the train
-                        g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_iSpikeIterator = 1;
+                        g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_iSpikeIterator = 1;
                         
-                        g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_fSpikeTrainStartTS = GetSecs();
+                        g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_fSpikeTrainStartTS = GetSecs();
                         % Set as active. We'll check at the beginning of each cycle to see if we need to trigger another spike
-                        g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_bActive = 1;
+                        g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_bActive = 1;
                         
                         % Important! Stop the GUI from updating while we are stimulating. Updating takes until the start of the next screen refresh which can block the microstimulator!
                         %g_strctParadigm.m_bDoNotDrawDueToCriticalSection = 1;
                         fnParadigmToKofikoComm('criticalsectionon', true);
-                    elseif ~isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim)
+                    elseif ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim)
                         
-                        fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim);
+                        fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim);
                     end
                     
                 end
@@ -755,17 +755,17 @@ switch g_strctParadigm.m_iMachineState
         end
         
         
-        if  isfield(g_strctParadigm.m_strctCurrentTrial.m_strctChoices,'m_astrctMicroStim') && ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_astrctMicroStim) && ...
-                strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_astrctMicroStim(1).m_strWhenToStimulate,'LeaveFixation') && ...
-                ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation)
+        if  isfield(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod,'m_astrctMicroStim') && ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_astrctMicroStim) && ...
+                strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_astrctMicroStim(1).m_strWhenToStimulate,'LeaveFixation') && ...
+                ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod)
             
-            pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition;
-            fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix;
+            pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition;
+            fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix;
             fDistX=strctInputs.m_pt2iEyePosScreen(1)-pt2fFixationCenter(1);
             fDistY=strctInputs.m_pt2iEyePosScreen(2)-pt2fFixationCenter(2);
-            if sqrt(fDistX.^2+fDistY.^2) > fThreshold && g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fStimulated == false
-                fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_astrctMicroStim);
-                g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fStimulated = true;
+            if sqrt(fDistX.^2+fDistY.^2) > fThreshold && g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fStimulated == false
+                fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_astrctMicroStim);
+                g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fStimulated = true;
             end
         end
         
@@ -777,12 +777,12 @@ switch g_strctParadigm.m_iMachineState
             fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition(1);
             fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition(2);
             
-            if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Rect')
-                bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize && ...
-                    abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
-            elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Circular')
+            if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Rect')
+                bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize && ...
+                    abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
+            elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Circular')
                 fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
-                bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
+                bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
             end
             
             if bInsideChoice
@@ -802,7 +802,7 @@ switch g_strctParadigm.m_iMachineState
                 end
                 
                 
-                if g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS == 0
+                if g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS == 0
                     % This is considered a commitment!
                     fnParadigmToKofikoComm('SetParadigmState', sprintf('Selected %d', g_strctParadigm.m_iSelectedChoice ));
                     % Monkey committed to a choice
@@ -832,12 +832,12 @@ switch g_strctParadigm.m_iMachineState
         
         fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_pt2fPosition(1);
         fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_pt2fPosition(2);
-        if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Rect')
-            bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize && ...
-                abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
-        elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Circular')
+        if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Rect')
+            bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize && ...
+                abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
+        elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Circular')
             fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
-            bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
+            bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
         end
         
         if ~bInsideChoice
@@ -848,7 +848,7 @@ switch g_strctParadigm.m_iMachineState
         else
             
             % Monkey is still looking at the choice he selected
-            if GetSecs()-g_strctParadigm.m_fInsideChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS/1e3
+            if GetSecs()-g_strctParadigm.m_fInsideChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS/1e3
                 g_strctParadigm.m_iMachineState = 23; % Monkey committed to a decision
             else
                 fnParadigmToKofikoComm('SetParadigmState', sprintf('Waiting for correct answer (%.2f Sec)',g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fTrialTimeoutMS/1e3-fElapsedTime));
@@ -907,7 +907,7 @@ switch g_strctParadigm.m_iMachineState
             g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
         else
             % Monkey selected a target with no reward. What do we do next?
-            if g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_bMultipleAttemptsUntilJuice
+            if g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_bMultipleAttemptsUntilJuice
                 % Record that an attempt was made at this target, Wait
                 % until release, and try again...
                 g_strctParadigm.m_iMachineState = 21;

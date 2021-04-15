@@ -12,7 +12,7 @@ pt2iCenter = g_strctPTB.m_aiRect(3:4)/2;
 fnParadigmToKofikoComm('JuiceOff');
 
 if isfield(g_strctParadigm,'DrawAttentionEvents')
-    g_strctParadigm = fnTsSetVar(g_strctParadigm, 'DrawAttentionEvents', 1);
+    fnTsSetVar('g_strctParadigm', 'DrawAttentionEvents', 1);
 else
     g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DrawAttentionEvents', 1, 500);
 end
@@ -34,7 +34,7 @@ end;
 Screen(g_strctPTB.m_hWindow,'FillRect',[0 0 0]);
 Screen('Flip', g_strctPTB.m_hWindow);
 
-g_strctParadigm = fnTsSetVar(g_strctParadigm, 'DrawAttentionEvents', 0);
+fnTsSetVar('g_strctParadigm', 'DrawAttentionEvents', 0);
 
 % Send a message to the paradigm that this event occured. We might want to
 % reset trials or something....

@@ -4,7 +4,9 @@ strctNeuralServer.m_bConnected = false;
 
 
 try
+
     strctNeuralServer.m_hSocket = PL_InitClient(0);
+
 catch
     strctNeuralServer.m_hSocket  = 0;
 end
@@ -15,6 +17,7 @@ end
 % Query number of channels, etc...
 
 pars = PL_GetPars(strctNeuralServer.m_hSocket);
+
 strctNeuralServer.m_iNumSpikeChannels = pars(1);
 strctNeuralServer.m_iNumberUnitsPerChannel = 4;
 
@@ -36,23 +39,33 @@ end
 strctNeuralServer.m_aiEnabledChannels = enabledchans;
 
 
-
+%{
 [iOK, Tmp]=system('.\MEX\win32\PlexRealTimeExe');
 if iOK ~= 0
       fnStatLog('Connection to neural server failed!');
     return;
 end
+%}
+%{
 [acAttributes]=fnSplitString(Tmp, 10);
 strctNeuralServer.m_acSpikeChannelNames=acAttributes(1:2:end);
 strctNeuralServer.m_acAnalogChannelNames=acAttributes(2:2:end);
+%}
 % iResult = PlexRealTime('InitPlexon');
 % if iResult  ~= 1
+
 %     fnStatLog('Connection to neural server failed!');
 %     return;
 % end
 % 
 % [strctNeuralServer.m_acSpikeChannelNames,strctNeuralServer.m_acAnalogChannelNames] = PlexRealTime('GetChannelNames');
 % Try to automatically identify the active channels...
+for i = 1:340
+strctNeuralServer.m_acAnalogChannelNames{i} = ['AD ', num2str(i)];
+strctNeuralServer.m_acSpikeChannelNames{i} = ['Spike ', num2str(i)];
+end
+
+
 
 strctChannels = PlexonChannelGUI(strctNeuralServer.m_acSpikeChannelNames,strctNeuralServer.m_acAnalogChannelNames,strctNeuralServer.m_aiEnabledChannels);
 if isempty(strctChannels)

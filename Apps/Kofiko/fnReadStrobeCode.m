@@ -5,9 +5,11 @@ function [acCodeDescription, aiAvailbleCodes] = fnReadStrobeCode(strFileName)
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (see GPL.txt)
 
+% Intentionally large number? 
 iNumCodes = 2^15;
 acCodeDescription = cell(1, iNumCodes);
 hFileID = fopen(strFileName,'r');
+% If cant open strobecode file
 if (hFileID == -1)
     error(sprintf('Error loading strobe file %s\n',strFileName));
 end;
@@ -20,6 +22,7 @@ while 1
     if ~ischar(strLine) 
         break
     end
+	% If line is empty or commented out
     if isempty(strLine) || strLine(1) == '#'
         continue;
     end;

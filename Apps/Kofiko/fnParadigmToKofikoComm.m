@@ -1,19 +1,19 @@
 function varargout = fnParadigmToKofikoComm(strCommand, varargin)
-global g_strctCycle g_strctGUIParams g_bRecording g_strctStimulusServer g_strctRecordingInfo g_strctPTB g_strctAppConfig g_strctEyeCalib g_strctSystemCodes g_strctDAQParams g_strctAcquisitionServer
+global g_strctCycle g_strctGUIParams g_bRecording g_strctStimulusServer g_strctRecordingInfo g_strctPTB g_strctAppConfig g_strctEyeCalib g_strctSystemCodes g_strctDAQParams g_strctAcquisitionServer g_strctParadigm
+
 switch lower(strCommand) 
 
     case 'setparadigmstate'
         g_strctCycle.m_strState = varargin{1};
-    case 'multichannelstimulation'
-        if ~isempty(g_strctAppConfig.m_strctDAQ.m_afStimulationPort)
-             astrctTriggerInfo = varargin{1};
-             
-           % Set the triggering Finite state machines
-             iNumChannelsNeedTrigger = length(astrctTriggerInfo);
-             fCurrTime = GetSecs();
-             afAmplitudes = fnTsGetVar(g_strctDAQParams,'MicroStimAmplitude');
-             acMicroStimSource = fnTsGetVar(g_strctDAQParams,'MicroStimSource');
-             for iIter=1:iNumChannelsNeedTrigger
+		%{
+	case 'StimulationSpikeTrain'
+		if ~isempty(g_strctAppConfig.m_strctDAQ.m_afStimulationPort)
+			astrctTriggerInfo = varargin{1};
+			
+			iNumChannelsNeedTrigger = length(astrctTriggerInfo);
+			fCurrTime = GetSecs();
+			for iIter=1:iNumChannelsNeedTrigger
+			 astrctTriggerInfo(iIter).m_strSource = g_strctParadigm.m_strMicroStimSource;
                  if ~isfield(astrctTriggerInfo(iIter),'m_fAmplitude') || ...
                          (isfield(astrctTriggerInfo(iIter),'m_fAmplitude') && isempty(astrctTriggerInfo(iIter).m_fAmplitude))
                      astrctTriggerInfo(iIter).m_fAmplitude = afAmplitudes(astrctTriggerInfo(iIter).m_iChannel);
@@ -36,13 +36,60 @@ switch lower(strCommand)
              % trials somewhere because it is much easier to parse....
              
              g_strctDAQParams = fnTsSetVar(g_strctDAQParams,'MicroStimTriggers', astrctTriggerInfo);
+		else
+            fnParadigmToKofikoComm('DisplayMessage','No stim port defined in XML');
+        end
+		%}
+	case 'multichannelstimulation'
+        if ~isempty(g_strctAppConfig.m_strctDAQ.m_afStimulationPort)
+             astrctTriggerInfo = varargin{1};
              
+           % Set the triggering Finite state machines
+             iNumChannelsNeedTrigger = length(astrctTriggerInfo);
+             fCurrTime = GetSecs();
+             afAmplitudes = fnTsGetVar('g_strctParadigm','MicroStimAmplitude');
+			 
+             for iIter=1:iNumChannelsNeedTrigger
+			 astrctTriggerInfo(iIter).m_strSource = g_strctParadigm.m_strMicroStimSource;
+                 if ~isfield(astrctTriggerInfo(iIter),'m_fAmplitude') || ...
+                         (isfield(astrctTriggerInfo(iIter),'m_fAmplitude') && isempty(astrctTriggerInfo(iIter).m_fAmplitude))
+                     astrctTriggerInfo(iIter).m_fAmplitude = afAmplitudes(astrctTriggerInfo(iIter).m_iChannel);
+                 end
+     
+     
+                if ~isfield(astrctTriggerInfo(iIter),'m_strSource') || ...
+                         (isfield(astrctTriggerInfo(iIter),'m_strSource') && isempty(astrctTriggerInfo(iIter).m_strSource))
+                     astrctTriggerInfo(iIter).m_strSource = acMicroStimSource{astrctTriggerInfo(iIter).m_iChannel};
+                 end
+  
+                    iChannelNeedTrigger = astrctTriggerInfo(iIter).m_iChannel;
+                    g_strctCycle.m_strctMicroStim.m_astrctTriggeringMachines(iChannelNeedTrigger).m_bActive = true;
+					if isfield(astrctTriggerInfo,'m_afSpikeTrain')
+						
+						g_strctCycle.m_strctMicroStim.m_astrctTriggeringMachines(iChannelNeedTrigger).m_iSpikeIter = 1;
+						[g_strctCycle.m_strctMicroStim.m_astrctTriggeringMachines(iChannelNeedTrigger).m_afTriggerTS,...
+							g_strctCycle.m_strctMicroStim.m_astrctTriggeringMachines(iChannelNeedTrigger).m_fRequestTrigTS] = ...
+						deal(zeros(1,numel(astrctTriggerInfo.m_afSpikeTrain)));
+					else
+						g_strctCycle.m_strctMicroStim.m_astrctTriggeringMachines(iChannelNeedTrigger).m_fRequestTrigTS = fCurrTime;
+					end
+                    g_strctCycle.m_strctMicroStim.m_astrctTriggeringMachines(iChannelNeedTrigger).m_strctTriggerInformation = astrctTriggerInfo(iIter);
+             end
+             
+             % Add stimulation request to time stamped buffer (just to be
+             % on the safe side. This information should be available in
+             % trials somewhere because it is much easier to parse....
+             
+            fnTsSetVar('g_strctDAQParams','MicroStimTriggers', astrctTriggerInfo);
+			
+			
              
         else
             fnParadigmToKofikoComm('DisplayMessage','No stim port defined in XML');
         end
         
     case 'juice'
+
         g_strctCycle.m_strctJuiceProcess.m_iRewardMachineState = 1; % Give Juice as defined in g_strctParadigm.m_iJuiceTimeMS
         g_strctCycle.m_strctJuiceProcess.m_fRewardOpenTimeMS = varargin{1};
         if nargin >= 3
@@ -100,14 +147,10 @@ switch lower(strCommand)
             fnResetStat('AllChannels');
         end
     case 'trialstart'
-        if isfield(g_strctDAQParams,'m_fTrialOnsetPort') && g_bRecording
-            % Send sync pulse and pick a new sync interval
-            fnDAQWrapper('TTL', g_strctDAQParams.m_fTrialOnsetPort,250 * 1e-6); % 250usec TTL pulse
-        end
         g_strctCycle.m_bTrialNotInProgress = false;
         g_strctCycle.m_fTrialStartTime = GetSecs();
         g_strctCycle.m_strctStatistics.m_iTrialType= varargin{1};
-        fnDAQWrapper('StrobeWord',g_strctCycle.m_strctStatistics.m_iTrialType);
+        %fnDAQWrapper('StrobeWord',g_strctCycle.m_strctStatistics.m_iTrialType);
         if g_strctAcquisitionServer.m_bConnected
             fndllZeroMQ_Wrapper('Send',g_strctAcquisitionServer.m_iSocket,['TrialType ',num2str(g_strctCycle.m_strctStatistics.m_iTrialType)]);
         end
@@ -118,11 +161,6 @@ switch lower(strCommand)
         varargout{1} = g_strctCycle.m_bParadigmPaused;
     case 'setfixationposition'
         g_strctCycle.m_pt2fCurrentFixationPosition =  varargin{1};
-        if isfield(g_strctAppConfig,'m_strctAcquisitionServer') && g_strctAcquisitionServer.m_bConnected
-            fndllZeroMQ_Wrapper('Send',g_strctAcquisitionServer.m_iSocket,['FixationSpotPosition ',...
-                num2str(g_strctCycle.m_pt2fCurrentFixationPosition(1)),' ',num2str(g_strctCycle.m_pt2fCurrentFixationPosition(2)),' ',...
-                num2str(g_strctStimulusServer.m_aiScreenSize(3)),' ',num2str(g_strctStimulusServer.m_aiScreenSize(4))]);
-        end
     case 'showeyetraces'
         g_strctCycle.m_strctEyeTraces.m_bShowEyeTraces  = true;
     case 'hideeyetraces'
@@ -151,9 +189,13 @@ switch lower(strCommand)
         varargout{1} = g_bRecording;
     case 'getrefreshrate'
         varargout{1} = g_strctStimulusServer.m_fRefreshRateMS;
+		
+	
     case 'getstimulusserverscreensize'
-        varargout{1} = g_strctStimulusServer.m_aiScreenSize;
-      
+		if ~isempty(g_strctStimulusServer.m_aiScreenSize)
+			varargout{1} = g_strctStimulusServer.m_aiScreenSize;
+		end
+	
     case 'playsound'
         bTouchMode = isfield(g_strctStimulusServer,'m_hWindow');
         strSoundName = varargin{1};
@@ -178,6 +220,7 @@ switch lower(strCommand)
             g_strctCycle.m_acSafeCallbackParams = {[]};
         end
     case 'criticalsectionon'
+	
         g_strctCycle.m_bInCriticalSection = true;
         if nargin > 1
             g_strctCycle.m_bDoNotDrawDueToCriticalSection = varargin{1};
@@ -187,30 +230,33 @@ switch lower(strCommand)
     case 'criticalsectionoff'
         g_strctCycle.m_bDoNotDrawDueToCriticalSection = false;
         g_strctCycle.m_bInCriticalSection = false;
+		
     case 'mouseemulator'
         bTurnON = varargin{1};
         
         if bTurnON
             g_strctDAQParams.m_bMouseGazeEmulator =1 ;
             % Keep original values!
-            g_strctEyeCalib.m_fSavedGainX = fnTsGetVar(g_strctEyeCalib,'GainX');
-            g_strctEyeCalib.m_fSavedGainY = fnTsGetVar(g_strctEyeCalib,'GainY');
-            g_strctEyeCalib.m_fSavedCenterX = fnTsGetVar(g_strctEyeCalib,'CenterX');
-            g_strctEyeCalib.m_fSavedCenterY = fnTsGetVar(g_strctEyeCalib,'CenterY');
+            g_strctEyeCalib.m_fSavedGainX = fnTsGetVar('g_strctEyeCalib','GainX');
+            g_strctEyeCalib.m_fSavedGainY = fnTsGetVar('g_strctEyeCalib','GainY');
+            g_strctEyeCalib.m_fSavedCenterX = fnTsGetVar('g_strctEyeCalib','CenterX');
+            g_strctEyeCalib.m_fSavedCenterY = fnTsGetVar('g_strctEyeCalib','CenterY');
 
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'GainX',1);
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'GainY',1);
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'CenterX', g_strctPTB.m_aiRect(3)/2);
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'CenterX', g_strctPTB.m_aiRect(4)/2);
+            fnTsSetVar('g_strctEyeCalib','GainX',1);
+            fnTsSetVar('g_strctEyeCalib','GainY',1);
+            fnTsSetVar('g_strctEyeCalib','CenterX', g_strctPTB.m_aiRect(3)/2);
+            fnTsSetVar('g_strctEyeCalib','CenterX', g_strctPTB.m_aiRect(4)/2);
 
         else
             g_strctDAQParams.m_bMouseGazeEmulator =0;
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'GainX',g_strctEyeCalib.m_fSavedGainX);
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'GainY',g_strctEyeCalib.m_fSavedGainY);
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'CenterX',g_strctEyeCalib.m_fSavedCenterX);
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'CenterY',g_strctEyeCalib.m_fSavedCenterY);
+            fnTsSetVar('g_strctEyeCalib','GainX',g_strctEyeCalib.m_fSavedGainX);
+            fnTsSetVar('g_strctEyeCalib','GainY',g_strctEyeCalib.m_fSavedGainY);
+            fnTsSetVar('g_strctEyeCalib','CenterX',g_strctEyeCalib.m_fSavedCenterX);
+            fnTsSetVar('g_strctEyeCalib','CenterY',g_strctEyeCalib.m_fSavedCenterY);
         end
     case 'stimulationttl'
+	 fnParadigmToKofikoComm('DisplayMessage','Disabled. Not implemented');
+	%{
         if ~isempty(g_strctAppConfig.m_strctDAQ.m_afStimulationPort)
             
             iChannel = varargin{1};
@@ -220,14 +266,14 @@ switch lower(strCommand)
                 fAmplitude = NaN;
             end;
             
-            acMicroStimSource = fnTsGetVar(g_strctDAQParams,'MicroStimSource');
-            
+            acMicroStimSource = fnTsGetVar(g_strctParadigm,'MicroStimSource');
+            %{
             if nargin > 3
                 strSource = varargin{4};
             else
                 strSource = acMicroStimSource{iChannel};
             end;
-            
+           %} 
             if iChannel >= 1 && iChannel <= length(g_strctAppConfig.m_strctDAQ.m_afStimulationPort)
                 fnDAQWrapper('TTL', g_strctAppConfig.m_strctDAQ.m_afStimulationPort(iChannel), 250*1e-6); % TTL width is 250 micro seconds or 0.25ms
                 fnDAQWrapper('StrobeWord',g_strctSystemCodes.m_iMicroStim);
@@ -237,7 +283,7 @@ switch lower(strCommand)
                 astrctTriggerInfo(1).m_iChannel = iChannel;
                 astrctTriggerInfo(1).m_fDelayToTrigMS = 0;
                 astrctTriggerInfo(1).m_fAmplitude = fAmplitude;
-                astrctTriggerInfo(1).m_strSource = strSource;
+               % astrctTriggerInfo(1).m_strSource = strSource;
                 g_strctDAQParams = fnTsSetVar(g_strctDAQParams,'MicroStimTriggers', astrctTriggerInfo);
                 
             else
@@ -247,8 +293,8 @@ switch lower(strCommand)
         else
             fnParadigmToKofikoComm('DisplayMessage','No stim port defined in XML');
         end
-
-        
+%}
+       
     case 'istouchmode'
          varargout{1} = isfield(g_strctStimulusServer,'m_hWindow');
  
@@ -310,7 +356,6 @@ switch lower(strCommand)
         % unknown kofiko command
         fnParadigmToKofikoComm('DisplayMessage', sprintf('Unknown API : %s', strCommand));
 end
-
 return;
 
     

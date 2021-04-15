@@ -51,7 +51,20 @@ if ~isempty(acInputFromKofiko)
                fnStimulusServerToKofikoParadigm('Pong',fRandomNumber);
         case 'InStereoMode'
                fnStimulusServerToKofikoParadigm('StereoMode',g_strctPTB.m_bInStereoMode);
-        case 'SetStereoMonoMode'
+		case 'LoadDefaultClut'
+			
+				Clut = zeros(256,3);
+				normalColors = round(linspace(1,65535,256));
+				[Clut(:,1), Clut(:,2), Clut(:,3)] = deal(normalColors);
+				gammaTable = zeros(256,3);
+				gammaVals = linspace(0,1,256);
+				[gammaTable(:,1),gammaTable(:,2),gammaTable(:,3)]  = deal(gammaVals);
+				Screen('LoadNormalizedGammaTable', g_strctPTB.m_hWindow, gammaTable);
+				BitsPlusSetClut(g_strctPTB.m_hWindow, Clut);
+				fnFlipWrapper(g_strctPTB.m_hWindow);
+				
+			
+		case 'SetStereoMonoMode'
               strMode = acInputFromKofiko{2};
               switch lower(strMode)
                   case 'mono'
@@ -77,6 +90,9 @@ if ~isempty(acInputFromKofiko)
         case 'DrawAttention'
             fnDrawAttentionStimServer();
             return;
+			
+		
+
         case 'LoadSounds'
             acSoundFileNames = acInputFromKofiko{2};
             g_strctSoundMedia.m_acSounds = fnLoadSoundsAux(acSoundFileNames);
@@ -87,7 +103,38 @@ if ~isempty(acInputFromKofiko)
             if ~isempty(g_strctServerCycle.m_strDrawFunc)
                 feval(g_strctServerCycle.m_strDrawFunc, acInputFromKofiko(2:end));
             end
+		% Changelog 10/14/13 Josh - unknown if this works or is necessary, sends resolution and framerate to control computer
+		case 'getresolution'
+			m_aiScreenSize = Screen('Resolution', g_strctStimulusServer.m_PTBScreen)
+			m_hz = Screen('NominalFrameRate',2)
+			fnStimulusServerToKofikoParadigm('SetStimulusServerResolution', m_aiScreenSize);
+			fnStimulusServerToKofikoParadigm('SetStimulusServerHZ',m_Hz);
+		% End Changelog ------------------------------------------------------
+		% Changelog 10/22/2013 Josh - FitToScreen comms, stimulus server side
+		case 'fittoscreenon'
+			g_strctPTB.m_bFitToScreen = 1;
+		case 'fittoscreenoff'
+			g_strctPTB.m_bFitToScreen = 0;
+		% End Changelog ------------------------------------------------------	
+		case 'InitializeGaborTexture'
+		if numel(acInputFromKofiko) == 5
+			g_strctServerCycle.m_hGabortex = CreateProceduralGabor(g_strctPTB.m_hWindow, acInputFromKofiko{2}, acInputFromKofiko{3}, acInputFromKofiko{4}, acInputFromKofiko{5});
+		else
+			g_strctServerCycle.m_hGabortex = CreateProceduralGabor(g_strctPTB.m_hWindow, acInputFromKofiko{2}, acInputFromKofiko{3}, acInputFromKofiko{4});
+		end
+		Clut(1:256,1) = round(linspace(0,65535,256)');
+		Clut(1:256,2) = round(linspace(0,65535,256)');
+		Clut(1:256,3) = round(linspace(0,65535,256)');
+		BitsPlusSetClut(g_strctPTB.m_hWindow, Clut)
+		 Screen('BlendFunction', g_strctPTB.m_hWindow, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+
+		case 'LoadDefaultBlendFunction'	
+			Screen('BlendFunction',g_strctPTB.m_hWindow, GL_ONE, GL_ZERO);
+		
+		
+		
     end
+
 else
     acInputFromKofiko = [];
 end;
@@ -104,11 +151,11 @@ global g_strctPTB  g_strctConfig
 if g_strctPTB.m_bRunning && ~g_strctConfig.m_strctStimulusServer.m_fVirtualServer
     if g_strctPTB.m_bInStereoMode
         Screen('SelectStereoDrawBuffer', g_strctPTB.m_hWindow,0); % Left Eye
-        Screen(g_strctPTB.m_hWindow,'FillRect',0);
+        Screen(g_strctPTB.m_hWindow,'FillRect',1);
         Screen('SelectStereoDrawBuffer', g_strctPTB.m_hWindow,1); % Right Eye
-        Screen(g_strctPTB.m_hWindow,'FillRect',0);
+        Screen(g_strctPTB.m_hWindow,'FillRect',1);
     else
-        Screen(g_strctPTB.m_hWindow,'FillRect',0);
+        Screen(g_strctPTB.m_hWindow,'FillRect',1);
     end
     fnFlipWrapper(g_strctPTB.m_hWindow);
 end
@@ -127,7 +174,7 @@ if g_strctConfig.m_strctStimulusServer.m_fVirtualServer
         fnStimulusServerToKofikoParadigm('RefreshRate',60);        
     else
         Screen('Preference', 'SkipSyncTests', 1);
-        [g_strctPTB.m_hWindow,g_strctPTB.m_aiRect] = Screen(g_strctConfig.m_strctStimulusServer.m_fPTBScreen,'OpenWindow',g_strctConfig.m_strctStimulusServer.m_fPTBScreen,[],[],2);
+        [g_strctPTB.m_hWindow,g_strctPTB.m_aiRect] = BitsPlusPlus(g_strctConfig.m_strctStimulusServer.m_fPTBScreen,'OpenWindowBits++',g_strctConfig.m_strctStimulusServer.m_fPTBScreen,[],[],2);
         g_strctPTB.m_iRefreshRate=Screen('FrameRate', g_strctConfig.m_strctStimulusServer.m_fPTBScreen);
         
         Screen('CloseAll');
@@ -159,11 +206,17 @@ else
             g_strctPTB.m_aiRect=Screen('Rect', g_strctConfig.m_strctStimulusServer.m_fPTBScreen);
             try
                 g_strctPTB.m_hWindow=Screen('OpenWindow',g_strctConfig.m_strctStimulusServer.m_fPTBScreen, 0,[],32,2, 0);
+				[g_strctPTB.m_hOffscreenWindow, g_strctPTB.m_hoffRect] = Screen('OpenOffscreenWindow', ...
+					g_strctConfig.m_strctStimulusServer.m_fPTBScreen, [1 1 1], [],32,2,0);
             catch
                 try
                     g_strctPTB.m_hWindow=Screen('OpenWindow',g_strctConfig.m_strctStimulusServer.m_fPTBScreen, 0,[],32,2, 0);
+					[g_strctPTB.m_hOffscreenWindow, g_strctPTB.m_hoffRect] = Screen('OpenOffscreenWindow', ...
+						g_strctConfig.m_strctStimulusServer.m_fPTBScreen, [1 1 1], [],32,2,0);
                 catch
                     g_strctPTB.m_hWindow=Screen('OpenWindow',g_strctConfig.m_strctStimulusServer.m_fPTBScreen, 0,[],32,2, 0);
+					[g_strctPTB.m_hOffscreenWindow, g_strctPTB.m_hoffRect] = Screen('OpenOffscreenWindow', ...
+						g_strctConfig.m_strctStimulusServer.m_fPTBScreen, [1 1 1], [],32,2,0);
                 end
             end
             

@@ -187,7 +187,7 @@ if g_strctParadigm.m_iCurrentMediaIndexInBlockList  > iNumMediaInBlock
             end
         end
         
-        fnTsSetVar(g_strctParadigm.m_strctControllers.m_hBlockLists,'value',g_strctParadigm.m_iCurrentBlockIndexInOrderList);
+        set(g_strctParadigm.m_strctControllers.m_hBlockLists,'value',g_strctParadigm.m_iCurrentBlockIndexInOrderList);
 
         iSelectedBlockNext = g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder.m_astrctBlockOrder(g_strctParadigm.m_iCurrentOrder).m_aiBlockIndexOrder(g_strctParadigm.m_iCurrentBlockIndexInOrderList);
         iNumMediaInBlock = length(g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder.m_astrctBlocks(iSelectedBlockNext).m_aiMedia);

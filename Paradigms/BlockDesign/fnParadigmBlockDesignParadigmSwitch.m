@@ -10,7 +10,7 @@ global g_strctParadigm g_strctStimulusServer
 switch strEvent
     case 'Init'
         % Get the current image list
-        strImageList = fnTsGetVar(g_strctParadigm, 'ImageList');
+        strImageList = fnTsGetVar('g_strctParadigm', 'ImageList');
         if ~isempty(strImageList)
             fnParadigmToKofikoComm('JuiceOff');
 

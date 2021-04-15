@@ -17,11 +17,11 @@ strctDesign.TrialTypeToConditionMatrix = [];
 strctDesign.ConditionOutcomeFilter = cell(0);
 strctDesign.NumTrialsInCircularBuffer = 200;
 
-fTimeOut = fnTsGetVar(g_strctParadigm,'TimeoutMS')/1e3;
-fHoldFixationToStartTrial = fnTsGetVar(g_strctParadigm,'HoldFixationToStartTrialMS')/1e3;
-fDelayBeforeChoices = fnTsGetVar(g_strctParadigm,'DelayBeforeChoicesMS')/1e3;
-fMemoryInterval= fnTsGetVar(g_strctParadigm,'MemoryIntervalMS')/1e3;
-fFixationTimeOut = fnTsGetVar(g_strctParadigm,'FixationTimeOutMS')/1e3;
+fTimeOut = fnTsGetVar('g_strctParadigm','TimeoutMS')/1e3;
+fHoldFixationToStartTrial = fnTsGetVar('g_strctParadigm','HoldFixationToStartTrialMS')/1e3;
+fDelayBeforeChoices = fnTsGetVar('g_strctParadigm','DelayBeforeChoicesMS')/1e3;
+fMemoryInterval= fnTsGetVar('g_strctParadigm','MemoryIntervalMS')/1e3;
+fFixationTimeOut = fnTsGetVar('g_strctParadigm','FixationTimeOutMS')/1e3;
 
 strctDesign.TrialLengthSec = max(fFixationTimeOut, fHoldFixationToStartTrial+ fDelayBeforeChoices + fMemoryInterval + fTimeOut);
 strctDesign.Pre_TimeSec = 0.5;
@@ -36,7 +36,7 @@ strctDesign.ConditionOutcomeFilter = cell(1,2);
 strctDesign.ConditionOutcomeFilter{1} = TRIAL_OUTCOME_CORRECT;
 strctDesign.ConditionOutcomeFilter{2} = TRIAL_OUTCOME_INCORRECT;
 strctDesign.ConditionNames = {'Correct Trial','Incorrect Trial'};
-[strDummy,strctDesign.DesignName]= fileparts(fnTsGetVar(g_strctParadigm,'DesignFileName'));
+[strDummy,strctDesign.DesignName]= fileparts(fnTsGetVar('g_strctParadigm','DesignFileName'));
 g_strctParadigm.m_strctStatServerDesign = strctDesign;
 if fnParadigmToStatServerComm('IsConnected')
     fnParadigmToStatServerComm('SendDesign', g_strctParadigm.m_strctStatServerDesign);

@@ -34,13 +34,13 @@ switch g_strctParadigm.m_iMachineState
          
     case 1 % Run some tests that everything is OK. Then goto 2
         if isfield(g_strctParadigm,'m_aiImageList') && isfield(g_strctParadigm,'m_afDisplayTimeMS')
-            acBlockRunOrder = fnTsGetVar(g_strctParadigm, 'BlockRunOrder');
+            acBlockRunOrder = fnTsGetVar('g_strctParadigm', 'BlockRunOrder');
             aiSelectedMicroStimBlocks = get(g_strctParadigm.m_strctControllers.m_strctMicroStimControllers.hBlockRunList,'value');
             g_strctParadigm.m_abMicroStimBlocks = zeros(1,length(acBlockRunOrder)) > 0;
             g_strctParadigm.m_abMicroStimBlocks(aiSelectedMicroStimBlocks) = true;
             
-            fTR_MS = fnTsGetVar(g_strctParadigm,'TR');
-            iNumTRsPerBlock = fnTsGetVar(g_strctParadigm,'NumTRsPerBlock');
+            fTR_MS = fnTsGetVar('g_strctParadigm','TR');
+            iNumTRsPerBlock = fnTsGetVar('g_strctParadigm','NumTRsPerBlock');
             g_strctParadigm.m_fBlockLengthSec = iNumTRsPerBlock*fTR_MS/1e3;
             
             g_strctParadigm.m_iMachineState = 2;
@@ -66,8 +66,8 @@ switch g_strctParadigm.m_iMachineState
         if fCurrTime-g_strctParadigm.m_fFixationCmdTimer > 0.5
         
            if g_strctParadigm.m_bFixationWhileNotScanning
-                fFixationSizePix = fnTsGetVar(g_strctParadigm, 'FixationSizePix');
-                afBackgroundColor = fnTsGetVar(g_strctParadigm, 'BackgroundColor');
+                fFixationSizePix = fnTsGetVar('g_strctParadigm', 'FixationSizePix');
+                afBackgroundColor = fnTsGetVar('g_strctParadigm', 'BackgroundColor');
                 fnParadigmToStimulusServer('ShowFixation', fFixationSizePix,afBackgroundColor);
             else
                 fnParadigmToStimulusServer('ClearScreen');
@@ -82,10 +82,10 @@ switch g_strctParadigm.m_iMachineState
             g_strctParadigm.m_bSimulatedTrigger = false;
             fnParadigmToKofikoComm('StartRecording',0);
             
-            fFixationSizePix = fnTsGetVar(g_strctParadigm, 'FixationSizePix');
-            fStimulusSizePix = fnTsGetVar(g_strctParadigm, 'StimulusSizePix');
-            fRotationAngle = fnTsGetVar(g_strctParadigm, 'RotationAngle');
-            afBackgroundColor = fnTsGetVar(g_strctParadigm, 'BackgroundColor');
+            fFixationSizePix = fnTsGetVar('g_strctParadigm', 'FixationSizePix');
+            fStimulusSizePix = fnTsGetVar('g_strctParadigm', 'StimulusSizePix');
+            fRotationAngle = fnTsGetVar('g_strctParadigm', 'RotationAngle');
+            afBackgroundColor = fnTsGetVar('g_strctParadigm', 'BackgroundColor');
 
             fnTsSetVarParadigm('RecordedRun', {g_strctParadigm.m_aiImageList, g_strctParadigm.m_afDisplayTimeMS,g_strctParadigm.m_abMicroStimBlocks});
             
@@ -106,7 +106,7 @@ switch g_strctParadigm.m_iMachineState
         end
     case 3
         % Micro-stim ?
-        fMicroStimRateSec = fnTsGetVar(g_strctParadigm,'MicroStimCycleMS') / 1e3;
+        fMicroStimRateSec = fnTsGetVar('g_strctParadigm','MicroStimCycleMS') / 1e3;
         g_strctParadigm.m_iCurrentBlock = 1+floor( (fCurrTime - g_strctParadigm.m_fStimulusStartTimer) / g_strctParadigm.m_fBlockLengthSec);
         
 %         if fCurrTime - g_strctParadigm.m_fBlockTimer > g_strctParadigm.m_fBlockLengthSec

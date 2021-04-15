@@ -5,7 +5,7 @@ function fnSaveParadigmsToDisk(bCropBuffer)
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (see GPL.txt)
 
-global g_iCurrParadigm g_astrctAllParadigms g_strctParadigm  g_strctDAQParams g_strctLog
+global g_iCurrParadigm g_astrctAllParadigms g_strctParadigm  g_strctDAQParams g_strctLog g_strctLocalExperimentRecording
 global g_strctSystemCodes g_strLogFileName g_strctAppConfig g_strctEyeCalib g_strctStimulusServer g_handles g_strctSharedParadigmData
 
 strOutFile = [g_strLogFileName(1:end-4),'.mat'];
@@ -28,7 +28,7 @@ end;
 fprintf('Saving Kofiko file...(%s)!\n',strOutFile);
 
 save(strOutFile,'g_astrctAllParadigms','g_strctAppConfig','g_strctSystemCodes',...
-    'g_strctEyeCalib','g_strctDAQParams','g_strctLog','g_strctStimulusServer','g_strctSharedParadigmData');
+    'g_strctEyeCalib','g_strctDAQParams','g_strctLog','g_strctStimulusServer','g_strctSharedParadigmData','g_strctLocalExperimentRecording');
 
 fprintf('Data saved!\n');
 

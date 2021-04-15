@@ -1,6 +1,7 @@
 # System Events
 0 No Stimulus
 
+32754 StatServerSyncRequest
 32755 Micro Stimulation
 32756 Paradigm Switch
 32757 Sync
@@ -14,3 +15,4 @@
 32765 Juice ON
 32766 Stop Recording
 32767 Start Recording
+

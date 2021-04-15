@@ -1,12 +1,16 @@
 function strctConfig = fnRecursiveParse(strctRAW,strctConfig,strRoot, iDepth,bAugmentDepth,iParentIndex)
 iNumElements = length(strctRAW);
 
+%nested for loops; iterates through all elements in the input xml, and through all attributes in elements
 for iElementIter=1:iNumElements
+	% if .name field of struct has string comment or name or both - continue
     if strcmpi(strctRAW(iElementIter).Name,'#comment')  || strcmpi(strctRAW(iElementIter).Name,'#text')
         continue;
     end;
     
+	%set inumattributes to the length of the number of attributes in subsection # (current iteration of for loop) of strctraw
     iNumAttributes = length(strctRAW(iElementIter).Attributes);
+	%if current section is not empty
     if iNumAttributes > 0
         % Add attributes
         strctTmp = [];
@@ -27,7 +31,8 @@ for iElementIter=1:iNumElements
                 strctTmp = setfield(strctTmp,'XML_Ordering',[iDepth iParentIndex]);
             end
         
-      %  fprintf('Adding %s\n',strctRAW(iElementIter).Name);
+	 
+        %fprintf('Adding %s\n',strctRAW(iElementIter).Name);
         eval([strRoot,' = strctTmp;';]);
     end
     

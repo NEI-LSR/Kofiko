@@ -65,9 +65,9 @@ switch g_strctParadigm.m_iMachineState
         if fCurrTime-g_strctParadigm.m_fFixationCmdTimer > 0.5
         
            if g_strctParadigm.m_bFixationWhileNotScanning
-                fFixationSizePix = fnTsGetVar(g_strctParadigm, 'FixationSizePix');
-                afBackgroundColor = fnTsGetVar(g_strctParadigm, 'BackgroundColor');
-                afFixationColor = fnTsGetVar(g_strctParadigm, 'FixationSpotColor');
+                fFixationSizePix = fnTsGetVar('g_strctParadigm', 'FixationSizePix');
+                afBackgroundColor = fnTsGetVar('g_strctParadigm', 'BackgroundColor');
+                afFixationColor = fnTsGetVar('g_strctParadigm', 'FixationSpotColor');
                 fnParadigmToStimulusServer('ShowFixation', fFixationSizePix,afBackgroundColor,afFixationColor);
             else
                 fnParadigmToStimulusServer('ClearScreen');
@@ -82,11 +82,11 @@ switch g_strctParadigm.m_iMachineState
             g_strctParadigm.m_bSimulatedTrigger = false;
             fnParadigmToKofikoComm('StartRecording',0);
             
-            fFixationSizePix = fnTsGetVar(g_strctParadigm, 'FixationSizePix');
-            fStimulusSizePix = fnTsGetVar(g_strctParadigm, 'StimulusSizePix');
-            fRotationAngle = fnTsGetVar(g_strctParadigm, 'RotationAngle');
-            afBackgroundColor = fnTsGetVar(g_strctParadigm, 'BackgroundColor');
-            afFixationColor = fnTsGetVar(g_strctParadigm, 'FixationSpotColor');
+            fFixationSizePix = fnTsGetVar('g_strctParadigm', 'FixationSizePix');
+            fStimulusSizePix = fnTsGetVar('g_strctParadigm', 'StimulusSizePix');
+            fRotationAngle = fnTsGetVar('g_strctParadigm', 'RotationAngle');
+            afBackgroundColor = fnTsGetVar('g_strctParadigm', 'BackgroundColor');
+            afFixationColor = fnTsGetVar('g_strctParadigm', 'FixationSpotColor');
          
             fnTsSetVarParadigm('RecordedRun', g_strctParadigm.m_strctCurrentRun);
             
@@ -149,11 +149,6 @@ switch g_strctParadigm.m_iMachineState
                 
                 g_strctParadigm.m_bGetAnotherSyncTimeStamp = true;
                 g_strctParadigm.m_bFirstTriggerArrived = false;
-                g_strctParadigm.m_iActiveOrder = g_strctParadigm.m_iActiveOrder + 1;
-                if (g_strctParadigm.m_iActiveOrder > length(g_strctParadigm.m_strctDesign.m_acBlockOrders))
-                    g_strctParadigm.m_iActiveOrder = 1;
-                end
-                set(g_strctParadigm.m_strctDesignControllers.m_hDesignOrder,'value', g_strctParadigm.m_iActiveOrder);
             end
         end
         

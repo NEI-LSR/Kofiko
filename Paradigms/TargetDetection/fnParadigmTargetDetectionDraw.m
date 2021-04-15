@@ -8,7 +8,7 @@ function fnParadigmTargetDetectionDraw()
 global g_strctPTB g_strctParadigm
 % Do not call Flip, just draw everything to the screen.
 
-fHitRadius = fnTsGetVar(g_strctParadigm,'HitRadius');
+fHitRadius = fnTsGetVar('g_strctParadigm','HitRadius');
 
 
 if isfield(g_strctParadigm,'m_strctCurrentTrial') && ~isempty(g_strctParadigm.m_strctCurrentTrial) && isfield(g_strctParadigm.m_strctCurrentTrial,'m_fObjectHalfSizePix')
@@ -55,11 +55,11 @@ if isfield(g_strctParadigm,'m_strctCurrentTrial') && ~isempty(g_strctParadigm.m_
 end
 
 
-iNumTargets = fnTsGetVar(g_strctParadigm,'NumTargets');
-iNumNonTargets = fnTsGetVar(g_strctParadigm,'NumNonTargets');
-fObjectHalfSizePix = fnTsGetVar(g_strctParadigm,'ObjectHalfSizePix');
+iNumTargets = fnTsGetVar('g_strctParadigm','NumTargets');
+iNumNonTargets = fnTsGetVar('g_strctParadigm','NumNonTargets');
+fObjectHalfSizePix = fnTsGetVar('g_strctParadigm','ObjectHalfSizePix');
 aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-fFixationRadiusPix = fnTsGetVar(g_strctParadigm,'FixationRadiusPix');
+fFixationRadiusPix = fnTsGetVar('g_strctParadigm','FixationRadiusPix');
 
 aiFixationRect = [aiScreenSize(3:4)/2 - fFixationRadiusPix,aiScreenSize(3:4)/2 + fFixationRadiusPix];
 Screen('FrameArc', g_strctPTB.m_hWindow, [150 150 150],g_strctPTB.m_fScale * aiFixationRect,0,360);

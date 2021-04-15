@@ -1,6 +1,6 @@
 function strctTrial = fnHandMappingPrepareTrial()
 %
-% Copyright (c) 2008 Shay Ohayon, California Institute of Technology.
+% Copyright (c) 2015 Joshua Fuller-Deets, Massachusetts Institute of Technology.
 % This file is a part of a free software. you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (see GPL.txt)
@@ -9,55 +9,660 @@ global g_strctParadigm g_strctPTB
 ClockRandSeed();
 % Give Kofiko something to chew on later
 iNewStimulusIndex = 1;
-strctTrial.m_strTrialType = g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder.m_astrctBlocks(g_strctParadigm.m_iCurrentBlockIndexInOrderList).m_strBlockName;
-strctTrial.m_iStimulusIndex = iNewStimulusIndex;
-strctTrial.m_strctMedia = g_strctParadigm.m_strctDesign.m_astrctMedia(iNewStimulusIndex);
-strctTrial.m_pt2iFixationSpot = g_strctParadigm.FixationSpotPix.Buffer(1,:,g_strctParadigm.FixationSpotPix.BufferIdx);
-strctTrial.m_pt2fStimulusPos = g_strctParadigm.StimulusPos.Buffer(1,:,g_strctParadigm.StimulusPos.BufferIdx);
-strctTrial.m_fFixationSizePix = g_strctParadigm.FixationSizePix.Buffer(1,:,g_strctParadigm.FixationSizePix.BufferIdx);
-strctTrial.m_fGazeBoxPix = g_strctParadigm.GazeBoxPix.Buffer(1,:,g_strctParadigm.GazeBoxPix.BufferIdx);
-strctTrial.m_fStimulusSizePix = g_strctParadigm.StimulusSizePix.Buffer(1,:,g_strctParadigm.StimulusSizePix.BufferIdx);
-strctTrial.m_bShowPhotodiodeRect = g_strctParadigm.m_bShowPhotodiodeRect;
-strctTrial.m_iLocalFrameCounter = 1;
-strctTrial.m_bColorUpdated = 0;
-strctTrial.m_bBlur = 0;
+
+trialDesignID =  get(g_strctParadigm.m_strctControllers.m_hFavoriteLists,'value');
+cImageListNames = get(g_strctParadigm.m_strctControllers.m_hFavoriteLists,'string');
+%trialDesignType = deblank(cImageListNames(trialDesignID,:));
 
 
-switch strctTrial.m_strTrialType
-    case 'Plain Bar'
-        [strctTrial] = fnPreparePlainBarTrial(g_strctPTB, strctTrial);
-    case 'Moving Bar'
-        [strctTrial] = fnPrepareMovingBarTrial(g_strctParadigm, g_strctPTB, strctTrial);
-    case 'Moving Dots'
-        [g_strctParadigm, strctTrial] = fnPrepareMovingDiscTrial(g_strctParadigm, g_strctPTB, strctTrial);
-    case 'Color Tuning Function'
-        [g_strctParadigm, strctTrial] = fnPrepareColorTuningFunctionTrial(g_strctParadigm, g_strctPTB, strctTrial);
-    case 'Orientation Tuning Function'
-        [g_strctParadigm, strctTrial] = fnPrepareOrientationFunctionTrial(g_strctParadigm, g_strctPTB, strctTrial);
-    case 'Gabor'
-        [g_strctParadigm, strctTrial] = fnPrepareRealTimeGaborTrial(g_strctParadigm, g_strctPTB, strctTrial);
-	case 'Position Tuning Function'
-        [g_strctParadigm, strctTrial] = fnPreparePositionTuningFunctionTrial(g_strctParadigm, g_strctPTB, strctTrial);
+% Add new paradigm types here. Stimulus blocks inside of a paradigm do not need their own case
+switch deblank(cImageListNames(trialDesignID,:))
+    case 'Images'
+        g_strctParadigm.m_strTrialType = 'Image';
         
+    case 'Movies'
+        g_strctParadigm.m_strTrialType = 'Movie';
+        
+    otherwise
+        g_strctParadigm.m_strTrialType = g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder.m_astrctBlocks(g_strctParadigm.m_iCurrentBlockIndexInOrderList).m_strBlockName;
 end
+g_strctParadigm.m_iLastShownTrialID = 1;
+%{
+if g_strctParadigm.m_bPlanTrialsInAdvance
+    numTrialsToPlan = round(g_strctParadigm.PlanAheadTime.Buffer(1,:,g_strctParadigm.PlanAheadTime.BufferIdx) /...
+        g_strctPTB.g_strctStimulusServer.m_RefreshRateMS);
+    
+    for iTrialsToPlan = 1:numTrialsToPlan
+        strctTrial(iTrialsToPlan).m_strTrialType =  g_strctParadigm.m_strTrialType;
+        strctTrial(iTrialsToPlan).m_iStimulusIndex = iNewStimulusIndex;
+        strctTrial(iTrialsToPlan).m_strctMedia = g_strctParadigm.m_strctDesign.m_astrctMedia(iNewStimulusIndex);
+        strctTrial(iTrialsToPlan).m_pt2iFixationSpot = g_strctParadigm.FixationSpotPix.Buffer(1,:,g_strctParadigm.FixationSpotPix.BufferIdx);
+        strctTrial(iTrialsToPlan).m_pt2fStimulusPos = g_strctParadigm.StimulusPos.Buffer(1,:,g_strctParadigm.StimulusPos.BufferIdx);
+        strctTrial(iTrialsToPlan).m_fFixationSizePix = g_strctParadigm.FixationSizePix.Buffer(1,:,g_strctParadigm.FixationSizePix.BufferIdx);
+        strctTrial(iTrialsToPlan).m_fGazeBoxPix = g_strctParadigm.GazeBoxPix.Buffer(1,:,g_strctParadigm.GazeBoxPix.BufferIdx);
+        strctTrial(iTrialsToPlan).m_fStimulusSizePix = g_strctParadigm.StimulusSizePix.Buffer(1,:,g_strctParadigm.StimulusSizePix.BufferIdx);
+        strctTrial(iTrialsToPlan).m_bShowPhotodiodeRect = g_strctParadigm.m_bShowPhotodiodeRect;
+        strctTrial(iTrialsToPlan).m_iLocalFrameCounter = 1;
+        strctTrial(iTrialsToPlan).m_bColorUpdated = 0;
+        strctTrial(iTrialsToPlan).m_bBlur = 0;
+        strctTrial(iTrialsToPlan).m_bClipStimulusOutsideStimArea = g_strctParadigm.m_bClipStimulusOutsideStimArea;
+        strctTrial(iTrialsToPlan).m_bUseBitsPlusPlus = 1;
+        g_strctParadigm.m_strctCurrentTrial.m_bDrawScreenCoords = 1;
+        strctTrial(iTrialsToPlan).m_bFlipForegroundBackground = g_strctParadigm.m_bFlipForegroundBackground;
+        strctTrial(iTrialsToPlan).m_fImageFlipON_TS_StimulusServer = [];
+        strctTrial(iTrialsToPlan).m_fImageFlipON_TS_Kofiko = [];
+        strctTrial(iTrialsToPlan).m_bColorShift = 0;
+        strctTrial(iTrialsToPlan).m_iShiftOffset = 0;
+        strctTrial(iTrialsToPlan).m_bUseGaussianPulses  = g_strctParadigm.m_bUseGaussianPulses ;
+        strctTrial(iTrialsToPlan).m_bRandomStimulusPosition = g_strctParadigm.m_bRandomStimulusPosition;
+        strctTrial(iTrialsToPlan).m_iNumberOfBars = 1;
+        strctTrial(iTrialsToPlan).m_acCurrentlyVariableFields = g_strctParadigm.m_acCurrentlyVariableFields;
+        strctTrial(iTrialsToPlan).m_bDifferentColorsForDifferentBars = 0;
+        strctTrial(iTrialsToPlan).m_bUseStrobes = 0;
+        
+        
+        aiStimulusScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
+        strctTrial(iTrialsToPlan).m_aiNonStimulusAreas = [0,0, aiStimulusScreenSize(3), min(g_strctParadigm.m_aiStimulusRect(2),aiStimulusScreenSize(4));...
+            0,0,min(aiStimulusScreenSize(3),g_strctParadigm.m_aiStimulusRect(1)),aiStimulusScreenSize(4);...
+            0, min(aiStimulusScreenSize(4),g_strctParadigm.m_aiStimulusRect(4)), aiStimulusScreenSize(3), aiStimulusScreenSize(4);...
+            min(aiStimulusScreenSize(3),g_strctParadigm.m_aiStimulusRect(3)), 0,aiStimulusScreenSize(3), aiStimulusScreenSize(4)]';
+        strctTrial(iTrialsToPlan).m_aiStimulusRect = g_strctParadigm.m_aiStimulusRect;
+        
+%}
 
+% end
+%else
+tmpstrctTrial.m_strTrialType = g_strctParadigm.m_strTrialType ;
+tmpstrctTrial.m_iStimulusIndex = iNewStimulusIndex;
+tmpstrctTrial.m_strctMedia = g_strctParadigm.m_strctDesign.m_astrctMedia(iNewStimulusIndex);
+tmpstrctTrial.m_pt2iFixationSpot = g_strctParadigm.FixationSpotPix.Buffer(1,:,g_strctParadigm.FixationSpotPix.BufferIdx);
+tmpstrctTrial.m_pt2fStimulusPos = g_strctParadigm.StimulusPos.Buffer(1,:,g_strctParadigm.StimulusPos.BufferIdx);
+tmpstrctTrial.m_fFixationSizePix = g_strctParadigm.FixationSizePix.Buffer(1,:,g_strctParadigm.FixationSizePix.BufferIdx);
+tmpstrctTrial.m_fGazeBoxPix = g_strctParadigm.GazeBoxPix.Buffer(1,:,g_strctParadigm.GazeBoxPix.BufferIdx);
+tmpstrctTrial.m_fStimulusSizePix = g_strctParadigm.StimulusSizePix.Buffer(1,:,g_strctParadigm.StimulusSizePix.BufferIdx);
+tmpstrctTrial.m_iLocalFrameCounter = 1;
+g_strctParadigm.m_strctCurrentTrial.m_bDrawScreenCoords = 1;
+tmpstrctTrial.m_fImageFlipON_TS_StimulusServer = [];
+tmpstrctTrial.m_fImageFlipON_TS_Kofiko = [];
+%tmpstrctTrial.m_bColorShift = 0;
+tmpstrctTrial.m_iShiftOffset = 0;
+tmpstrctTrial.m_iNumberOfBars = 1;
+tmpstrctTrial.m_acCurrentlyVariableFields = g_strctParadigm.m_acCurrentlyVariableFields;
+tmpstrctTrial.m_iColorSteps = 0;
+
+tmpstrctTrial.m_bIsColorWheelTrial = false;
+tmpstrctTrial.m_bRandomOrientation = false;
+tmpstrctTrial.m_bShiftOffsetTrial = false;
+tmpstrctTrial.m_bUseGaussianPulses  = g_strctParadigm.m_bUseGaussianPulses ;
+tmpstrctTrial.m_bRandomStimulusPosition = g_strctParadigm.m_bRandomStimulusPosition;
+tmpstrctTrial.m_bDifferentColorsForDifferentBars = 0;
+tmpstrctTrial.m_bUseStrobes = 0;
+tmpstrctTrial.m_bUsingPresetColor = false;
+tmpstrctTrial.m_bVariableTestObject = false;
+tmpstrctTrial.m_bRandomStimulusOrientation = false;
+tmpstrctTrial.m_bColorUpdated = 0;
+tmpstrctTrial.m_bBlur = 0;
+tmpstrctTrial.m_bClipStimulusOutsideStimArea = g_strctParadigm.m_bClipStimulusOutsideStimArea;
+tmpstrctTrial.m_bUseBitsPlusPlus = 1;
+tmpstrctTrial.m_bShowPhotodiodeRect = g_strctParadigm.m_bShowPhotodiodeRect;
+tmpstrctTrial.m_bFlipForegroundBackground = g_strctParadigm.m_bFlipForegroundBackground;
+tmpstrctTrial.m_bReverseColorOrder = false;
+tmpstrctTrial.m_bRandomColor = false;
+
+
+aiStimulusScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
+tmpstrctTrial.m_aiNonStimulusAreas = [0,0, aiStimulusScreenSize(3), min(g_strctParadigm.m_aiStimulusRect(2),aiStimulusScreenSize(4));...
+    0,0,min(aiStimulusScreenSize(3),g_strctParadigm.m_aiStimulusRect(1)),aiStimulusScreenSize(4);...
+    0, min(aiStimulusScreenSize(4),g_strctParadigm.m_aiStimulusRect(4)), aiStimulusScreenSize(3), aiStimulusScreenSize(4);...
+    min(aiStimulusScreenSize(3),g_strctParadigm.m_aiStimulusRect(3)), 0,aiStimulusScreenSize(3), aiStimulusScreenSize(4)]';
+tmpstrctTrial.m_aiStimulusRect = g_strctParadigm.m_aiStimulusRect;
+%end
+
+% DEFUNCT
+% used for queued trial code, was not successful. bPlanTrialsInAdvance is set to false by default
+if g_strctParadigm.m_bPlanTrialsInAdvance
+    numTrialsToPlan = round(g_strctParadigm.PlanAheadTime.Buffer(1,:,g_strctParadigm.PlanAheadTime.BufferIdx) /...
+        g_strctPTB.g_strctStimulusServer.m_RefreshRateMS);
+    
+    switch  g_strctParadigm.m_strTrialType
+        % only two cases here with 1 frame / trial that we should plan ahead for
+        % can change later for very short moving bar trials etc
+        case 'Plain Bar'
+            for iPlannedTrials = 1:numTrialsToPlan
+                
+                strctTrial(iPlannedTrials).trial = fnPreparePlainBarTrial(g_strctPTB, tmpstrctTrial);
+                strctTrial(iPlannedTrials).trial.m_iPlanAheadTrialID = iPlannedTrials;
+                
+            end
+        case 'Moving Bar'
+            [strctTrial.trial] = fnPrepareMovingBarTrial(g_strctPTB, tmpstrctTrial);
+        case 'Moving Disc'
+            [g_strctParadigm, strctTrial.trial] = fnPrepareMovingDiscTrial(g_strctParadigm, g_strctPTB, tmpstrctTrial);
+        case 'Gabor'
+            for iPlannedTrials = 1:numTrialsToPlan
+                [g_strctParadigm, strctTrial(iPlannedTrials).trial] = fnPrepareRealTimeGaborTrial(g_strctParadigm, g_strctPTB, tmpstrctTrial);
+                strctTrial(iPlannedTrials).trial.m_iPlanAheadTrialID = iPlannedTrials;
+            end
+        case 'Two Bar'
+            [strctTrial.trial] = fnPrepare2BarTrial(g_strctPTB, tmpstrctTrial);
+            
+        case 'Image'
+            [strctTrial.trial] = fnPrepareImageTrial(g_strctPTB, tmpstrctTrial);
+    end
+    
+    % for identifying this trial when the stimulus server reports it has been shown
+    
+    
+else
+    switch g_strctParadigm.m_strTrialType
+        case 'Plain Bar'
+            [strctTrial.trial] = fnPreparePlainBarTrial(g_strctPTB, tmpstrctTrial);
+        case 'Moving Bar'
+            [strctTrial.trial] = fnPrepareMovingBarTrial(g_strctPTB, tmpstrctTrial);
+        case 'Moving Disc'
+            [g_strctParadigm, strctTrial.trial] = fnPrepareMovingDiscTrial(g_strctParadigm, g_strctPTB, tmpstrctTrial);
+        case 'Gabor'
+            [g_strctParadigm, strctTrial.trial] = fnPrepareRealTimeGaborTrial(g_strctParadigm, g_strctPTB, tmpstrctTrial);
+        case 'Two Bar'
+            [strctTrial.trial] = fnPrepare2BarTrial(g_strctPTB, tmpstrctTrial);
+            
+        case 'Image'
+            [strctTrial.trial] = fnPrepareImageTrial(g_strctPTB, tmpstrctTrial);
+            
+        case 'Movie'
+            [strctTrial.trial] = fnPrepareMovieTrial(g_strctPTB, tmpstrctTrial);
+        case 'Many Bar'
+            [strctTrial.trial] = fnPrepareManyBarTrial(g_strctPTB, tmpstrctTrial);
+    end
+    
+    
+end
 return;
 
 
 % ------------------------------------------------------------------------------------------------------------------------
 
-function [strctTrial] = fnPreparePlainBarTrial(g_strctPTB, strctTrial)
-global g_strctStimulusServer g_strctParadigm
+function [strctTrial] = fnPrepareMovieTrial(g_strctPTB, strctTrial)
+global g_strctParadigm
 
-strctTrial.m_bUseStrobes = 0; 
+g_strctParadigm.m_bMovieStartedLocally = false;
+g_strctParadigm.m_bFirstMovieFrameDisplayed = false;
+
+
+
+
 
 strctTrial.m_iFixationColor = [255 255 255];
 
-strctTrial.m_iLength = squeeze(g_strctParadigm.StaticBarLength.Buffer(1,:,g_strctParadigm.StaticBarLength.BufferIdx));
-strctTrial.m_iWidth = squeeze(g_strctParadigm.StaticBarWidth.Buffer(1,:,g_strctParadigm.StaticBarWidth.BufferIdx));
-strctTrial.m_fRotationAngle = squeeze(g_strctParadigm.StaticBarOrientation.Buffer(1,:,g_strctParadigm.StaticBarOrientation.BufferIdx));
-strctTrial.numberBlurSteps = round(squeeze(g_strctParadigm.StaticBarBlurSteps.Buffer(1,:,g_strctParadigm.StaticBarBlurSteps.BufferIdx)));
-strctTrial.m_bBlur  = squeeze(g_strctParadigm.StaticBarBlur.Buffer(1,:,g_strctParadigm.StaticBarBlur.BufferIdx));
+
+strctTrial.m_fMovieWidthMultiplier = squeeze(g_strctParadigm.MovieWidth.Buffer(1,:,g_strctParadigm.MovieWidth.BufferIdx))/100;
+strctTrial.m_fMovieHeightMultiplier = squeeze(g_strctParadigm.MovieLength.Buffer(1,:,g_strctParadigm.MovieLength.BufferIdx))/100;
+strctTrial.m_bAspectRatioLocked = g_strctParadigm.m_strctMovieStim.m_bLockAspectRatio;
+
+
+currentBlockStimBGColorsR = [g_strctParadigm.m_strCurrentlySelectedBlock,'BackgroundRed'];
+currentBlockStimBGColorsG = [g_strctParadigm.m_strCurrentlySelectedBlock,'BackgroundGreen'];
+currentBlockStimBGColorsB = [g_strctParadigm.m_strCurrentlySelectedBlock,'BackgroundBlue'];
+
+strctTrial.m_fRotationAngle = squeeze(g_strctParadigm.MovieOrientation.Buffer(1,:,g_strctParadigm.MovieOrientation.BufferIdx));
+
+strctTrial.m_afLocalBackgroundColor = [squeeze(g_strctParadigm.(currentBlockStimBGColorsR).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsR).BufferIdx))...
+    squeeze(g_strctParadigm.(currentBlockStimBGColorsG).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsG).BufferIdx))...
+    squeeze(g_strctParadigm.(currentBlockStimBGColorsB).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsB).BufferIdx))];
+
+strctTrial.m_afBackgroundColor = strctTrial.m_afLocalBackgroundColor;
+
+
+
+%[strctTrial.m_iMovieBlockIndex, g_strctParadigm.m_strctMovieStim.m_iSelectedMovieBlock] = deal(g_strctParadigm.m_iCurrentBlockIndexInOrderList);
+[strctTrial.m_iMovieBlockIndex, g_strctParadigm.m_strctMovieStim.m_iSelectedMovieBlock] = deal(g_strctParadigm.m_iCurrentlyPlayingMovieList);
+
+if g_strctParadigm.m_strctMovieStim.m_bRandomOrder
+    iSelectedStimulus = randi(numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths));
+    %iSelectedStimulus = deal(randi(numel(g_strctParadigm.m_strctMovieStim.ahTextures)));
+    %strctTrial.m_iMovieIndex = g_strctParadigm.m_strctMovieStim.m_iSelectedMovie;
+elseif g_strctParadigm.m_strctMovieStim.m_bReverseOrder
+    iSelectedStimulus = g_strctParadigm.m_strctMovieStim.m_iSelectedMovie - 1;
+    if iSelectedStimulus < 1
+        %iSelectedStimulus = numel(g_strctParadigm.m_strctMovieStim.m_ahMovieHandles);
+        iSelectedStimulus = numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths);
+    end
+    %[strctTrial.m_iMovieIndex, g_strctParadigm.m_strctMovieStim.m_iSelectedMovie] = deal(iSelectedStimulus);
+    
+else
+    iSelectedStimulus = g_strctParadigm.m_strctMovieStim.m_iSelectedMovie + 1;
+    %if iSelectedStimulus > numel(g_strctParadigm.m_strctMovieStim.m_ahMovieHandles)
+    if iSelectedStimulus > numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths)
+        iSelectedStimulus = 1;
+    end
+end
+[strctTrial.m_iMovieIndex, g_strctParadigm.m_strctMovieStim.m_iSelectedMovie] = deal(iSelectedStimulus);
+g_strctParadigm.m_strctMovieStim.m_iDisplayCount(iSelectedStimulus) = g_strctParadigm.m_strctMovieStim.m_iDisplayCount(iSelectedStimulus) + 1;
+if g_strctParadigm.m_strctMovieStim.m_bContinueInMovieListWhenComplete && sum(g_strctParadigm.m_strctMovieStim.m_iDisplayCount) >= g_strctParadigm.m_strctMovieStim.m_iNumMoviesInThisBlock
+	feval(g_strctParadigm.m_strCallbacks,'CycleToNextMovieList');
+
+end
+if g_strctParadigm.m_strctMovieStim.m_bLoadOnTheFly
+    %disp('loading movie')
+    strctTrial.m_bLoadOnTheFly = true;
+	strctTrial.m_strMovieFilePath = g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths{iSelectedStimulus};
+	strctTrial.m_strStimServerMovieFilePath = g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths{iSelectedStimulus};
+	strctTrial.m_strStimServerMovieFilePath(1) = 'C';
+	fnParadigmToStimulusServer('PreloadMovie',strctTrial.m_strStimServerMovieFilePath);
+	%Screen('OpenMovie', g_strctPTB.m_hWindow, g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths{iSelectedStimulus},1)
+    [strctTrial.hLocalMovieHandle, strctTrial.afMovieLengthSec, strctTrial.fFPS, strctTrial.iWidth, strctTrial.iHeight, strctTrial.iCount, strctTrial.fAspectRatio] = ...
+        Screen('OpenMovie', g_strctPTB.m_hWindow, g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths{iSelectedStimulus});
+    strctTrial.abIsMovie = true;
+    strctTrial.a2iTextureSize = [strctTrial.iWidth, ...;
+        strctTrial.iHeight];
+	  
+	  %strctTrial.a2iTextureSize = [1024, 768];
+  % strctTrial.numFrames = 30;
+  % strctTrial.afMovieLengthSec	= 500;
+    %strctTrial.afMovieLengthSec	= strctTrial.fDuration;
+    strctTrial.m_fStimulusON_MS = strctTrial.afMovieLengthSec*1e3;
+   % strctTrial.m_fStimulusON_MS = 500;
+    strctTrial.m_fStimulusOFF_MS = fnTsGetVar('g_strctParadigm' ,'MovieStimulusOffTime');
+	Screen('CloseMovie',strctTrial.hLocalMovieHandle)
+    strctTrial.fDuration =  (strctTrial.m_fStimulusON_MS +strctTrial.m_fStimulusOFF_MS)/1e3
+        strctTrial.numFrames = round( strctTrial.afMovieLengthSec / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
+ %strctTrial.fDuration
+ %strctTrial.m_fStimulusOFF_MS
+ %strctTrial.m_fStimulusON_MS
+    %{
+strctTrial.m_fStimulusON_MS = squeeze(g_strctParadigm.MovieStimulusOnTime.Buffer(1,:,g_strctParadigm.MovieStimulusOnTime.BufferIdx));
+strctTrial.m_fStimulusOFF_MS = squeeze(g_strctParadigm.MovieStimulusOffTime.Buffer(1,:,g_strctParadigm.MovieStimulusOffTime.BufferIdx));
+    %}
+else
+    strctTrial.m_bLoadOnTheFly = false;
+    
+    %strctTrial. g_strctParadigm.m_strctMovieStim.ahTextures
+    strctTrial.a2iTextureSize = [g_strctParadigm.m_strctMovieStim.m_acMovieData{iSelectedStimulus}.iWidth, ...;
+        g_strctParadigm.m_strctMovieStim.m_acMovieData{iSelectedStimulus}.iHeight];
+    
+    strctTrial.hLocalMovieHandle = g_strctParadigm.m_strctMovieStim.m_ahMovieHandles{iSelectedStimulus};
+    strctTrial.abIsMovie = g_strctParadigm.m_strctMovieStim.m_abIsMovie(iSelectedStimulus);
+    if strctTrial.abIsMovie
+        strctTrial.numFrames = g_strctParadigm.m_strctMovieStim.m_acMovieData{iSelectedStimulus}.aiApproxNumFrames;
+    else
+        strctTrial.numFrames = round(strctTrial.m_fStimulusON_MS / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
+        
+        
+    end
+    strctTrial.afMovieLengthSec	= g_strctParadigm.m_strctMovieStim.m_acMovieData{iSelectedStimulus}.fDuration;
+    %strctTrial.Movie = g_strctParadigm.m_strctMovieStim.acMovies(iSelectedStimulus);
+end
+strctTrial.location_x(1) = g_strctParadigm.m_aiCenterOfStimulus(1);
+strctTrial.location_y(1) = g_strctParadigm.m_aiCenterOfStimulus(2);
+
+if g_strctParadigm.m_strctMovieStim.m_bOverrideMovieColors
+    strctTrial.numberBlurSteps = 1;
+    [strctTrial] = fnCycleColor(strctTrial);
+    
+else
+    strctTrial.m_bUseBitsPlusPlus = false;
+end
+
+
+if g_strctParadigm.m_strctMovieStim.m_bFitDisplayAreaToMovieSize
+    strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (strctTrial.a2iTextureSize(1)/2));
+    strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (strctTrial.a2iTextureSize(2)/2));
+    strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + strctTrial.a2iTextureSize(1);
+    strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + strctTrial.a2iTextureSize(2);
+    
+elseif strctTrial.m_bAspectRatioLocked
+    
+    
+    strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((strctTrial.a2iTextureSize(1)*strctTrial.m_fMovieWidthMultiplier)/2)));
+    strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((strctTrial.a2iTextureSize(2)*strctTrial.m_fMovieWidthMultiplier)/2)));
+    strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + strctTrial.a2iTextureSize(1)*strctTrial.m_fMovieWidthMultiplier;
+    strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + strctTrial.a2iTextureSize(2)*strctTrial.m_fMovieWidthMultiplier;
+else
+    
+    strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((strctTrial.a2iTextureSize(1)*strctTrial.m_fMovieWidthMultiplier)/2)));
+    strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((strctTrial.a2iTextureSize(2)*strctTrial.m_fMovieHeightMultiplier)/2)));
+    strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + strctTrial.a2iTextureSize(1)*strctTrial.m_fMovieWidthMultiplier;
+    strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + strctTrial.a2iTextureSize(2)*strctTrial.m_fMovieHeightMultiplier;
+    
+    
+    
+end
+
+
+
+
+return;
+
+
+% ------------------------------------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------------------------------------
+
+function [strctTrial] = fnPrepareImageTrial(g_strctPTB, strctTrial)
+global g_strctParadigm
+
+%if g_strctParadigm.m_bRepeatNonFixatedImages
+    %strctTrial
+    
+%end
+if isempty(g_strctParadigm.m_strctMRIStim.m_strCurrentlySelectedStimset)
+    fnParadigmToKofikoComm('DisplayMessage','No Images Loaded! Load Image list in design panel!');
+   fnPauseParadigm(); 
+   return;
+end
+strctTrial.m_strSelectedImageSet = g_strctParadigm.m_strctMRIStim.m_strCurrentlySelectedStimset;
+
+strctTrial.m_fStimulusON_MS = squeeze(g_strctParadigm.ImageStimulusOnTime.Buffer(1,:,g_strctParadigm.ImageStimulusOnTime.BufferIdx));
+strctTrial.m_fStimulusOFF_MS = squeeze(g_strctParadigm.ImageStimulusOffTime.Buffer(1,:,g_strctParadigm.ImageStimulusOffTime.BufferIdx));
+strctTrial.m_iFixationColor = [255 255 255];
+
+
+strctTrial.m_fImageWidthMultiplier = squeeze(g_strctParadigm.ImageWidth.Buffer(1,:,g_strctParadigm.ImageWidth.BufferIdx))/100;
+strctTrial.m_fImageHeightMultiplier = squeeze(g_strctParadigm.ImageLength.Buffer(1,:,g_strctParadigm.ImageLength.BufferIdx))/100;
+strctTrial.m_bAspectRatioLocked = g_strctParadigm.m_strctMRIStim.m_bLockAspectRatio;
+
+
+currentBlockStimBGColorsR = [g_strctParadigm.m_strCurrentlySelectedBlock,'BackgroundRed'];
+currentBlockStimBGColorsG = [g_strctParadigm.m_strCurrentlySelectedBlock,'BackgroundGreen'];
+currentBlockStimBGColorsB = [g_strctParadigm.m_strCurrentlySelectedBlock,'BackgroundBlue'];
+
+strctTrial.m_fRotationAngle = squeeze(g_strctParadigm.ImageOrientation.Buffer(1,:,g_strctParadigm.ImageOrientation.BufferIdx));
+
+if g_strctParadigm.m_bUseChosenBackgroundColor && size(g_strctParadigm.m_strctCurrentBackgroundColors,1) == 1
+    strctTrial.m_afBackgroundColor = round(g_strctParadigm.m_strctCurrentBackgroundColors/255);
+    strctTrial.m_afLocalBackgroundColor = strctTrial.m_afBackgroundColor;
+    
+else
+    strctTrial.m_afLocalBackgroundColor = [squeeze(g_strctParadigm.(currentBlockStimBGColorsR).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsR).BufferIdx))...
+        squeeze(g_strctParadigm.(currentBlockStimBGColorsG).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsG).BufferIdx))...
+        squeeze(g_strctParadigm.(currentBlockStimBGColorsB).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsB).BufferIdx))];
+    
+    strctTrial.m_afBackgroundColor = strctTrial.m_afLocalBackgroundColor;
+end
+
+
+[strctTrial.m_iImageBlockIndex, g_strctParadigm.m_strctMRIStim.m_iSelectedImageBlock] = deal(g_strctParadigm.m_iCurrentBlockIndexInOrderList);
+
+if g_strctParadigm.m_strctMRIStim.m_bRandomOrder
+    leastDisplayedStimuliCount = min(g_strctParadigm.m_strctMRIStim.m_aiStimulusDisplayCount);
+    
+    leastDisplayStimuliIDX = g_strctParadigm.m_strctMRIStim.m_aiStimulusDisplayCount == leastDisplayedStimuliCount;
+    maxCount = sum(leastDisplayStimuliIDX);
+    % iSelectedStimulus = deal(randi(numel(g_strctParadigm.m_strctMRIStim.ahTextures)));
+    
+    iSelectedStimulus = randi(maxCount);
+    leastDisplayedTrialIDs = find(leastDisplayStimuliIDX);
+    iSelectedStimulus = leastDisplayedTrialIDs(iSelectedStimulus);
+    %strctTrial.m_iImageIndex = g_strctParadigm.m_strctMRIStim.m_iSelectedImage;
+elseif g_strctParadigm.m_strctMRIStim.m_bReverseOrder
+    iSelectedStimulus = g_strctParadigm.m_strctMRIStim.m_iSelectedImage - 1;
+    if iSelectedStimulus < 1
+        iSelectedStimulus = numel(g_strctParadigm.m_strctMRIStim.ahTextures);
+    end
+    %[strctTrial.m_iImageIndex, g_strctParadigm.m_strctMRIStim.m_iSelectedImage] = deal(iSelectedStimulus);
+    
+else
+    iSelectedStimulus = g_strctParadigm.m_strctMRIStim.m_iSelectedImage + 1;
+    if iSelectedStimulus > numel(g_strctParadigm.m_strctMRIStim.ahTextures)
+        iSelectedStimulus = 1;
+    end
+end
+g_strctParadigm.m_strctMRIStim.m_aiStimulusDisplayCount(iSelectedStimulus) = ...
+    g_strctParadigm.m_strctMRIStim.m_aiStimulusDisplayCount(iSelectedStimulus) + 1;
+[strctTrial.m_iImageIndex, g_strctParadigm.m_strctMRIStim.m_iSelectedImage] = deal(iSelectedStimulus);
+strctTrial.m_strImageName = g_strctParadigm.m_strctMRIStim.acFileNames{strctTrial.m_iImageIndex};
+strctTrial.m_strFullImageFilePath = g_strctParadigm.m_strctMRIStim.acFileNames{strctTrial.m_iImageIndex};
+
+%strctTrial. g_strctParadigm.m_strctMRIStim.ahTextures
+strctTrial.a2iTextureSize = g_strctParadigm.m_strctMRIStim.a2iTextureSize(:,iSelectedStimulus);
+strctTrial.abIsMovie = g_strctParadigm.m_strctMRIStim.abIsMovie(iSelectedStimulus);
+if strctTrial.abIsMovie
+    strctTrial.numFrames = g_strctParadigm.m_strctMRIStim.aiApproxNumFrames;
+else
+    strctTrial.numFrames = round(strctTrial.m_fStimulusON_MS / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
+    
+    
+end
+
+strctTrial.afMovieLengthSec	= g_strctParadigm.m_strctMRIStim.afMovieLengthSec(iSelectedStimulus);
+%strctTrial.Image = g_strctParadigm.m_strctMRIStim.acImages(iSelectedStimulus);
+
+strctTrial.location_x(1) = g_strctParadigm.m_aiCenterOfStimulus(1);
+strctTrial.location_y(1) = g_strctParadigm.m_aiCenterOfStimulus(2);
+
+if g_strctParadigm.m_strctMRIStim.m_bOverrideImageColors
+    strctTrial.numberBlurSteps = 1;
+    [strctTrial] = fnCycleColor(strctTrial);
+    
+    
+else
+    %dbstop if warning
+    try
+        %warning('stop')
+        [ImageFilePath, strctTrial.m_strImageFileName, ~] = fileparts(strctTrial.m_strImageName);
+        [strctTrial.m_strBaseImageFilePath, strctTrial.m_strImageFileCategory, ~] = fileparts(ImageFilePath);
+        strComponents = strsplit(strctTrial.m_strImageFileName, '_');
+        if any(find(~(cellfun(@isempty,strfind(strComponents,'chroma')))))
+            strctTrial.m_strImageColorSpace = 'LUV';
+        elseif any(find(~(cellfun(@isempty,strfind(strComponents,'sat')))))
+             strctTrial.m_strImageColorSpace = 'DKL';
+        end
+        strctTrial.m_strImageCatStr = strComponents{1};
+        imageCatStrIDX = regexp(strctTrial.m_strImageCatStr,'\d');
+        strctTrial.m_iImageNameID = strctTrial.m_strImageCatStr(imageCatStrIDX);
+        if ischar(strctTrial.m_iImageNameID)
+            strctTrial.m_iImageNameID = str2double(strctTrial.m_iImageNameID);
+        end
+        strctTrial.m_strImageName = strctTrial.m_strImageCatStr(1:min(imageCatStrIDX)-1);
+   
+    end
+    if isempty(strctTrial.m_strImageName) 
+        try
+            strctTrial.m_strImageName = g_strctParadigm.m_strctMRIStim.acFileNames{strctTrial.m_iImageIndex};
+
+        %warning('stop')
+            [ImageFilePath, strctTrial.m_strImageFileName, ~] = fileparts(strctTrial.m_strImageName);
+            [strctTrial.m_strImageFileCategory, ~, ~] = fileparts(ImageFilePath);
+            strComponents = strsplit(strctTrial.m_strImageFileName, '-');
+            strctTrial.m_strImageCatStr = strComponents{1};
+            imageCatStrIDX = regexp(strctTrial.m_strImageCatStr,'\d');
+            strctTrial.m_iImageNameID = strctTrial.m_strImageCatStr(imageCatStrIDX);
+            if ischar(strctTrial.m_iImageNameID)
+                strctTrial.m_iImageNameID = str2double(strctTrial.m_iImageNameID);
+            end
+            strctTrial.m_strImageName = strctTrial.m_strImageCatStr(1:min(imageCatStrIDX)-1);
+   
+        end
+    
+    end
+     try
+        if strcmp(strctTrial.m_strImageColorSpace, 'DKL') & numel(strComponents) == 4 || numel(strComponents) == 5 
+            
+            azimuthInfoIDX = regexp(strComponents(2),'\d');
+            azimuthInfoString = strComponents(2);
+            strctTrial.m_fDKLAzimuth = str2double(azimuthInfoString{1}(azimuthInfoIDX{1}));
+            
+            elevationInfoIDX = regexp(strComponents(4),'\d');
+            elevationInfoString = strComponents(4);
+            strctTrial.m_fDKLElevation = str2double(elevationInfoString{1}(elevationInfoIDX{1}));
+			%{
+            if strcmp(elevationInfoString{1}(elevationInfoIDX{1}(1)-1), '-')
+                elevationInfo = -elevationInfo;
+            end
+            %}
+            saturationInfoIDX = regexp(strComponents(3),'\d');
+            saturationInfoString = strComponents(3);
+            strctTrial.m_fDKLSaturation = str2double(saturationInfoString{1}(saturationInfoIDX{1}));
+            [strctTrial.m_aiStimDKLCart(1), strctTrial.m_aiStimDKLCart(2), strctTrial.m_aiStimDKLCart(3)] = sph2cart(deg2rad(strctTrial.m_fDKLAzimuth),0,strctTrial.m_fDKLSaturation/100);
+            aiStimColorUncorrected = ldrgyv2rgb(strctTrial.m_fDKLElevation/100, strctTrial.m_aiStimDKLCart(1), strctTrial.m_aiStimDKLCart(2));
+            aiStimColorUncorrected(aiStimColorUncorrected > 1) = 1;
+            aiStimColorUncorrected(aiStimColorUncorrected < 0) = 0;
+            
+            strctTrial.m_aiStimDKLCart(3) = strctTrial.m_fDKLElevation/100;
+            strctTrial.m_aiStimColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(aiStimColorUncorrected(1) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(aiStimColorUncorrected(2) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(aiStimColorUncorrected(3) * 65535) + 1)];
+			strctTrial.m_afDKLSphereCoordinates = [	strctTrial.m_fDKLAzimuth, strctTrial.m_fDKLElevation, strctTrial.m_fDKLSaturation];
+        elseif strcmp(strctTrial.m_strImageColorSpace, 'LUV') & numel(strComponents) == 4 || numel(strComponents) == 5 
+            azimuthInfoIDX = regexp(strComponents(2),'\d');
+            azimuthInfoString = strComponents(2);
+            strctTrial.m_fLUVAzimuth = str2double(azimuthInfoString{1}(azimuthInfoIDX{1}));
+            
+            elevationInfoIDX = regexp(strComponents(4),'\d');
+            elevationInfoString = strComponents(4);
+            strctTrial.m_fLUVElevation = str2double(elevationInfoString{1}(elevationInfoIDX{1}));
+			%{
+            if strcmp(elevationInfoString{1}(elevationInfoIDX{1}(1)-1), '-')
+                strctTrial.elevationInfo = -strctTrial.elevationInfo;
+            end
+            %}
+
+            saturationInfoIDX = regexp(strComponents(3),'\d');
+            saturationInfoString = strComponents(3);
+            strctTrial.m_fLUVSaturation = str2double(saturationInfoString{1}([min(saturationInfoIDX{1}):max(saturationInfoIDX{1})]));
+           
+            % L coordinate is Z in cartesian space, so order is 2, 3, 1
+            [strctTrial.m_aiStimLUV(2), strctTrial.m_aiStimLUV(3), strctTrial.m_aiStimLUV(1)] = sph2cart(deg2rad(strctTrial.m_fLUVAzimuth),0,strctTrial.m_fLUVSaturation);
+            strctTrial.m_aiStimLUV(1) = strctTrial.m_fLUVElevation;
+            strctTrial.m_aiStimLUV = strctTrial.m_aiStimLUV + g_strctParadigm.m_strctConversionMatrices.EquilumLUVGrayPoint;
+			strctTrial.m_afEquilumLUVGrayPoint = g_strctParadigm.m_strctConversionMatrices.EquilumLUVGrayPoint;
+            strctTrial.aiStimColorXYZ = LuvToXYZ(strctTrial.m_aiStimLUV', g_strctParadigm.m_strctConversionMatrices.RGBToXYZ*([1;1;1]))';
+            aiStimColorUncorrected = g_strctParadigm.m_strctConversionMatrices.XYZToRGB*strctTrial.aiStimColorXYZ';
+            aiStimColorUncorrected(aiStimColorUncorrected > 1) = 1;
+            aiStimColorUncorrected(aiStimColorUncorrected < 0) = 0;
+            
+            strctTrial.m_aiStimColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(aiStimColorUncorrected(1) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(aiStimColorUncorrected(2) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(aiStimColorUncorrected(3) * 65535) + 1)];
+				
+			strctTrial.m_afLUVSphereCoordinates = [	strctTrial.m_fLUVAzimuth, strctTrial.m_fLUVElevation, strctTrial.m_fLUVSaturation];
+
+        end
+        %{
+	if strcmpi(strComponents(3),'high_sat')
+        rad = .9;
+	elseif strcmpi(strComponents(3),'high_lum') || strcmpi(strComponents(3),'low_lum') ||  strcmpi(strComponents(3),'low_sat')
+        rad = .5;
+		if strcmpi(strComponents(3),'high_lum')
+            el = .3;
+		elseif strcmpi(strComponents(3),'low_lum')
+            el = -.3;
+        else
+            el = 0;
+		end
+		azimuthInfoIDX = regexp(strComponents(4),'\d');
+        azimuthInfoString = strComponents(4);
+        azimuthInfo = azimuthInfoString{1}(azimuthInfoIDX{1});
+       
+		az = [str2double(azimuthInfo)];
+	elseif  strcmpi(strComponents(3),'achromatic')
+        rad = 0;
+        elevationdigitIDX = regexp(strComponents(4),'\d');
+        elevationInfoString = strComponents(4);
+        elevationInfo = elevationInfoString{1}(elevationdigitIDX{1});
+        %elevationInfo = elevationInfo{1};
+        el = [str2double(elevationInfo)];
+        az = 0;
+	end
+		[strctTrial.m_aiStimDKLCart(1), strctTrial.m_aiStimDKLCart(2), strctTrial.m_aiStimDKLCart(3)] = sph2cart(az,el,rad);
+		aiStimColorUncorrected = ldrgyv2rgb(strctTrial.m_aiStimDKLCart(3), strctTrial.m_aiStimDKLCart(1), strctTrial.m_aiStimDKLCart(2));
+         strctTrial.m_aiStimColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(aiStimColorUncorrected(1) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(aiStimColorUncorrected(2) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(aiStimColorUncorrected(3) * 65535) + 1)];
+        %}
+    catch
+        [strctTrial.m_aiStimDKLCart(1), strctTrial.m_aiStimDKLCart(2), strctTrial.m_aiStimDKLCart(3)] = deal(NaN);
+        aiStimColorUncorrected   = [NaN, NaN, NaN];
+        %aiStimColorUncorrected = ldrgyv2rgb(strctTrial.m_aiStimDKLCart(3), strctTrial.m_aiStimDKLCart(1), strctTrial.m_aiStimDKLCart(2));
+        %strctTrial.m_aiStimDKLCart(3) = elevationInfo/100;
+        strctTrial.m_aiStimColor = [NaN, NaN, NaN];
+    end
+    
+    strctTrial.m_bUseBitsPlusPlus = false;
+end
+
+
+if strctTrial.m_bAspectRatioLocked
+    
+    
+    
+    if ~g_strctParadigm.m_strctMRIStim.m_bForceMatchImageSizes
+        strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((g_strctParadigm.m_strctMRIStim.a2iTextureSize(1,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((g_strctParadigm.m_strctMRIStim.a2iTextureSize(2,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + g_strctParadigm.m_strctMRIStim.a2iTextureSize(1,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier;
+        strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + g_strctParadigm.m_strctMRIStim.a2iTextureSize(2,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier;
+    elseif g_strctParadigm.m_strctMRIStim.m_bMatchToMinimumImageSize
+        strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((g_strctParadigm.m_strctMRIStim.m_aiMinImageSize(1)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((g_strctParadigm.m_strctMRIStim.m_aiMinImageSize(2)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + g_strctParadigm.m_strctMRIStim.m_aiMinImageSize(1)*strctTrial.m_fImageWidthMultiplier;
+        strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + g_strctParadigm.m_strctMRIStim.m_aiMinImageSize(2)*strctTrial.m_fImageWidthMultiplier;
+        
+    elseif g_strctParadigm.m_strctMRIStim.m_bMatchToMaximumImageSize
+        strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((g_strctParadigm.m_strctMRIStim.m_aiMaxImageSize(1)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((g_strctParadigm.m_strctMRIStim.m_aiMaxImageSize(2)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + g_strctParadigm.m_strctMRIStim.m_aiMaxImageSize(1)*strctTrial.m_fImageWidthMultiplier;
+        strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + g_strctParadigm.m_strctMRIStim.m_aiMaxImageSize(2)*strctTrial.m_fImageWidthMultiplier;
+        
+    else
+        strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((g_strctParadigm.m_strctMRIStim.a2iTextureSize(1,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((g_strctParadigm.m_strctMRIStim.a2iTextureSize(2,strctTrial.m_iImageIndex)*strctTrial.m_fImageHeightMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + g_strctParadigm.m_strctMRIStim.a2iTextureSize(1,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier;
+        strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + g_strctParadigm.m_strctMRIStim.a2iTextureSize(2,strctTrial.m_iImageIndex)*strctTrial.m_fImageHeightMultiplier;
+        
+    end
+    
+else
+    
+    if ~g_strctParadigm.m_strctMRIStim.m_bForceMatchImageSizes
+        strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((g_strctParadigm.m_strctMRIStim.a2iTextureSize(1,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((g_strctParadigm.m_strctMRIStim.a2iTextureSize(2,strctTrial.m_iImageIndex)*strctTrial.m_fImageHeightMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + g_strctParadigm.m_strctMRIStim.a2iTextureSize(1,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier;
+        strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + g_strctParadigm.m_strctMRIStim.a2iTextureSize(2,strctTrial.m_iImageIndex)*strctTrial.m_fImageHeightMultiplier;
+    elseif g_strctParadigm.m_strctMRIStim.m_bMatchToMinimumImageSize
+        strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((g_strctParadigm.m_strctMRIStim.m_aiMinImageSize(1)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((g_strctParadigm.m_strctMRIStim.m_aiMinImageSize(2)*strctTrial.m_fImageHeightMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + g_strctParadigm.m_strctMRIStim.m_aiMinImageSize(1)*strctTrial.m_fImageWidthMultiplier;
+        strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + g_strctParadigm.m_strctMRIStim.m_aiMinImageSize(2)*strctTrial.m_fImageHeightMultiplier;
+        
+    elseif g_strctParadigm.m_strctMRIStim.m_bMatchToMaximumImageSize
+        strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((g_strctParadigm.m_strctMRIStim.m_aiMaxImageSize(1)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((g_strctParadigm.m_strctMRIStim.m_aiMaxImageSize(2)*strctTrial.m_fImageHeightMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + g_strctParadigm.m_strctMRIStim.m_aiMaxImageSize(1)*strctTrial.m_fImageWidthMultiplier;
+        strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + g_strctParadigm.m_strctMRIStim.m_aiMaxImageSize(2)*strctTrial.m_fImageHeightMultiplier;
+        
+        
+    else
+        strctTrial.m_aiStimulusArea(1) = round(strctTrial.location_x - (((g_strctParadigm.m_strctMRIStim.a2iTextureSize(1,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(2) = round(strctTrial.location_y - (((g_strctParadigm.m_strctMRIStim.a2iTextureSize(2,strctTrial.m_iImageIndex)*strctTrial.m_fImageHeightMultiplier)/2)));
+        strctTrial.m_aiStimulusArea(3) = strctTrial.m_aiStimulusArea(1) + g_strctParadigm.m_strctMRIStim.a2iTextureSize(1,strctTrial.m_iImageIndex)*strctTrial.m_fImageWidthMultiplier;
+        strctTrial.m_aiStimulusArea(4) = strctTrial.m_aiStimulusArea(2) + g_strctParadigm.m_strctMRIStim.a2iTextureSize(2,strctTrial.m_iImageIndex)*strctTrial.m_fImageHeightMultiplier;
+    end
+    
+    
+end
+
+
+return;
+% ------------------------------------------------------------------------------------------------------------------------
+
+
+
+function [strctTrial] = fnPreparePlainBarTrial(g_strctPTB, strctTrial)
+global g_strctStimulusServer g_strctParadigm
+
+strctTrial.m_bRandomStimulusPosition = 0;
+strctTrial.m_bUseStrobes = 0;
+
+strctTrial.m_iFixationColor = [255 255 255];
+
+
+strctTrial.m_afTrialIdentifier = round(rand(1,3)*1000);
+
+
+strctTrial.m_iLength = squeeze(g_strctParadigm.PlainBarLength.Buffer(1,:,g_strctParadigm.PlainBarLength.BufferIdx));
+strctTrial.m_iWidth = squeeze(g_strctParadigm.PlainBarWidth.Buffer(1,:,g_strctParadigm.PlainBarWidth.BufferIdx));
+strctTrial.m_fRotationAngle = squeeze(g_strctParadigm.PlainBarOrientation.Buffer(1,:,g_strctParadigm.PlainBarOrientation.BufferIdx));
+strctTrial.numberBlurSteps = round(squeeze(g_strctParadigm.PlainBarBlurSteps.Buffer(1,:,g_strctParadigm.PlainBarBlurSteps.BufferIdx)));
+strctTrial.m_bBlur  = squeeze(g_strctParadigm.PlainBarBlur.Buffer(1,:,g_strctParadigm.PlainBarBlur.BufferIdx));
 %strctTrial.m_bBlur = g_strctParadigm.m_bBlur;
 
 strctTrial.m_fStimulusON_MS = 0;
@@ -71,69 +676,57 @@ strctTrial.numFrames = 1; % Tells Kofiko to update every frame
 strctTrial.m_iNumberOfBars = 1;
 g_strctParadigm.m_strctHandMappingParameters.m_bRandomStimulusPosition = 0;
 
-strctTrial.m_iMoveDistance = squeeze(g_strctParadigm.StaticBarMoveDistance.Buffer(1,:,g_strctParadigm.StaticBarMoveDistance.BufferIdx));
+strctTrial.m_iMoveDistance = squeeze(g_strctParadigm.PlainBarMoveDistance.Buffer(1,:,g_strctParadigm.PlainBarMoveDistance.BufferIdx));
 
 strctTrial.location_x(1) = g_strctParadigm.m_aiCenterOfStimulus(1);
 strctTrial.location_y(1) = g_strctParadigm.m_aiCenterOfStimulus(2);
 
 
 if strctTrial.m_iMoveDistance
-	strctTrial.m_iMoveSpeed = squeeze(g_strctParadigm.StaticBarMoveSpeed.Buffer(1,:,g_strctParadigm.StaticBarMoveSpeed.BufferIdx));
-	strctTrial.m_iNewBarPositionOffset = g_strctParadigm.m_fLastBarPositionOffset + (g_strctParadigm.m_fLastBarMovementDirection *...
-							(strctTrial.m_iMoveSpeed/g_strctStimulusServer.m_fRefreshRateMS));
-	
-	if abs(strctTrial.m_iNewBarPositionOffset) >= strctTrial.m_iMoveDistance
-	
-		strctTrial.m_iNewBarPositionOffset = sign(strctTrial.m_iNewBarPositionOffset) * strctTrial.m_iMoveDistance;
-		g_strctParadigm.bReverse = 1;
-	end
-	[strctTrial.m_iLineBegin(1),strctTrial.m_iLineBegin(2)] = fnRotateAroundPoint(strctTrial.location_x(1),round(strctTrial.location_y(1) - strctTrial.m_iMoveDistance),strctTrial.location_x(1),...
-					strctTrial.location_y(1) ,strctTrial.m_fRotationAngle);
-	
-	[strctTrial.m_iLineEnd(1), strctTrial.m_iLineEnd(2)] = fnRotateAroundPoint(strctTrial.location_x(1),round(strctTrial.location_y(1)+ strctTrial.m_iMoveDistance),strctTrial.location_x(1),...
-					strctTrial.location_y(1) ,strctTrial.m_fRotationAngle);
-	[offSetX, offSetY] = fnRotateAroundPoint(strctTrial.location_x(1),round(strctTrial.location_y(1)+ strctTrial.m_iNewBarPositionOffset),strctTrial.location_x(1),...
-					strctTrial.location_y(1) ,strctTrial.m_fRotationAngle);
-	strctTrial.location_x(1) = offSetX;
-	strctTrial.location_y(1) = offSetY;				
-					
-	g_strctParadigm.m_fLastBarPositionOffset = strctTrial.m_iNewBarPositionOffset;
-	if g_strctParadigm.bReverse
+    strctTrial.m_iMoveSpeed = squeeze(g_strctParadigm.PlainBarMoveSpeed.Buffer(1,:,g_strctParadigm.PlainBarMoveSpeed.BufferIdx));
+    
+    [strctTrial] = fnCheckVariableSettings(g_strctPTB, strctTrial);
+    strctTrial.m_iNewBarPositionOffset = g_strctParadigm.m_fLastBarPositionOffset + (g_strctParadigm.m_fLastBarMovementDirection *...
+        (strctTrial.m_iMoveSpeed/g_strctStimulusServer.m_fRefreshRateMS));
+    
+    if abs(strctTrial.m_iNewBarPositionOffset) >= strctTrial.m_iMoveDistance
+        
+        strctTrial.m_iNewBarPositionOffset = sign(strctTrial.m_iNewBarPositionOffset) * strctTrial.m_iMoveDistance;
+        g_strctParadigm.bReverse = 1;
+    end
+    [strctTrial.m_iLineBegin(1),strctTrial.m_iLineBegin(2)] = fnRotateAroundPoint(strctTrial.location_x(1),round(strctTrial.location_y(1) - strctTrial.m_iMoveDistance),strctTrial.location_x(1),...
+        strctTrial.location_y(1) ,strctTrial.m_fRotationAngle);
+    
+    [strctTrial.m_iLineEnd(1), strctTrial.m_iLineEnd(2)] = fnRotateAroundPoint(strctTrial.location_x(1),round(strctTrial.location_y(1)+ strctTrial.m_iMoveDistance),strctTrial.location_x(1),...
+        strctTrial.location_y(1) ,strctTrial.m_fRotationAngle);
+    
+    [offSetX, offSetY] = fnRotateAroundPoint(strctTrial.location_x(1),round(strctTrial.location_y(1)+ strctTrial.m_iNewBarPositionOffset),strctTrial.location_x(1),...
+        strctTrial.location_y(1) ,strctTrial.m_fRotationAngle);
+    
+    strctTrial.location_x(1) = offSetX;
+    strctTrial.location_y(1) = offSetY;
+    
+    g_strctParadigm.m_fLastBarPositionOffset = strctTrial.m_iNewBarPositionOffset;
+    if g_strctParadigm.bReverse
         g_strctParadigm.bReverse = 0;
-		g_strctParadigm.m_fLastBarMovementDirection = -g_strctParadigm.m_fLastBarMovementDirection;
-	end
-	
-	strctTrial.bar_rect(1,1:4) = [(offSetX - strctTrial.m_iLength/2),...
-    (offSetY - strctTrial.m_iWidth/2),...
-    (offSetX + strctTrial.m_iLength/2),...
-    (offSetY + strctTrial.m_iWidth/2)];
-	
+        g_strctParadigm.m_fLastBarMovementDirection = -g_strctParadigm.m_fLastBarMovementDirection;
+    end
+    
+    strctTrial.bar_rect(1,1:4) = [(offSetX - strctTrial.m_iLength/2),...
+        (offSetY - strctTrial.m_iWidth/2),...
+        (offSetX + strctTrial.m_iLength/2),...
+        (offSetY + strctTrial.m_iWidth/2)];
+    
 else
-	
-	
-	strctTrial.bar_rect(1,1:4) = [(g_strctParadigm.m_aiCenterOfStimulus(1) - strctTrial.m_iLength/2),...
-    (g_strctParadigm.m_aiCenterOfStimulus(2) - strctTrial.m_iWidth/2),...
-    (g_strctParadigm.m_aiCenterOfStimulus(1) + strctTrial.m_iLength/2),...
-    (g_strctParadigm.m_aiCenterOfStimulus(2) + strctTrial.m_iWidth/2)];
+    [strctTrial] = fnCheckVariableSettings(g_strctPTB, strctTrial);
+    
+    strctTrial.bar_rect(1,1:4) = [(g_strctParadigm.m_aiCenterOfStimulus(1) - strctTrial.m_iLength/2),...
+        (g_strctParadigm.m_aiCenterOfStimulus(2) - strctTrial.m_iWidth/2),...
+        (g_strctParadigm.m_aiCenterOfStimulus(1) + strctTrial.m_iLength/2),...
+        (g_strctParadigm.m_aiCenterOfStimulus(2) + strctTrial.m_iWidth/2)];
 end
 
-
-
-
-strctTrial.m_aiStimColor = [squeeze(g_strctParadigm.StaticBarStimulusRed.Buffer(1,:,g_strctParadigm.StaticBarStimulusRed.BufferIdx)), ...
-								squeeze(g_strctParadigm.StaticBarStimulusGreen.Buffer(1,:,g_strctParadigm.StaticBarStimulusGreen.BufferIdx)),...
-								squeeze(g_strctParadigm.StaticBarStimulusBlue.Buffer(1,:,g_strctParadigm.StaticBarStimulusBlue.BufferIdx))];
-
-% Background color
-strctTrial.m_afBackgroundColor = [squeeze(g_strctParadigm.StaticBarBackgroundRed.Buffer(1,:,g_strctParadigm.StaticBarBackgroundRed.BufferIdx))...
-									squeeze(g_strctParadigm.StaticBarBackgroundGreen.Buffer(1,:,g_strctParadigm.StaticBarBackgroundGreen.BufferIdx))...
-									squeeze(g_strctParadigm.StaticBarBackgroundBlue.Buffer(1,:,g_strctParadigm.StaticBarBackgroundBlue.BufferIdx))];
-
-
-
-if g_strctParadigm.m_bUseCalibratedColors
-    [strctTrial] = Choose_new_color(g_strctParadigm, strctTrial);
-end
+[strctTrial] = fnCycleColor(strctTrial);
 
 
 
@@ -154,18 +747,14 @@ if ~strctTrial.m_bBlur
     
 else
     
-    min_distance = min((strctTrial.m_iLength/2)-1,(strctTrial.m_iWidth/2)-1);
+    % min_distance = min((strctTrial.m_iLength/2)-1,(strctTrial.m_iWidth/2)-1);
     % Make sure our number of blur steps is sane
-    if strctTrial.numberBlurSteps > min((strctTrial.m_iLength/2)-1,(strctTrial.m_iWidth/2)-1)
-        strctTrial.numberBlurSteps = floor(min_distance);
-    elseif strctTrial.numberBlurSteps == 0
-        strctTrial.numberBlurSteps = 1;
-    end
     
-    strctTrial.blurStepHolder(1,:) = linspace(strctTrial.m_afBackgroundColor(1),strctTrial.m_aiStimColor(1),strctTrial.numberBlurSteps);
-    strctTrial.blurStepHolder(2,:) = linspace(strctTrial.m_afBackgroundColor(2),strctTrial.m_aiStimColor(2),strctTrial.numberBlurSteps);
-    strctTrial.blurStepHolder(3,:) = linspace(strctTrial.m_afBackgroundColor(3),strctTrial.m_aiStimColor(3),strctTrial.numberBlurSteps);
-    
+    %{
+    strctTrial.m_aiBlurStepHolder(1,:) = linspace(strctTrial.m_afBackgroundColor(1),strctTrial.m_aiStimColor(1),strctTrial.numberBlurSteps);
+    strctTrial.m_aiBlurStepHolder(2,:) = linspace(strctTrial.m_afBackgroundColor(2),strctTrial.m_aiStimColor(2),strctTrial.numberBlurSteps);
+    strctTrial.m_aiBlurStepHolder(3,:) = linspace(strctTrial.m_afBackgroundColor(3),strctTrial.m_aiStimColor(3),strctTrial.numberBlurSteps);
+    %}
     
     strctTrial.blurRawScreenCoordinates = [strctTrial.bar_rect(1,1) + strctTrial.numberBlurSteps,...
         strctTrial.bar_rect(1,2) + strctTrial.numberBlurSteps,...
@@ -217,59 +806,79 @@ return;
 
 
 % ------------------------------------------------------------------------------------------------------------------------
-function [strctTrial] = fnPrepareMovingBarTrial(g_strctParadigm, g_strctPTB, strctTrial)
+function [strctTrial] = fnPrepareMovingBarTrial(g_strctPTB, strctTrial)
 
-
-strctTrial.m_bUseStrobes = 0; 
+global g_strctParadigm
+strctTrial.m_bUseStrobes = 0;
 
 strctTrial.m_iFixationColor = [255 255 255];
 
 strctTrial.m_iLength = squeeze(g_strctParadigm.MovingBarLength.Buffer(1,:,g_strctParadigm.MovingBarLength.BufferIdx));
 strctTrial.m_iWidth = squeeze(g_strctParadigm.MovingBarWidth.Buffer(1,:,g_strctParadigm.MovingBarWidth.BufferIdx));
 strctTrial.m_iNumberOfBars = squeeze(g_strctParadigm.MovingBarNumberOfBars.Buffer(1,:,g_strctParadigm.MovingBarNumberOfBars.BufferIdx));
-strctTrial.m_fStimulusON_MS = g_strctParadigm.StimulusON_MS.Buffer(1,:,g_strctParadigm.StimulusON_MS.BufferIdx);
-strctTrial.m_fStimulusOFF_MS = g_strctParadigm.StimulusOFF_MS.Buffer(1,:,g_strctParadigm.StimulusOFF_MS.BufferIdx);
+strctTrial.m_fStimulusON_MS = g_strctParadigm.MovingBarStimulusOnTime.Buffer(1,:,g_strctParadigm.MovingBarStimulusOnTime.BufferIdx);
+strctTrial.m_fStimulusOFF_MS = g_strctParadigm.MovingBarStimulusOffTime.Buffer(1,:,g_strctParadigm.MovingBarStimulusOffTime.BufferIdx);
 
 strctTrial.numFrames = round(strctTrial.m_fStimulusON_MS / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
-strctTrial.m_iMoveDistance = squeeze(g_strctParadigm.MovingBarMoveDistance.Buffer(1,:,g_strctParadigm.MovingBarMoveDistance.BufferIdx));
+%strctTrial.m_iMoveDistance = squeeze(g_strctParadigm.MovingBarMoveDistance.Buffer(1,:,g_strctParadigm.MovingBarMoveDistance.BufferIdx));
+strctTrial.m_iMoveSpeed = squeeze(g_strctParadigm.MovingBarMoveSpeed.Buffer(1,:,g_strctParadigm.MovingBarMoveSpeed.BufferIdx));
 
 
 strctTrial.m_bBlur  = squeeze(g_strctParadigm.MovingBarBlur.Buffer(1,:,g_strctParadigm.MovingBarBlur.BufferIdx));
 strctTrial.numberBlurSteps = round(squeeze(g_strctParadigm.MovingBarBlurSteps.Buffer(1,:,g_strctParadigm.MovingBarBlurSteps.BufferIdx)));
 
 
-%strctTrial.m_bBlur = g_strctParadigm.m_bBlur;
 
+[strctTrial] = fnCheckVariableSettings(g_strctPTB, strctTrial);
+[strctTrial] = fnCycleColor(strctTrial);
 
-
-strctTrial.m_aiStimColor = [squeeze(g_strctParadigm.MovingBarStimulusRed.Buffer(1,:,g_strctParadigm.MovingBarStimulusRed.BufferIdx)), ...
-    squeeze(g_strctParadigm.MovingBarStimulusGreen.Buffer(1,:,g_strctParadigm.MovingBarStimulusGreen.BufferIdx)),...
-    squeeze(g_strctParadigm.MovingBarStimulusBlue.Buffer(1,:,g_strctParadigm.MovingBarStimulusBlue.BufferIdx))];
-
-% Background color
-strctTrial.m_afBackgroundColor = [squeeze(g_strctParadigm.MovingBarBackgroundRed.Buffer(1,:,g_strctParadigm.MovingBarBackgroundRed.BufferIdx))...
-    squeeze(g_strctParadigm.MovingBarBackgroundGreen.Buffer(1,:,g_strctParadigm.MovingBarBackgroundGreen.BufferIdx))...
-    squeeze(g_strctParadigm.MovingBarBackgroundBlue.Buffer(1,:,g_strctParadigm.MovingBarBackgroundBlue.BufferIdx))];
-
-
-if g_strctParadigm.m_strctHandMappingParameters.m_bRandomStimulusOrientation
-    strctTrial.m_fRotationAngle = round(19.*rand(1,1) + 1) * 18;
+strctTrial.m_iMoveDistance = (strctTrial.m_iMoveSpeed / (1000/g_strctPTB.g_strctStimulusServer.m_RefreshRateMS)) * strctTrial.numFrames;
+strctTrial.m_bRandomStimulusOrientation = g_strctParadigm.m_bRandomStimulusOrientation;
+strctTrial.m_bCycleStimulusOrientation = g_strctParadigm.m_bCycleStimulusOrientation;
+strctTrial.m_bReverseCycleStimulusOrientation = g_strctParadigm.m_bReverseCycleStimulusOrientation;
+if g_strctParadigm.m_bRandomStimulusOrientation
     
+    % ClockRandSeed();
+    %strctTrial.m_iOrientationBin = floor(((g_strctParadigm.m_iNumOrientationBins) * rand(1,1))) + 1;
+    
+    strctTrial.m_iOrientationBin = randi(g_strctParadigm.m_iNumOrientationBins,[1]);
+    strctTrial.m_fRotationAngle = strctTrial.m_iOrientationBin * (360/g_strctParadigm.m_iNumOrientationBins) ;
+elseif g_strctParadigm.m_bCycleStimulusOrientation
+    if isempty(g_strctParadigm.m_iOrientationBin)
+        g_strctParadigm.m_iOrientationBin = 1;
+    end
+    if ~g_strctParadigm.m_bReverseCycleStimulusOrientation
+        strctTrial.m_iOrientationBin = g_strctParadigm.m_iOrientationBin + 1;
+        if strctTrial.m_iOrientationBin >= 21
+            strctTrial.m_iOrientationBin = 1;
+        end
+    else
+        strctTrial.m_iOrientationBin = g_strctParadigm.m_iOrientationBin - 1;
+        if strctTrial.m_iOrientationBin <= 0
+            strctTrial.m_iOrientationBin = 20;
+        end
+    end
+    strctTrial.m_fRotationAngle = strctTrial.m_iOrientationBin * (360/g_strctParadigm.m_iNumOrientationBins) ;
 else
+    strctTrial.m_iOrientationBin = [];
     strctTrial.m_fRotationAngle = squeeze(g_strctParadigm.MovingBarOrientation.Buffer(1,:,g_strctParadigm.MovingBarOrientation.BufferIdx));
 end
+g_strctParadigm.m_iOrientationBin = strctTrial.m_iOrientationBin;
 
-
-if g_strctParadigm.m_strctHandMappingParameters.m_bRandomStimulusPosition
-    minimum_seperation = max(strctTrial.m_iLength, strctTrial.m_iWidth)/2;
+if strctTrial.m_bRandomStimulusPosition
+    %minimum_seperation = max(strctTrial.m_iLength, strctTrial.m_iWidth)/2;
     for iNumBars = 1 : strctTrial.m_iNumberOfBars
         % Random center points
         
         
         
-        strctTrial.location_x(iNumBars) = g_strctParadigm.m_aiStimulusRect(1)+ round(rand*range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]));
+        strctTrial.location_x(iNumBars) = g_strctParadigm.m_aiStimulusRect(1)+ randi(range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]));
+        strctTrial.location_y(iNumBars) = g_strctParadigm.m_aiStimulusRect(2)+ randi(range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)]));
+        %{
+		 strctTrial.location_x(iNumBars) = g_strctParadigm.m_aiStimulusRect(1)+ round(rand*range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]));
         strctTrial.location_y(iNumBars) = g_strctParadigm.m_aiStimulusRect(2)+ round(rand*range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)]));
         % Try not to draw bars on top of each other
+		
         if iNumBars > 2
             for tries=1:5
                 if abs(min(strctTrial.location_x(1:iNumBars-1)) - strctTrial.location_x(iNumBars)) < minimum_seperation ||...
@@ -283,6 +892,7 @@ if g_strctParadigm.m_strctHandMappingParameters.m_bRandomStimulusPosition
                 end
             end
         end
+        %}
         strctTrial.bar_rect(iNumBars,1:4) = [(strctTrial.location_x(iNumBars) - strctTrial.m_iLength/2), (strctTrial.location_y(iNumBars)  - strctTrial.m_iWidth/2), ...
             (strctTrial.location_x(iNumBars) + strctTrial.m_iLength/2), (strctTrial.location_y(iNumBars) + strctTrial.m_iWidth/2)];
         
@@ -347,22 +957,9 @@ else
     
     
     
-    min_distance = min((strctTrial.m_iLength/2)-1,(strctTrial.m_iWidth/2)-1);
-    % Make sure our number of blur steps is sane
-    if min_distance < 3
-        strctTrial.numberBlurSteps = 1;
-        
-    elseif strctTrial.numberBlurSteps > min((strctTrial.m_iLength/2)-1,(strctTrial.m_iWidth/2)-1)
-        strctTrial.numberBlurSteps = floor(min_distance-2);
-    elseif strctTrial.numberBlurSteps == 0
-        strctTrial.numberBlurSteps = 1;
-    end
-    [strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.m_iNumberOfBars, strctTrial.numberBlurSteps));
-    strctTrial.blurStepHolder(1,:) = linspace(strctTrial.m_afBackgroundColor(1),strctTrial.m_aiStimColor(1),strctTrial.numberBlurSteps);
-    strctTrial.blurStepHolder(2,:) = linspace(strctTrial.m_afBackgroundColor(2),strctTrial.m_aiStimColor(2),strctTrial.numberBlurSteps);
-    strctTrial.blurStepHolder(3,:) = linspace(strctTrial.m_afBackgroundColor(3),strctTrial.m_aiStimColor(3),strctTrial.numberBlurSteps);
     
-    %strctTrial.blurCorrectedScreenCoordinates = zeros(strctTrial.m_iNumberOfBars,4,2);
+    [strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.m_iNumberOfBars, strctTrial.numberBlurSteps));
+    
     [strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.m_iNumberOfBars,strctTrial.numberBlurSteps+1));
     [strctTrial.blur_starting_point, strctTrial.blur_ending_point] = deal(zeros(strctTrial.m_iNumberOfBars, 2 ,1));
     for iNumOfBars = 1:strctTrial.m_iNumberOfBars
@@ -403,153 +1000,545 @@ end
 return;
 
 
+
 % ------------------------------------------------------------------------------------------------------------------------
 
 
+function [strctTrial] = fnPrepare2BarTrial(g_strctPTB, strctTrial);
 
-function [g_strctParadigm, strctTrial] = fnPrepareColorTuningFunctionTrial(g_strctParadigm, g_strctPTB, strctTrial)
+% dbstop if warning
+% warning ('Sivas warning')
 
+global g_strctStimulusServer g_strctParadigm
+strctTrial.m_bUseStrobes = 0;
 strctTrial.m_iFixationColor = [255 255 255];
 
+% strctTrial.m_iLength(1) = squeeze(g_strctParadigm.TwoBarLengthBarOne.Buffer(1,:,g_strctParadigm.TwoBarLengthBarOne.BufferIdx));
+% strctTrial.m_iWidth(1) = squeeze(g_strctParadigm.TwoBarWidthBarOne.Buffer(1,:,g_strctParadigm.TwoBarWidthBarOne.BufferIdx));
+% strctTrial.m_iLength(2) = squeeze(g_strctParadigm.TwoBarLengthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+% strctTrial.m_iWidth(2) = squeeze(g_strctParadigm.TwoBarWidthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarWidthBarTwo.BufferIdx));
 
-strctTrial.m_bUseStrobes = 1;
+% %Siva's edit start (added)
+% strctTrial.m_iLength(3) = squeeze(g_strctParadigm.TwoBarLengthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+% strctTrial.m_iWidth(3) = squeeze(g_strctParadigm.TwoBarWidthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarWidthBarTwo.BufferIdx));
+% strctTrial.m_iLength(4) = squeeze(g_strctParadigm.TwoBarLengthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+% strctTrial.m_iWidth(4) = squeeze(g_strctParadigm.TwoBarWidthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarWidthBarTwo.BufferIdx));
 
-strctTrial.m_iNumberOfBars = 1;
-strctTrial.m_iMoveDistance = g_strctParadigm.m_strctTuningFunctionParams.m_fMoveDistance;
-
-strctTrial.numFrames = g_strctParadigm.m_strctTuningFunctionParams.m_fNumFrames;
-strctTrial.m_fStimulusON_MS = g_strctParadigm.m_strctTuningFunctionParams.m_fStimulusOnTime;
-strctTrial.m_fStimulusOFF_MS = g_strctParadigm.m_strctTuningFunctionParams.m_fStimulusOffTime;
-strctTrial.location_x(1) = g_strctParadigm.m_strctTuningFunctionParams.m_afCenterOfStimulus(1);
-strctTrial.location_y(1) = g_strctParadigm.m_strctTuningFunctionParams.m_afCenterOfStimulus(2);
-strctTrial.bar_rect(1,1:4) = [(g_strctParadigm.m_strctTuningFunctionParams.m_afCenterOfStimulus(1) - g_strctParadigm.m_strctTuningFunctionParams.m_fLength/2),...
-    (g_strctParadigm.m_strctTuningFunctionParams.m_afCenterOfStimulus(2) - g_strctParadigm.m_strctTuningFunctionParams.m_fWidth/2), ...
-    (g_strctParadigm.m_strctTuningFunctionParams.m_afCenterOfStimulus(1) + g_strctParadigm.m_strctTuningFunctionParams.m_fLength/2),...
-    (g_strctParadigm.m_strctTuningFunctionParams.m_afCenterOfStimulus(2) + g_strctParadigm.m_strctTuningFunctionParams.m_fWidth/2)];
-
-
-
-
-strctTrial.m_fRotationAngle = g_strctParadigm.m_strctTuningFunctionParams.m_fTheta;
-
-
-
-
-% Always set to this so the Clut is accurate
-strctTrial.m_aiStimColor = [2 2 2];
-% Background color
-strctTrial.m_afBackgroundColor = [1 1 1]; % ditto
-
-[g_strctParadigm, strctTrial] = fnChooseColor(g_strctParadigm, strctTrial);
+for i=1:4%squeeze(g_strctParadigm.TwoBarNumberOfBars.Buffer(1,:,g_strctParadigm.TwoBarNumberOfBars.BufferIdx))
+    strctTrial.m_iLength(i) = squeeze(g_strctParadigm.TwoBarLengthBarOne.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+    strctTrial.m_iWidth(i) = squeeze(g_strctParadigm.TwoBarLengthBarOne.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+    
+    strctTrial.numberBlurSteps(i) = round(squeeze(g_strctParadigm.TwoBarBlurStepsBarOne.Buffer(1,:,g_strctParadigm.TwoBarBlurStepsBarOne.BufferIdx)));
+    
+    strctTrial.m_iOrientationBin(i) = randi(g_strctParadigm.m_iNumOrientationBins);
+    strctTrial.m_fRotationAngle(i) = strctTrial.m_iOrientationBin(1) * (360/g_strctParadigm.m_iNumOrientationBins) ;
+end
+% %Siva's edit end (added)
 
 
 
+strctTrial.m_iBarOneLength = strctTrial.m_iLength;
+strctTrial.m_iBarOneWidth= strctTrial.m_iWidth;
+strctTrial.m_iBarTwoLength = squeeze(g_strctParadigm.TwoBarLengthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+strctTrial.m_iBarTwoWidth = squeeze(g_strctParadigm.TwoBarWidthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarWidthBarTwo.BufferIdx));
+strctTrial.m_iNumberOfBars = 4; %squeeze(g_strctParadigm.TwoBarNumberOfBars.Buffer(1,:,g_strctParadigm.TwoBarNumberOfBars.BufferIdx));
+strctTrial.m_fStimulusON_MS = g_strctParadigm.TwoBarStimulusOnTime.Buffer(1,:,g_strctParadigm.TwoBarStimulusOnTime.BufferIdx);
+strctTrial.m_fStimulusOFF_MS = g_strctParadigm.TwoBarStimulusOffTime.Buffer(1,:,g_strctParadigm.TwoBarStimulusOffTime.BufferIdx);
+strctTrial.m_fTwoBarOnsetDelay = g_strctParadigm.TwoBarStimulusOnsetDelay.Buffer(1,:,g_strctParadigm.TwoBarStimulusOnsetDelay.BufferIdx);
+
+strctTrial.numFrames = round(strctTrial.m_fStimulusON_MS / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
+strctTrial.m_iBarTwoNumFrames = round((strctTrial.m_fStimulusON_MS - strctTrial.m_fTwoBarOnsetDelay) / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
+strctTrial.m_iMoveDistance = squeeze(g_strctParadigm.TwoBarMoveDistance.Buffer(1,:,g_strctParadigm.TwoBarMoveDistance.BufferIdx));
+strctTrial.m_iMinOffset = squeeze(g_strctParadigm.TwoBarMinOffset.Buffer(1,:,g_strctParadigm.TwoBarMinOffset.BufferIdx));
+strctTrial.m_iMaxOffset = squeeze(g_strctParadigm.TwoBarMaxOffset.Buffer(1,:,g_strctParadigm.TwoBarMaxOffset.BufferIdx));
+strctTrial.m_bDifferentColorsForDifferentBars = g_strctParadigm.m_strct2BarStimParams.m_bDifferentColorsForDifferentBars;
+
+% strctTrial.numberBlurSteps(1) = round(squeeze(g_strctParadigm.TwoBarBlurStepsBarOne.Buffer(1,:,g_strctParadigm.TwoBarBlurStepsBarOne.BufferIdx)));
+% strctTrial.numberBlurSteps(2) = round(squeeze(g_strctParadigm.TwoBarBlurStepsBarTwo.Buffer(1,:,g_strctParadigm.TwoBarBlurStepsBarTwo.BufferIdx)));
+% strctTrial.numberBlurSteps(3) = round(squeeze(g_strctParadigm.TwoBarBlurStepsBarOne.Buffer(1,:,g_strctParadigm.TwoBarBlurStepsBarOne.BufferIdx)));
+% strctTrial.numberBlurSteps(4) = round(squeeze(g_strctParadigm.TwoBarBlurStepsBarTwo.Buffer(1,:,g_strctParadigm.TwoBarBlurStepsBarTwo.BufferIdx)));
 
 
 
-[strctTrial.point1(1,1), strctTrial.point1(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,1),strctTrial.bar_rect(1,2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.point2(1,1), strctTrial.point2(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,1),strctTrial.bar_rect(1,4),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.point3(1,1), strctTrial.point3(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,3),strctTrial.bar_rect(1,4),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.point4(1,1), strctTrial.point4(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,3),strctTrial.bar_rect(1,2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.bar_starting_point(1,1),strctTrial.bar_starting_point(2,1)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) - strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.bar_ending_point(1,1),strctTrial.bar_ending_point(2,1)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) + strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
+[strctTrial] = fnCycleColor(strctTrial);
+
+strctTrial.m_bRandomStimulusOrientation = g_strctParadigm.m_bRandomStimulusOrientation;
+if g_strctParadigm.m_bRandomStimulusOrientation
+    
+    % ClockRandSeed();
+    %strctTrial.m_iOrientationBin = floor(((g_strctParadigm.m_iNumOrientationBins) * rand(1,1))) + 1;
+    strctTrial.m_iOrientationBin(1) = randi(g_strctParadigm.m_iNumOrientationBins);
+    strctTrial.m_iOrientationBin(2) = strctTrial.m_iOrientationBin(1);
+    strctTrial.m_fRotationAngle(1) = strctTrial.m_iOrientationBin(1) * (360/g_strctParadigm.m_iNumOrientationBins) ;
+    strctTrial.m_fRotationAngle(2) = strctTrial.m_fRotationAngle(1) ;
+elseif g_strctParadigm.m_bCycleStimulusOrientation
+    if isempty(g_strctParadigm.m_iOrientationBin)
+        g_strctParadigm.m_iOrientationBin(1) = 1;
+    end
+    if ~g_strctParadigm.m_bReverseCycleStimulusOrientation
+        strctTrial.m_iOrientationBin(1) = g_strctParadigm.m_iOrientationBin + 1;
+        if strctTrial.m_iOrientationBin >= 21
+            strctTrial.m_iOrientationBin(1) = 1;
+        end
+    else
+        strctTrial.m_iOrientationBin = g_strctParadigm.m_iOrientationBin - 1;
+        if strctTrial.m_iOrientationBin(1) <= 0
+            strctTrial.m_iOrientationBin(1) = 20;
+        end
+    end
+    strctTrial.m_iOrientationBin(2) = strctTrial.m_iOrientationBin(1);
+    strctTrial.m_fRotationAngle(1) = strctTrial.m_iOrientationBin(1) * (360/g_strctParadigm.m_iNumOrientationBins) ;
+    strctTrial.m_fRotationAngle(2) = strctTrial.m_fRotationAngle(1);
+else
+    strctTrial.m_iOrientationBin = [];
+    strctTrial.m_fRotationAngle(1) = squeeze(g_strctParadigm.TwoBarOrientationBarOne.Buffer(1,:,g_strctParadigm.TwoBarOrientationBarOne.BufferIdx));
+    strctTrial.m_fRotationAngle(2) = squeeze(g_strctParadigm.TwoBarOrientationBarTwo.Buffer(1,:,g_strctParadigm.TwoBarOrientationBarTwo.BufferIdx));
+end
+g_strctParadigm.m_iOrientationBin = strctTrial.m_iOrientationBin;
 
 
-% clear this or if the stimulus on time is changed it will break the array and crash kofiko
-[strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.m_iNumberOfBars));
+
+if strctTrial.m_bRandomStimulusPosition
+    strctTrial.location_x(1) = g_strctParadigm.m_aiStimulusRect(1)+ randi(range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]));
+    strctTrial.location_y(1) = g_strctParadigm.m_aiStimulusRect(2)+ randi(range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)]));
+else
+    strctTrial.location_x(1) = g_strctParadigm.m_aiCenterOfStimulus(1);
+    strctTrial.location_y(1) = g_strctParadigm.m_aiCenterOfStimulus(2);
+    
+end
+
+strctTrial.bar_rect(1,1:4) = [(strctTrial.location_x(1) - strctTrial.m_iLength(1)/2), (strctTrial.location_y(1)  - strctTrial.m_iWidth(1)/2), ...
+    (strctTrial.location_x(1) + strctTrial.m_iLength(1)/2), (strctTrial.location_y(1) + strctTrial.m_iWidth(1)/2)];
+for iNumBars = 2 : strctTrial.m_iNumberOfBars
+    % Random center points
+    
+    strctTrial.barXOffSet(iNumBars-1) = (((randi(101)-1)/100)-.5);
+    xSign = sign(strctTrial.barXOffSet(iNumBars-1));
+    strctTrial.barYOffSet(iNumBars-1) = (((randi(101)-1)/100)-.5);
+    ySign = sign(strctTrial.barYOffSet(iNumBars-1));
+    
+    strctTrial.location_x(iNumBars) = round(strctTrial.location_x(1) + (xSign * strctTrial.m_iMinOffset) + (strctTrial.barXOffSet(iNumBars-1) * range([strctTrial.m_iMaxOffset, strctTrial.m_iMinOffset])));
+    strctTrial.location_y(iNumBars) = round(strctTrial.location_y(1) + (ySign * strctTrial.m_iMinOffset) + (strctTrial.barYOffSet(iNumBars-1) * range([strctTrial.m_iMaxOffset, strctTrial.m_iMinOffset])));
+    %strctTrial.location_y(iNumBars) = round(strctTrial.location_y(1) + (randi(100)/100) * range([strctTrial.m_iMaxOffset, strctTrial.m_iMinOffset])));
+    
+    strctTrial.bar_rect(iNumBars,1:4) = [(strctTrial.location_x(iNumBars) - strctTrial.m_iLength(iNumBars)/2), (strctTrial.location_y(iNumBars)  - strctTrial.m_iWidth(iNumBars)/2), ...
+        (strctTrial.location_x(iNumBars) + strctTrial.m_iLength(iNumBars)/2), (strctTrial.location_y(iNumBars) + strctTrial.m_iWidth(iNumBars)/2)];
+    
+end
+%{
+    strctTrial.m_iNumberOfBars = 1;
+    strctTrial.location_x(1) = g_strctParadigm.m_aiCenterOfStimulus(1);
+    strctTrial.location_y(1) = g_strctParadigm.m_aiCenterOfStimulus(2);
+    strctTrial.bar_rect(1,1:4) = [(g_strctParadigm.m_aiCenterOfStimulus(1) - strctTrial.m_iLength/2), (g_strctParadigm.m_aiCenterOfStimulus(2) - strctTrial.m_iWidth/2), ...
+        (g_strctParadigm.m_aiCenterOfStimulus(1) + strctTrial.m_iLength/2), (g_strctParadigm.m_aiCenterOfStimulus(2) + strctTrial.m_iWidth/2)];
+%}
+
+
 
 % Check if the trial has more than 1 frame in it, so we can plan the trial
-if strctTrial.numFrames > 1
-    % Calculate coordinates for every frame
+
+
+
+
+
+
+%[strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.m_iNumberOfBars, strctTrial.numberBlurSteps));
+
+[strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.m_iNumberOfBars,strctTrial.numberBlurSteps+1));
+[strctTrial.blur_starting_point, strctTrial.blur_ending_point] = deal(zeros(strctTrial.m_iNumberOfBars, 2 ,1));
+for iNumOfBars = 1:strctTrial.m_iNumberOfBars
+    switch iNumOfBars
+        case 1
+            blurXCoords = vertcat(round(linspace(strctTrial.bar_rect(iNumOfBars,1),strctTrial.bar_rect(iNumOfBars,1) + strctTrial.numberBlurSteps+1,strctTrial.numberBlurSteps+1)),...
+                round(linspace(strctTrial.bar_rect(iNumOfBars,3),strctTrial.bar_rect(iNumOfBars,3) - strctTrial.numberBlurSteps+1,strctTrial.numberBlurSteps+1)));
+            
+            blurYCoords = vertcat(round(linspace(strctTrial.bar_rect(iNumOfBars,2),strctTrial.bar_rect(iNumOfBars,2) + strctTrial.numberBlurSteps+1,strctTrial.numberBlurSteps+1)),...
+                round(linspace(strctTrial.bar_rect(iNumOfBars,4),strctTrial.bar_rect(iNumOfBars,4) - strctTrial.numberBlurSteps+1,strctTrial.numberBlurSteps+1)));
+            
+            [firstBlurCoordsPoint1(1, :), firstBlurCoordsPoint1(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(1,:) -...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(1));
+            [firstBlurCoordsPoint2(1,:), firstBlurCoordsPoint2(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(2,:) -...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(1));
+            [firstBlurCoordsPoint3(1,:), firstBlurCoordsPoint3(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(2,:) -...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(1));
+            [firstBlurCoordsPoint4(1,:), firstBlurCoordsPoint4(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(1,:) -...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(1));
+            
+            [lastBlurCoordsPoint1(1,:), lastBlurCoordsPoint1(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(1,:) +...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(1));
+            [lastBlurCoordsPoint2(1,:), lastBlurCoordsPoint2(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(2,:) +...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(1));
+            [lastBlurCoordsPoint3(1,:), lastBlurCoordsPoint3(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(2,:) +...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(1));
+            [lastBlurCoordsPoint4(1,:), lastBlurCoordsPoint4(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(1,:) +...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(1));
+            
+            
+            for iBlurSteps = 1: strctTrial.numberBlurSteps+1
+                strctTrial.coordinatesX(1:4,:,iNumOfBars,iBlurSteps) = vertcat(round(linspace(firstBlurCoordsPoint1(1,iBlurSteps),lastBlurCoordsPoint1(1,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint2(1,iBlurSteps),lastBlurCoordsPoint2(1,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint3(1,iBlurSteps),lastBlurCoordsPoint3(1,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint4(1,iBlurSteps),lastBlurCoordsPoint4(1,iBlurSteps),strctTrial.numFrames)));
+                strctTrial.coordinatesY(1:4,:,iNumOfBars,iBlurSteps) = vertcat(round(linspace(firstBlurCoordsPoint1(2,iBlurSteps),lastBlurCoordsPoint1(2,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint2(2,iBlurSteps),lastBlurCoordsPoint2(2,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint3(2,iBlurSteps),lastBlurCoordsPoint3(2,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint4(2,iBlurSteps),lastBlurCoordsPoint4(2,iBlurSteps),strctTrial.numFrames)));
+            end
+        otherwise
+            
+            
+            
+            blurXCoords = vertcat(round(linspace(strctTrial.bar_rect(iNumOfBars,1),strctTrial.bar_rect(iNumOfBars,1) + strctTrial.numberBlurSteps+1,strctTrial.numberBlurSteps+1)),...
+                round(linspace(strctTrial.bar_rect(iNumOfBars,3),strctTrial.bar_rect(iNumOfBars,3) - strctTrial.numberBlurSteps+1,strctTrial.numberBlurSteps+1)));
+            
+            blurYCoords = vertcat(round(linspace(strctTrial.bar_rect(iNumOfBars,2),strctTrial.bar_rect(iNumOfBars,2) + strctTrial.numberBlurSteps+1,strctTrial.numberBlurSteps+1)),...
+                round(linspace(strctTrial.bar_rect(iNumOfBars,4),strctTrial.bar_rect(iNumOfBars,4) - strctTrial.numberBlurSteps+1,strctTrial.numberBlurSteps+1)));
+            
+            [firstBlurCoordsPoint1(1, :), firstBlurCoordsPoint1(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(1,:) -...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(2));
+            [firstBlurCoordsPoint2(1,:), firstBlurCoordsPoint2(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(2,:) -...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(2));
+            [firstBlurCoordsPoint3(1,:), firstBlurCoordsPoint3(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(2,:) -...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(2));
+            [firstBlurCoordsPoint4(1,:), firstBlurCoordsPoint4(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(1,:) -...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(2));
+            
+            [lastBlurCoordsPoint1(1,:), lastBlurCoordsPoint1(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(1,:) +...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(2));
+            [lastBlurCoordsPoint2(1,:), lastBlurCoordsPoint2(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(2,:) +...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(2));
+            [lastBlurCoordsPoint3(1,:), lastBlurCoordsPoint3(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(2,:) +...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(2));
+            [lastBlurCoordsPoint4(1,:), lastBlurCoordsPoint4(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(1,:) +...
+                strctTrial.m_iMoveDistance/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(2));
+            
+            
+            for iBlurSteps = 1: strctTrial.numberBlurSteps+1
+                strctTrial.coordinatesX(1:4,strctTrial.numFrames + 1 - strctTrial.m_iBarTwoNumFrames : strctTrial.numFrames,iNumOfBars,iBlurSteps) = vertcat(round(linspace(firstBlurCoordsPoint1(1,iBlurSteps),lastBlurCoordsPoint1(1,iBlurSteps),strctTrial.m_iBarTwoNumFrames)),...
+                    round(linspace(firstBlurCoordsPoint2(1,iBlurSteps),lastBlurCoordsPoint2(1,iBlurSteps),strctTrial.m_iBarTwoNumFrames)),...
+                    round(linspace(firstBlurCoordsPoint3(1,iBlurSteps),lastBlurCoordsPoint3(1,iBlurSteps),strctTrial.m_iBarTwoNumFrames)),...
+                    round(linspace(firstBlurCoordsPoint4(1,iBlurSteps),lastBlurCoordsPoint4(1,iBlurSteps),strctTrial.m_iBarTwoNumFrames)));
+                strctTrial.coordinatesY(1:4,strctTrial.numFrames + 1 - strctTrial.m_iBarTwoNumFrames : strctTrial.numFrames,iNumOfBars,iBlurSteps) = ...
+                    vertcat(round(linspace(firstBlurCoordsPoint1(2,iBlurSteps),lastBlurCoordsPoint1(2,iBlurSteps),strctTrial.m_iBarTwoNumFrames)),...
+                    round(linspace(firstBlurCoordsPoint2(2,iBlurSteps),lastBlurCoordsPoint2(2,iBlurSteps),strctTrial.m_iBarTwoNumFrames)),...
+                    round(linspace(firstBlurCoordsPoint3(2,iBlurSteps),lastBlurCoordsPoint3(2,iBlurSteps),strctTrial.m_iBarTwoNumFrames)),...
+                    round(linspace(firstBlurCoordsPoint4(2,iBlurSteps),lastBlurCoordsPoint4(2,iBlurSteps),strctTrial.m_iBarTwoNumFrames)));
+            end
+            
+            
+    end
     
-    strctTrial.coordinatesX(1:4,:,strctTrial.m_iNumberOfBars) = vertcat(round(linspace(strctTrial.point1(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point1(1,strctTrial.m_iNumberOfBars)-(strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point2(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point2(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point3(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point3(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point4(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point4(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)));
-    strctTrial.coordinatesY(1:4,:,strctTrial.m_iNumberOfBars) = vertcat(round(linspace(strctTrial.point1(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point1(2,strctTrial.m_iNumberOfBars)-(strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point2(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point2(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point3(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point3(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point4(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point4(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)));
-else
-    strctTrial.coordinatesX(1:4,:) = [strctTrial.point1(1), strctTrial.point2(1), strctTrial.point3(1),strctTrial.point4(1)];
-    strctTrial.coordinatesY(1:4,:) = [strctTrial.point1(2), strctTrial.point2(2), strctTrial.point3(2),strctTrial.point4(2)];
 end
 
 
+
+
+
 return;
-% ------------------------------------------------------------------------------------------------------------------------
+
+% ----------------------------------------------------------------------------------------------------------------
+% ----------------------------------------------------------------------------------------------------------------
+
 % ------------------------------------------------------------------------------------------------------------------------
 
-function [g_strctParadigm, strctTrial] = fnPrepareOrientationFunctionTrial(g_strctParadigm, g_strctPTB, strctTrial)
 
+function [strctTrial] = fnPrepareManyBarTrial(g_strctPTB, strctTrial)
+
+% dbstop if warning
+% warning ('Sivas warning')
+
+global g_strctStimulusServer g_strctParadigm
+strctTrial.m_bUseStrobes = 0;
 strctTrial.m_iFixationColor = [255 255 255];
 
-strctTrial.m_bUseStrobes = 1;
+% strctTrial.m_iLength(1) = squeeze(g_strctParadigm.TwoBarLengthBarOne.Buffer(1,:,g_strctParadigm.TwoBarLengthBarOne.BufferIdx));
+% strctTrial.m_iWidth(1) = squeeze(g_strctParadigm.TwoBarWidthBarOne.Buffer(1,:,g_strctParadigm.TwoBarWidthBarOne.BufferIdx));
+% strctTrial.m_iLength(2) = squeeze(g_strctParadigm.TwoBarLengthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+% strctTrial.m_iWidth(2) = squeeze(g_strctParadigm.TwoBarWidthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarWidthBarTwo.BufferIdx));
 
-strctTrial.m_iNumberOfBars = 1;
-strctTrial.m_iMoveDistance = g_strctParadigm.m_strctOrientationFunctionParams.m_fMoveDistance;
+% %Siva's edit start (added)
+% strctTrial.m_iLength(3) = squeeze(g_strctParadigm.TwoBarLengthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+% strctTrial.m_iWidth(3) = squeeze(g_strctParadigm.TwoBarWidthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarWidthBarTwo.BufferIdx));
+% strctTrial.m_iLength(4) = squeeze(g_strctParadigm.TwoBarLengthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+% strctTrial.m_iWidth(4) = squeeze(g_strctParadigm.TwoBarWidthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarWidthBarTwo.BufferIdx));
+strctTrial.m_iNumberOfBars = fnTsGetVar('g_strctParadigm','ManyBarNumberOfBarsSelected');
 
-strctTrial.numFrames = g_strctParadigm.m_strctOrientationFunctionParams.m_fNumFrames;
-strctTrial.m_fStimulusON_MS = g_strctParadigm.m_strctOrientationFunctionParams.m_fStimulusOnTime;
-strctTrial.m_fStimulusOFF_MS = g_strctParadigm.m_strctOrientationFunctionParams.m_fStimulusOffTime;
-strctTrial.location_x(1) = g_strctParadigm.m_strctOrientationFunctionParams.m_afCenterOfStimulus(1);
-strctTrial.location_y(1) = g_strctParadigm.m_strctOrientationFunctionParams.m_afCenterOfStimulus(2);
-strctTrial.m_afBackgroundColor = g_strctParadigm.m_afBackgroundColor;
-strctTrial.m_aiStimColor = g_strctParadigm.m_afBarColor;
+for i=1:strctTrial.m_iNumberOfBars
+    %squeeze(g_strctParadigm.TwoBarNumberOfBars.Buffer(1,:,g_strctParadigm.TwoBarNumberOfBars.BufferIdx))
+
+	
+    [strctTrial.m_iWidth(i),...
+        strctTrial.m_iLength(i),...
+        strctTrial.m_fRotationAngle(i),...
+        strctTrial.m_iMoveDistance(i),...
+        strctTrial.numberBlurSteps(i),...
+        strctTrial.m_fTwoBarOnsetDelay(i),...
+        strctTrial.m_iMinOffset(i),...
+        strctTrial.m_iMaxOffset(i)] = fnTsGetVar('g_strctParadigm',...
+        ['ManyBarWidthBar' num2str(i)],...
+        ['ManyBarLengthBar' num2str(i)],...
+        ['ManyBarOrientationBar' num2str(i)],...
+        ['ManyBarMoveDistance' num2str(i)],...
+        ['ManyBarBlurStepsBar' num2str(i)],...
+        ['ManyBarStimulusOnsetDelay' num2str(i)],...
+        ['ManyBarMinOffset' num2str(i)],...
+        ['ManyBarMaxOffset' num2str(i)]);
+    %['ManyBarStimulusPresetColor' num2str(i)],...
+    %['ManyBarStimulusRed' num2str(i)],...
+    %['ManyBarStimulusGreen' num2str(i)],...
+    %['ManyBarStimulusBlue' num2str(i)],...
+    %strctTrial.m_iLength(i),...
+    %strctTrial.m_iLength(i),...
+    %strctTrial.m_iLength(i),...
+    %strctTrial.numberBlurSteps(i),...
+    %strctTrial.m_fTwoBarOnsetDelay(i),...
+    %strctTrial.m_iLength(i),...   
+    %     strctTrial.m_iLength(i) = squeeze(g_strctParadigm.(['ManyBarLengthBar' num2str(i)]).Buffer(1,:,g_strctParadigm.(['ManyBarLengthBar' num2str(i)]).BufferIdx));
+    %     strctTrial.m_iWidth(i) = squeeze(g_strctParadigm.(['ManyBarWidthBar' num2str(i)]).Buffer(1,:,g_strctParadigm.(['ManyBarWidthBar' num2str(i)]).BufferIdx));
+    %     strctTrial.numberBlurSteps(i) = round(squeeze(g_strctParadigm.(['ManyBarLengthBar' num2str(i)]).Buffer(1,:,g_strctParadigm.(['ManyBarLengthBar' num2str(i)]).BufferIdx)));
+    %     strctTrial.m_iOrientationBin(i) = randi(g_strctParadigm.m_iNumOrientationBins);
+    %     strctTrial.m_fRotationAngle(i) = strctTrial.m_iOrientationBin(1) * (360/g_strctParadigm.m_iNumOrientationBins) ;
+end
+% %Siva's edit end (added)
+
+% % % % % strctTrial.m_iBarOneLength = strctTrial.m_iLength;
+% % % % % strctTrial.m_iBarOneWidth= strctTrial.m_iWidth;
+% % % % % strctTrial.m_iBarTwoLength = squeeze(g_strctParadigm.TwoBarLengthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarLengthBarTwo.BufferIdx));
+% % % % % strctTrial.m_iBarTwoWidth = squeeze(g_strctParadigm.TwoBarWidthBarTwo.Buffer(1,:,g_strctParadigm.TwoBarWidthBarTwo.BufferIdx));
+% 4; %squeeze(g_strctParadigm.TwoBarNumberOfBars.Buffer(1,:,g_strctParadigm.TwoBarNumberOfBars.BufferIdx));
+strctTrial.m_fStimulusON_MS = g_strctParadigm.ManyBarStimulusOnTime.Buffer(1,:,g_strctParadigm.ManyBarStimulusOnTime.BufferIdx);
+strctTrial.m_fStimulusOFF_MS = g_strctParadigm.ManyBarStimulusOffTime.Buffer(1,:,g_strctParadigm.ManyBarStimulusOffTime.BufferIdx);
+
+strctTrial.numFrames = round(strctTrial.m_fStimulusON_MS / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
+
+strctTrial.m_bDifferentColorsForDifferentBars = g_strctParadigm.m_strct2BarStimParams.m_bDifferentColorsForDifferentBars;
+
+% strctTrial.numberBlurSteps(1) = round(squeeze(g_strctParadigm.ManyBarBlurStepsBarOne.Buffer(1,:,g_strctParadigm.ManyBarBlurStepsBarOne.BufferIdx)));
+% strctTrial.numberBlurSteps(2) = round(squeeze(g_strctParadigm.ManyBarBlurStepsBarMany.Buffer(1,:,g_strctParadigm.ManyBarBlurStepsBarMany.BufferIdx)));
+% strctTrial.numberBlurSteps(3) = round(squeeze(g_strctParadigm.ManyBarBlurStepsBarOne.Buffer(1,:,g_strctParadigm.ManyBarBlurStepsBarOne.BufferIdx)));
+% strctTrial.numberBlurSteps(4) = round(squeeze(g_strctParadigm.ManyBarBlurStepsBarMany.Buffer(1,:,g_strctParadigm.ManyBarBlurStepsBarMany.BufferIdx)));
+
+[strctTrial] = fnCycleColor(strctTrial);
+
+strctTrial.m_bRandomStimulusOrientation = g_strctParadigm.m_bRandomStimulusOrientation;
+if g_strctParadigm.m_bRandomStimulusOrientation
+    for iBars = 1:strctTrial.m_iNumberOfBars
+        % ClockRandSeed();
+        %strctTrial.m_iOrientationBin = floor(((g_strctParadigm.m_iNumOrientationBins) * rand(1,1))) + 1;
+        strctTrial.m_iOrientationBin(iBars) = randi(g_strctParadigm.m_iNumOrientationBins);
+        %strctTrial.m_iOrientationBin(2) = strctTrial.m_iOrientationBin(1);
+        strctTrial.m_fRotationAngle(iBars) = strctTrial.m_iOrientationBin(iBars) * (360/g_strctParadigm.m_iNumOrientationBins) ;
+        %strctTrial.m_fRotationAngle(2) = strctTrial.m_fRotationAngle(1) ;
+    end
+elseif g_strctParadigm.m_bCycleStimulusOrientation
+    
+    if isempty(g_strctParadigm.m_iOrientationBin(1))
+        g_strctParadigm.m_iOrientationBin(1) = 1;
+    end
+    if ~g_strctParadigm.m_bReverseCycleStimulusOrientation
+        strctTrial.m_iOrientationBin(iBars) = g_strctParadigm.m_iOrientationBin + 1;
+        if strctTrial.m_iOrientationBin(1) >= 21
+            strctTrial.m_iOrientationBin(1) = 1;
+        end
+    else
+        strctTrial.m_iOrientationBin = g_strctParadigm.m_iOrientationBin - 1;
+        if strctTrial.m_iOrientationBin(1) <= 0
+            strctTrial.m_iOrientationBin(1) = 20;
+        end
+    end
+    
+    strctTrial.m_fRotationAngle(1) = strctTrial.m_iOrientationBin(1) * (360/g_strctParadigm.m_iNumOrientationBins) ;
+    
+    for iBars = 2:strctTrial.m_iNumberOfBars
+        strctTrial.m_iOrientationBin(iBars) = strctTrial.m_iOrientationBin(1);
+        strctTrial.m_fRotationAngle(iBars) = strctTrial.m_fRotationAngle(1);
+    end
+else
+    strctTrial.m_iOrientationBin(1:strctTrial.m_iNumberOfBars) = deal(NaN);
+    for iBars = 1:strctTrial.m_iNumberOfBars
+        
+        strctTrial.m_fRotationAngle(iBars) = fnTsGetVar('g_strctParadigm',['ManyBarOrientationBar', num2str(iBars)])  ;
+        %strctTrial.m_fRotationAngle(iBars) = squeeze(g_strctParadigm.ManyBarOrientationBarMany.Buffer(1,:,g_strctParadigm.ManyBarOrientationBarMany.BufferIdx));
+    end
+    
+end
+
+g_strctParadigm.m_iOrientationBin = strctTrial.m_iOrientationBin(1);
 
 
 
-strctTrial.bar_rect(1,1:4) = [(g_strctParadigm.m_strctOrientationFunctionParams.m_afCenterOfStimulus(1) - g_strctParadigm.m_strctOrientationFunctionParams.m_fLength/2),...
-    (g_strctParadigm.m_strctOrientationFunctionParams.m_afCenterOfStimulus(2) - g_strctParadigm.m_strctOrientationFunctionParams.m_fWidth/2), ...
-    (g_strctParadigm.m_strctOrientationFunctionParams.m_afCenterOfStimulus(1) + g_strctParadigm.m_strctOrientationFunctionParams.m_fLength/2),...
-    (g_strctParadigm.m_strctOrientationFunctionParams.m_afCenterOfStimulus(2) + g_strctParadigm.m_strctOrientationFunctionParams.m_fWidth/2)];
+if strctTrial.m_bRandomStimulusPosition
+    strctTrial.location_x(1) = g_strctParadigm.m_aiStimulusRect(1)+ randi(range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]));
+    strctTrial.location_y(1) = g_strctParadigm.m_aiStimulusRect(2)+ randi(range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)]));
+else
+    strctTrial.location_x(1) = g_strctParadigm.m_aiCenterOfStimulus(1);
+    strctTrial.location_y(1) = g_strctParadigm.m_aiCenterOfStimulus(2);
+    
+end
+
+strctTrial.bar_rect(1,1:4) = [(strctTrial.location_x(1) - strctTrial.m_iLength(1)/2), (strctTrial.location_y(1)  - strctTrial.m_iWidth(1)/2), ...
+    (strctTrial.location_x(1) + strctTrial.m_iLength(1)/2), (strctTrial.location_y(1) + strctTrial.m_iWidth(1)/2)];
+for iNumBars = 2 : strctTrial.m_iNumberOfBars
+    % Random center points
+    
+    strctTrial.barXOffSet(iNumBars-1) = (((randi(101)-1)/100)-.5);
+    xSign = sign(strctTrial.barXOffSet(iNumBars-1));
+    strctTrial.barYOffSet(iNumBars-1) = (((randi(101)-1)/100)-.5);
+    ySign = sign(strctTrial.barYOffSet(iNumBars-1));
+    
+    strctTrial.location_x(iNumBars) = round(strctTrial.location_x(1) + (xSign * strctTrial.m_iMinOffset(iNumBars-1)) + (strctTrial.barXOffSet(iNumBars-1) * range([strctTrial.m_iMaxOffset(iNumBars-1), strctTrial.m_iMinOffset(iNumBars-1)])));
+    strctTrial.location_y(iNumBars) = round(strctTrial.location_y(1) + (ySign * strctTrial.m_iMinOffset(iNumBars-1)) + (strctTrial.barYOffSet(iNumBars-1) * range([strctTrial.m_iMaxOffset(iNumBars-1), strctTrial.m_iMinOffset(iNumBars-1)])));
+    %strctTrial.location_y(iNumBars) = round(strctTrial.location_y(1) + (randi(100)/100) * range([strctTrial.m_iMaxOffset, strctTrial.m_iMinOffset])));
+    
+    strctTrial.bar_rect(iNumBars,1:4) = [(strctTrial.location_x(iNumBars) - strctTrial.m_iLength(iNumBars)/2), (strctTrial.location_y(iNumBars)  - strctTrial.m_iWidth(iNumBars)/2), ...
+        (strctTrial.location_x(iNumBars) + strctTrial.m_iLength(iNumBars)/2), (strctTrial.location_y(iNumBars) + strctTrial.m_iWidth(iNumBars)/2)];
+    
+end
+%{
+    strctTrial.m_iNumberOfBars = 1;
+    strctTrial.location_x(1) = g_strctParadigm.m_aiCenterOfStimulus(1);
+    strctTrial.location_y(1) = g_strctParadigm.m_aiCenterOfStimulus(2);
+    strctTrial.bar_rect(1,1:4) = [(g_strctParadigm.m_aiCenterOfStimulus(1) - strctTrial.m_iLength/2), (g_strctParadigm.m_aiCenterOfStimulus(2) - strctTrial.m_iWidth/2), ...
+        (g_strctParadigm.m_aiCenterOfStimulus(1) + strctTrial.m_iLength/2), (g_strctParadigm.m_aiCenterOfStimulus(2) + strctTrial.m_iWidth/2)];
+%}
 
 
-[g_strctParadigm, strctTrial] = fnChooseOrientation(g_strctParadigm, strctTrial);
-
-
-
-[strctTrial.point1(1,1), strctTrial.point1(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,1),strctTrial.bar_rect(1,2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.point2(1,1), strctTrial.point2(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,1),strctTrial.bar_rect(1,4),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.point3(1,1), strctTrial.point3(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,3),strctTrial.bar_rect(1,4),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.point4(1,1), strctTrial.point4(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,3),strctTrial.bar_rect(1,2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.bar_starting_point(1,1),strctTrial.bar_starting_point(2,1)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) - strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-[strctTrial.bar_ending_point(1,1),strctTrial.bar_ending_point(2,1)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) + strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-% clear this or if the stimulus on time is changed it will break the array and crash kofiko
-[strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.m_iNumberOfBars));
 
 % Check if the trial has more than 1 frame in it, so we can plan the trial
-if strctTrial.numFrames > 1
-    % Calculate coordinates for every frame
-    
-    strctTrial.coordinatesX(1:4,:,strctTrial.m_iNumberOfBars) = vertcat(round(linspace(strctTrial.point1(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point1(1,strctTrial.m_iNumberOfBars)-(strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point2(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point2(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point3(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point3(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point4(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point4(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)));
-    
-    strctTrial.coordinatesY(1:4,:,strctTrial.m_iNumberOfBars) = vertcat(round(linspace(strctTrial.point1(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point1(2,strctTrial.m_iNumberOfBars)-(strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point2(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point2(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point3(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point3(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point4(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point4(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)));
-else
-    strctTrial.coordinatesX(1:4,:) = [strctTrial.point1(1), strctTrial.point2(1), strctTrial.point3(1),strctTrial.point4(1)];
-    strctTrial.coordinatesY(1:4,:) = [strctTrial.point1(2), strctTrial.point2(2), strctTrial.point3(2),strctTrial.point4(2)];
+
+
+
+
+
+
+%[strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.m_iNumberOfBars, strctTrial.numberBlurSteps));
+for iBars = 1:strctTrial.m_iNumberOfBars
+    [strctTrial.coordinatesX(iBars).Coords, strctTrial.coordinatesY(iBars).Coords]  = deal(zeros(4, strctTrial.numFrames, strctTrial.numberBlurSteps(iBars)+1));
 end
+[strctTrial.blur_starting_point, strctTrial.blur_ending_point] = deal(zeros(strctTrial.m_iNumberOfBars, 2 ,1));
+for iNumOfBars = 1:strctTrial.m_iNumberOfBars
+    blurXCoords = [];
+   
+    blurYCoords = [];
+    firstBlurCoordsPoint1 = [];
+    firstBlurCoordsPoint2 = [];
+    firstBlurCoordsPoint3 = [];
+    firstBlurCoordsPoint4 = [];
+    lastBlurCoordsPoint1 = [];
+    lastBlurCoordsPoint2 = [];
+    lastBlurCoordsPoint3 = [];
+    lastBlurCoordsPoint4 = [];
+    
+    switch iNumOfBars
+        case 1
+            blurXCoords = vertcat(round(linspace(strctTrial.bar_rect(iNumOfBars,1),strctTrial.bar_rect(iNumOfBars,1) + strctTrial.numberBlurSteps(iNumOfBars)+1,strctTrial.numberBlurSteps(iNumOfBars)+1)),...
+                round(linspace(strctTrial.bar_rect(iNumOfBars,3),strctTrial.bar_rect(iNumOfBars,3) - strctTrial.numberBlurSteps(iNumOfBars)+1,strctTrial.numberBlurSteps(iNumOfBars)+1)));
+            
+            blurYCoords = vertcat(round(linspace(strctTrial.bar_rect(iNumOfBars,2),strctTrial.bar_rect(iNumOfBars,2) + strctTrial.numberBlurSteps(iNumOfBars)+1,strctTrial.numberBlurSteps(iNumOfBars)+1)),...
+                round(linspace(strctTrial.bar_rect(iNumOfBars,4),strctTrial.bar_rect(iNumOfBars,4) - strctTrial.numberBlurSteps(iNumOfBars)+1,strctTrial.numberBlurSteps(iNumOfBars)+1)));
+            
+            [firstBlurCoordsPoint1(1, :), firstBlurCoordsPoint1(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(1,:) -...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [firstBlurCoordsPoint2(1,:), firstBlurCoordsPoint2(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(2,:) -...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [firstBlurCoordsPoint3(1,:), firstBlurCoordsPoint3(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(2,:) -...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [firstBlurCoordsPoint4(1,:), firstBlurCoordsPoint4(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(1,:) -...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            
+            [lastBlurCoordsPoint1(1,:), lastBlurCoordsPoint1(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(1,:) +...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [lastBlurCoordsPoint2(1,:), lastBlurCoordsPoint2(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(2,:) +...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [lastBlurCoordsPoint3(1,:), lastBlurCoordsPoint3(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(2,:) +...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [lastBlurCoordsPoint4(1,:), lastBlurCoordsPoint4(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(1,:) +...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            
+            
+            for iBlurSteps = 1: strctTrial.numberBlurSteps(iNumOfBars)+1
+                strctTrial.coordinatesX(iNumOfBars).Coords(1:4,:,iNumOfBars,iBlurSteps) = vertcat(round(linspace(firstBlurCoordsPoint1(1,iBlurSteps),lastBlurCoordsPoint1(1,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint2(1,iBlurSteps),lastBlurCoordsPoint2(1,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint3(1,iBlurSteps),lastBlurCoordsPoint3(1,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint4(1,iBlurSteps),lastBlurCoordsPoint4(1,iBlurSteps),strctTrial.numFrames)));
+                strctTrial.coordinatesY(iNumOfBars).Coords(1:4,:,iNumOfBars,iBlurSteps) = vertcat(round(linspace(firstBlurCoordsPoint1(2,iBlurSteps),lastBlurCoordsPoint1(2,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint2(2,iBlurSteps),lastBlurCoordsPoint2(2,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint3(2,iBlurSteps),lastBlurCoordsPoint3(2,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint4(2,iBlurSteps),lastBlurCoordsPoint4(2,iBlurSteps),strctTrial.numFrames)));
+            end
+        otherwise
+            
+            
+            
+            blurXCoords = vertcat(round(linspace(strctTrial.bar_rect(iNumOfBars,1),strctTrial.bar_rect(iNumOfBars,1) + strctTrial.numberBlurSteps(iNumOfBars)+1,strctTrial.numberBlurSteps(iNumOfBars)+1)),...
+                round(linspace(strctTrial.bar_rect(iNumOfBars,3),strctTrial.bar_rect(iNumOfBars,3) - strctTrial.numberBlurSteps(iNumOfBars)+1,strctTrial.numberBlurSteps(iNumOfBars)+1)));
+            
+            blurYCoords = vertcat(round(linspace(strctTrial.bar_rect(iNumOfBars,2),strctTrial.bar_rect(iNumOfBars,2) + strctTrial.numberBlurSteps(iNumOfBars)+1,strctTrial.numberBlurSteps(iNumOfBars)+1)),...
+                round(linspace(strctTrial.bar_rect(iNumOfBars,4),strctTrial.bar_rect(iNumOfBars,4) - strctTrial.numberBlurSteps(iNumOfBars)+1,strctTrial.numberBlurSteps(iNumOfBars)+1)));
+            
+            [firstBlurCoordsPoint1(1, :), firstBlurCoordsPoint1(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(1,:) -...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [firstBlurCoordsPoint2(1,:), firstBlurCoordsPoint2(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(2,:) -...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [firstBlurCoordsPoint3(1,:), firstBlurCoordsPoint3(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(2,:) -...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [firstBlurCoordsPoint4(1,:), firstBlurCoordsPoint4(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(1,:) -...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            
+            [lastBlurCoordsPoint1(1,:), lastBlurCoordsPoint1(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(1,:) +...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [lastBlurCoordsPoint2(1,:), lastBlurCoordsPoint2(2,:)] = fnRotateAroundPoint(blurXCoords(1,:),blurYCoords(2,:) +...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [lastBlurCoordsPoint3(1,:), lastBlurCoordsPoint3(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(2,:) +...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            [lastBlurCoordsPoint4(1,:), lastBlurCoordsPoint4(2,:)] = fnRotateAroundPoint(blurXCoords(2,:),blurYCoords(1,:) +...
+                strctTrial.m_iMoveDistance(iNumOfBars)/2,strctTrial.location_x(iNumOfBars),strctTrial.location_y(iNumOfBars),strctTrial.m_fRotationAngle(iNumOfBars));
+            
+            
+            for iBlurSteps = 1: strctTrial.numberBlurSteps(iNumOfBars)+1
+                
+                strctTrial.coordinatesX(iNumOfBars).Coords(1:4,strctTrial.numFrames + 1 - strctTrial.numFrames : strctTrial.numFrames,iNumOfBars,iBlurSteps) =...
+                    vertcat(round(linspace(firstBlurCoordsPoint1(1,iBlurSteps),lastBlurCoordsPoint1(1,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint2(1,iBlurSteps),lastBlurCoordsPoint2(1,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint3(1,iBlurSteps),lastBlurCoordsPoint3(1,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint4(1,iBlurSteps),lastBlurCoordsPoint4(1,iBlurSteps),strctTrial.numFrames)));
+                
+                strctTrial.coordinatesY(iNumOfBars).Coords(1:4,strctTrial.numFrames + 1 - strctTrial.numFrames : strctTrial.numFrames,iNumOfBars,iBlurSteps) = ...
+                    vertcat(round(linspace(firstBlurCoordsPoint1(2,iBlurSteps),lastBlurCoordsPoint1(2,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint2(2,iBlurSteps),lastBlurCoordsPoint2(2,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint3(2,iBlurSteps),lastBlurCoordsPoint3(2,iBlurSteps),strctTrial.numFrames)),...
+                    round(linspace(firstBlurCoordsPoint4(2,iBlurSteps),lastBlurCoordsPoint4(2,iBlurSteps),strctTrial.numFrames)));
+            end
+            
+            
+    end
+    
+end
+
+
+
+
+
 return;
 
-% ------------------------------------------------------------------------------------------------------------------------
-% ------------------------------------------------------------------------------------------------------------------------
+% ----------------------------------------------------------------------------------------------------------------
+% ----------------------------------------------------------------------------------------------------------------
+
+
 
 
 function [g_strctParadigm, strctTrial] = fnPrepareRealTimeGaborTrial(g_strctParadigm, g_strctPTB, strctTrial)
 
-strctTrial.m_iFixationColor = [255 255 255];
+% DOES NOT WORK WITH BITS ++
+% as near as I can tell, enabling the alphablending necessary for the gabor code to work also screws with the
+% CLUT encoding that bits ++ reads during the trial display
 
+strctTrial.m_iFixationColor = [255 255 255];
+strctTrial.numberBlurSteps = 0;
 strctTrial.m_fStimulusON_MS = 0;
 strctTrial.m_fStimulusOFF_MS = 0;
 strctTrial.numFrames = 1; % Tells the stimulus server to update every frame
 strctTrial.m_bUseStrobes = 0;
-
 strctTrial.m_fRotationAngle = squeeze(g_strctParadigm.GaborOrientation.Buffer(1,:,g_strctParadigm.GaborOrientation.BufferIdx));
 strctTrial.m_iLength = squeeze(g_strctParadigm.GaborBarLength.Buffer(1,:,g_strctParadigm.GaborBarLength.BufferIdx));
 strctTrial.m_iWidth = squeeze(g_strctParadigm.GaborBarWidth.Buffer(1,:,g_strctParadigm.GaborBarWidth.BufferIdx));
@@ -558,19 +1547,11 @@ strctTrial.m_iWidth = squeeze(g_strctParadigm.GaborBarWidth.Buffer(1,:,g_strctPa
 
 strctTrial.m_iMoveDistance = squeeze(g_strctParadigm.GaborMoveDistance.Buffer(1,:,g_strctParadigm.GaborMoveDistance.BufferIdx));
 
-strctTrial.m_aiStimulusColor = [squeeze(g_strctParadigm.GaborStimulusRed.Buffer(1,:,g_strctParadigm.GaborStimulusRed.BufferIdx)), ...
-    squeeze(g_strctParadigm.GaborStimulusGreen.Buffer(1,:,g_strctParadigm.GaborStimulusGreen.BufferIdx)),...
-    squeeze(g_strctParadigm.GaborStimulusBlue.Buffer(1,:,g_strctParadigm.GaborStimulusBlue.BufferIdx))];
-
-% Background color
-strctTrial.m_afBackgroundColor = [squeeze(g_strctParadigm.GaborBackgroundRed.Buffer(1,:,g_strctParadigm.GaborBackgroundRed.BufferIdx))...
-    squeeze(g_strctParadigm.GaborBackgroundGreen.Buffer(1,:,g_strctParadigm.GaborBackgroundGreen.BufferIdx))...
-    squeeze(g_strctParadigm.GaborBackgroundBlue.Buffer(1,:,g_strctParadigm.GaborBackgroundBlue.BufferIdx))];
-
-strctTrial.m_afLocalBackgroundColor = strctTrial.m_afBackgroundColor;
-
-
-
+[strctTrial] = fnCycleColor(strctTrial);
+%strctTrial.m_aiStimColor = round((strctTrial.m_aiStimColor/65535)*255);
+strctTrial.Clut(:,1) = round(linspace(0,65535,256));
+strctTrial.Clut(:,2) = round(linspace(0,65535,256));
+strctTrial.Clut(:,3) = round(linspace(0,65535,256));
 strctTrial.m_afCenterScreen = [1024/2,768/2];
 
 strctTrial.m_iSigma = squeeze(g_strctParadigm.GaborSigma.Buffer(1,:,g_strctParadigm.GaborSigma.BufferIdx));
@@ -592,7 +1573,8 @@ elseif strctTrial.m_iMoveDistance > 0
     end
     
     g_strctParadigm.m_strctGaborParams.m_fLastGaborPhase = strctTrial.m_fGaborPhase;
-    % This takes 8/10 of a ms, computationally expensive. Don't use during a real trial
+    
+    
     fnTsSetVarParadigm('GaborPhase', strctTrial.m_fGaborPhase);
     set(eval(['g_strctParadigm.m_strctControllers.m_hGaborPhaseSlider']),'value',strctTrial.m_fGaborPhase,'max', max(360,strctTrial.m_fGaborPhase), 'min',min(0,strctTrial.m_fGaborPhase));
     set(eval('g_strctParadigm.m_strctControllers.m_hGaborPhaseEdit'),'String', num2str(strctTrial.m_fGaborPhase));
@@ -607,34 +1589,24 @@ strctTrial.AspectRatio = strctTrial.m_iLength/strctTrial.m_iWidth; % Not really 
 strctTrial.m_afDestRectangle = g_strctParadigm.m_aiStimulusRect;
 
 
-% Alternative Matlab code. Creates a nice pure color block... useless atm
-%{
-[gab_x gab_y] = meshgrid(0:(strctTrial.tw-1), 0:(strctTrial.th-1));
-a=cos(deg2rad(strctTrial.m_fRotationAngle))*strctTrial.GaborHorzFreq*360;
-b=sin(deg2rad(strctTrial.m_fRotationAngle))*strctTrial.GaborHorzFreq*360;
-multConst=1/(sqrt(2*pi)*strctTrial.m_iSigma);
-%multConst=1/(sqrt(2*pi)*sc);
-x_factor=-1*(gab_x-g_strctParadigm.m_aiCenterOfStimulus(1)).^2;
-y_factor=-1*(gab_y-g_strctParadigm.m_aiCenterOfStimulus(2)).^2;
-sinWave=sin(deg2rad(a*(gab_x - g_strctParadigm.m_aiCenterOfStimulus(1)) + b*(gab_y - g_strctParadigm.m_aiCenterOfStimulus(2))+strctTrial.phase));
-varScale=2*strctTrial.m_iSigma^2;
-strctTrial.gaborArray = 0.5 + strctTrial.m_fContrast*(multConst*exp(x_factor/varScale+y_factor/varScale).*sinWave)';
-%}
-%strctTrial.m_hGaborArray = Screen('MakeTexture', g_strctPTB.m_hWindow, gaborArray);
-
 if ~g_strctParadigm.m_strctGaborParams.m_bGaborsInitialized
     strctTrial.tw = 1024;
     strctTrial.th = 768;
-    fnParadigmToStimulusServer('InitializeGaborTexture', strctTrial.tw, strctTrial.th, strctTrial.m_bNonsymmetric)
+    fnParadigmToStimulusServer('InitializeGaborTexture', strctTrial.tw, strctTrial.th, strctTrial.m_bNonsymmetric);% [0.5, 0.5, 0.5, 0])
+    %PsychImaging('PrepareConfiguration');
+    %PsychImaging('AddTask', 'General', 'FloatingPoint32BitIfPossible');
+    g_strctParadigm.m_hGabortex = CreateProceduralGabor(g_strctPTB.m_hWindow, strctTrial.tw, strctTrial.th, strctTrial.m_bNonsymmetric);%, [0.5, 0.5, 0.5, 1]);
     
-    g_strctParadigm.m_hGabortex = CreateProceduralGabor(g_strctPTB.m_hWindow, strctTrial.tw, strctTrial.th, strctTrial.m_bNonsymmetric);
-    
-    Screen('BlendFunction', g_strctPTB.m_hWindow, GL_ONE, GL_ONE);
+    % Screen('BlendFunction', g_strctPTB.m_hWindow, GL_SRC_ALPHA, GL_ONE);
+    Screen('BlendFunction', g_strctPTB.m_hWindow, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    %[sfOLD, dfOLD, cmOLD] = Screen('BlendFunction', g_strctPTB.m_hWindow, GL_ONE, GL_ONE);
+    %sfOLD
+    %dfOLD
+    %cmOLD
     g_strctParadigm.m_strctGaborParams.m_bGaborsInitialized = 1;
 end
 
 % we're going to futz with the colors using bits++ on the stimulus server, but we need to calibrate them for local display at some point
-
 return;
 
 % ------------------------------------------------------------------------------------------------------------------------
@@ -642,7 +1614,7 @@ return;
 
 function [g_strctParadigm, strctTrial] = fnPrepareMovingDiscTrial(g_strctParadigm, g_strctPTB, strctTrial)
 
-strctTrial.m_bUseStrobes = 0; 
+strctTrial.m_bUseStrobes = 0;
 
 strctTrial.m_iFixationColor = [255 255 255];
 
@@ -651,10 +1623,12 @@ strctTrial.m_iDiscDiameter = squeeze(g_strctParadigm.DiscDiameter.Buffer(1,:,g_s
 if g_strctParadigm.m_strctHandMappingParams.m_bPerfectCircles == 1
     %always on for now
     strctTrial.m_iLength = strctTrial.m_iDiscDiameter;
+    
 else
     strctTrial.m_iLength = squeeze(g_strctParadigm.BarLength.Buffer(1,:,g_strctParadigm.BarLength.BufferIdx));
+    
 end
-
+strctTrial.m_iWidth = 0;
 
 
 strctTrial.NumberOfDots = squeeze(g_strctParadigm.DiscNumberOfDiscs.Buffer(1,:,g_strctParadigm.DiscNumberOfDiscs.BufferIdx));
@@ -674,478 +1648,982 @@ strctTrial.m_iMoveDistance = squeeze(g_strctParadigm.DiscMoveDistance.Buffer(1,:
 strctTrial.m_iMoveSpeed = squeeze(g_strctParadigm.DiscMoveSpeed.Buffer(1,:,g_strctParadigm.DiscMoveSpeed.BufferIdx));
 if any(strctTrial.m_iMoveDistance) && any(strctTrial.m_iMoveSpeed)
     strctTrial.m_fStimulusON_MS = (strctTrial.m_iMoveDistance/strctTrial.m_iMoveSpeed)*1e3;
-   % strctTrial.numFrames = round(strctTrial.m_fStimulusON_MS / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
+    % strctTrial.numFrames = round(strctTrial.m_fStimulusON_MS / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
+    
+    
 else
-
-	strctTrial.m_fStimulusON_MS = g_strctParadigm.DiscStimulusOnTime.Buffer(1,:,g_strctParadigm.DiscStimulusOnTime.BufferIdx);
+    
+    strctTrial.m_fStimulusON_MS = g_strctParadigm.DiscStimulusOnTime.Buffer(1,:,g_strctParadigm.DiscStimulusOnTime.BufferIdx);
     %strctTrial.m_fStimulusON_MS = g_strctPTB.g_strctStimulusServer.m_RefreshRateMS;
     %strctTrial.m_fStimulusOFF_MS = 0;
     %strctTrial.numFrames = 1;
-
+    
 end
 
 strctTrial.numFrames = round(strctTrial.m_fStimulusON_MS / (g_strctPTB.g_strctStimulusServer.m_RefreshRateMS));
 if ~strctTrial.numFrames
-% Sanity check, in case speed and distance are too low
-	strctTrial.numFrames = 1;
+    % Sanity check, in case speed and distance are too low
+    strctTrial.numFrames = 1;
 end
-%strctTrial.m_fStimulusON_MS = squeeze(g_strctParadigm.StimulusON_MS.Buffer(1,:,g_strctParadigm.StimulusON_MS.BufferIdx));
-
 
 strctTrial.m_bBlur  = squeeze(g_strctParadigm.DiscBlur.Buffer(1,:,g_strctParadigm.DiscBlur.BufferIdx));
 strctTrial.numberBlurSteps = round(squeeze(g_strctParadigm.DiscBlurSteps.Buffer(1,:,g_strctParadigm.DiscBlurSteps.BufferIdx)));
-%strctTrial.m_bBlur = g_strctParadigm.m_bBlur;
 
-%strctTrial.m_iFrameCounter = 1; % draw function will add 1 at the beginning of every call. We set to 1 here to prime the first local draw loop
-
-
-strctTrial.m_aiStimColor = [squeeze(g_strctParadigm.DiscStimulusRed.Buffer(1,:,g_strctParadigm.DiscStimulusRed.BufferIdx)), ...
-    squeeze(g_strctParadigm.DiscStimulusGreen.Buffer(1,:,g_strctParadigm.DiscStimulusGreen.BufferIdx)),...
-    squeeze(g_strctParadigm.DiscStimulusBlue.Buffer(1,:,g_strctParadigm.DiscStimulusBlue.BufferIdx))];
-strctTrial.m_afLocalBarColor = strctTrial.m_aiStimColor; % Placeholder in case we implement Bits++ use in this paradigm
-% Background color
-strctTrial.m_afBackgroundColor = [squeeze(g_strctParadigm.DiscBackgroundRed.Buffer(1,:,g_strctParadigm.DiscBackgroundRed.BufferIdx))...
-    squeeze(g_strctParadigm.DiscBackgroundGreen.Buffer(1,:,g_strctParadigm.DiscBackgroundGreen.BufferIdx))...
-    squeeze(g_strctParadigm.DiscBackgroundBlue.Buffer(1,:,g_strctParadigm.DiscBackgroundBlue.BufferIdx))];
-strctTrial.m_afLocalBackgroundColor = strctTrial.m_afBackgroundColor; % Ditto
+[strctTrial] = fnCycleColor(strctTrial);
 
 if g_strctParadigm.m_strctHandMappingParameters.m_bDiscRandomStimulusOrientation
-    strctTrial.m_fRotationAngle = round(19.*rand(1,1) + 1) * 18;
-
+    %strctTrial.m_fRotationAngle = round(19.*rand(1,1) + 1) * 18;
+    strctTrial.m_iOrientationBin = randi(g_strctParadigm.m_iNumOrientationBins,[1]);
+    
 else
     strctTrial.m_fRotationAngle = squeeze(g_strctParadigm.DiscOrientation.Buffer(1,:,g_strctParadigm.DiscOrientation.BufferIdx));
 end
 
 
-if g_strctParadigm.m_strctHandMappingParameters.m_bRandomStimulusPosition
+if g_strctParadigm.m_bRandomDiscStimulusPosition
     minimum_seperation = max(strctTrial.m_iLength, strctTrial.m_iDiscDiameter)/2;
     for iNumOfDots = 1 : strctTrial.NumberOfDots
         % Random center points
         
+        strctTrial.m_aiStimCenter(iNumOfDots,2) = g_strctParadigm.m_aiStimulusRect(1)+ randi(range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]));
+        strctTrial.m_aiStimCenter(iNumOfDots,2) = g_strctParadigm.m_aiStimulusRect(2)+ randi(range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)]));
         
+        %strctTrial.m_aiStimCenter(iNumOfDots,2) = g_strctParadigm.m_aiStimulusRect(1)+ round(rand*range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]));
+        %strctTrial.m_aiStimCenter(iNumOfDots,2) = g_strctParadigm.m_aiStimulusRect(2)+ round(rand*range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)]));
         
-        strctTrial.m_aiStimCenter(iNumOfDots,1) = g_strctParadigm.m_aiStimulusRect(1)+ round(rand*range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]));
-        strctTrial.m_aiStimCenter(iNumOfDots,2) = g_strctParadigm.m_aiStimulusRect(2)+ round(rand*range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)]));
-        % Try not to draw bars on top of each other
-		
-	%{
-        if iNumOfDots > 2
-            for tries=1:5
-                if abs(min(strctTrial.m_aiStimCenter(1:iNumOfDots-1,1)) - strctTrial.m_aiStimCenter(iNumOfDots,1)) < minimum_seperation ||...
-                        abs(min(strctTrial.m_aiStimCenter(1:iNumOfDots-1,2)) - strctTrial.m_aiStimCenter(iNumOfDots,2)) < minimum_seperation
-                    % I'm too lazy to do the maths to figure out if it is possible to find an empty location
-                    % So we'll just try 5 times and hope for the best
-                    strctTrial.m_aiStimCenter(iNumOfDots,1) = g_strctParadigm.m_aiStimulusRect(1)+ round(rand*range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]));
-                    strctTrial.m_aiStimCenter(iNumOfDots,2) = g_strctParadigm.m_aiStimulusRect(2)+ round(rand*range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)]));
-                else
-                    break;
-                end
-            end
-        end
-		%}
     end
 else
     for iNumOfDots = 1:strctTrial.NumberOfDots
-    [strctTrial.m_aiStimCenter(iNumOfDots,[1:2])] = [(g_strctParadigm.m_aiStimulusRect(1) +...
-													(.5*range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]))),...
-													(g_strctParadigm.m_aiStimulusRect(2) +...
-													(.5*range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)])))];
+        [strctTrial.m_aiStimCenter(iNumOfDots,[1:2])] = [(g_strctParadigm.m_aiStimulusRect(1) +...
+            (.5*range([g_strctParadigm.m_aiStimulusRect(1),g_strctParadigm.m_aiStimulusRect(3)]))),...
+            (g_strctParadigm.m_aiStimulusRect(2) +...
+            (.5*range([g_strctParadigm.m_aiStimulusRect(2),g_strctParadigm.m_aiStimulusRect(4)])))];
     end
 end
 for iNumOfDots = 1:strctTrial.NumberOfDots
-		
-	
-	
-	%{
-	strctTrial.Dot_XY(iNumOfDots,1:4) = [(g_strctParadigm.m_aiStimulusRect(1) - strctTrial.m_iLength/2), (g_strctParadigm.m_aiStimulusRect(2)  - strctTrial.m_iWidth/2), ...
-		(g_strctParadigm.m_aiStimulusRect(1) + strctTrial.m_iLength/2), (g_strctParadigm.m_aiStimulusRect(2) + strctTrial.m_iWidth/2)];
-		 strctTrial.m_aiCoordinates = zeros(4,strctTrial.numFrames);
-	  %}
-	  
-	[strctTrial.dot_starting_point(iNumOfDots,1),strctTrial.dot_starting_point(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.m_aiStimCenter(iNumOfDots,1),(strctTrial.m_aiStimCenter(iNumOfDots,2) -...
-		strctTrial.m_iMoveDistance/2),strctTrial.m_aiStimCenter(iNumOfDots,1),strctTrial.m_aiStimCenter(iNumOfDots,2),strctTrial.m_fRotationAngle);
-	
-	[strctTrial.dot_ending_point(iNumOfDots,1),strctTrial.dot_ending_point(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.m_aiStimCenter(iNumOfDots,1),(strctTrial.m_aiStimCenter(iNumOfDots,2) +...
-		strctTrial.m_iMoveDistance/2),strctTrial.m_aiStimCenter(iNumOfDots,1),strctTrial.m_aiStimCenter(iNumOfDots,2),strctTrial.m_fRotationAngle);
-	
-	strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,:) = [(strctTrial.dot_starting_point(iNumOfDots,1) - strctTrial.m_iLength/2), (strctTrial.dot_starting_point(iNumOfDots,2) - strctTrial.m_iDiscDiameter/2), ...
-		(strctTrial.dot_starting_point(iNumOfDots,1) + strctTrial.m_iLength/2), (strctTrial.dot_starting_point(iNumOfDots,2) + strctTrial.m_iDiscDiameter/2)];
-	
-	strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,:) = [(strctTrial.dot_ending_point(iNumOfDots,1) - strctTrial.m_iLength/2), (strctTrial.dot_ending_point(iNumOfDots,2) - strctTrial.m_iDiscDiameter/2), ...
-		(strctTrial.dot_ending_point(iNumOfDots,1) + strctTrial.m_iLength/2), (strctTrial.dot_ending_point(iNumOfDots,2) + strctTrial.m_iDiscDiameter/2)];
-	
-	strctTrial.m_aiCoordinates(1:4,:,iNumOfDots) = vertcat(round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,1),strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,1),strctTrial.numFrames)),...
-		round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,2),strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,2),strctTrial.numFrames)),...
-		round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,3), strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,3),strctTrial.numFrames)),...
-		round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,4), strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,4),strctTrial.numFrames)));
-	
-end
-
-    %{
-
-
-strctTrial.m_aiCoordinates(1:4,:) = squeeze(vertcat(round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,1) - (g_strctParadigm.m_aiStimulusRect(1) - strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,1)),...
-            strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,1)-(g_strctParadigm.m_aiStimulusRect(1) - strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,1)),strctTrial.numFrames)),...
-            round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,2) - (g_strctParadigm.m_aiStimulusRect(1) - strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,2)),...
-            strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,2) - (g_strctParadigm.m_aiStimulusRect(2) - strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,2)),strctTrial.numFrames)),...
-            round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,3) - (g_strctParadigm.m_aiStimulusRect(1) - strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,3)),...
-            strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,3) - (g_strctParadigm.m_aiStimulusRect(1) - strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,3)),strctTrial.numFrames)),...
-            round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,4) - (g_strctParadigm.m_aiStimulusRect(1) - strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,4)),...
-            strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,4) - (g_strctParadigm.m_aiStimulusRect(2) - strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,4)),strctTrial.numFrames))));
-
-strctTrial.Dot_XY(1,1:4) = [(g_strctParadigm.m_aiCenterOfStimulus(1) - strctTrial.m_iLength/2), (g_strctParadigm.m_aiCenterOfStimulus(2) - strctTrial.m_iWidth/2), ...
-        (g_strctParadigm.m_aiCenterOfStimulus(1) + strctTrial.m_iLength/2), (g_strctParadigm.m_aiCenterOfStimulus(2) + strctTrial.m_iWidth/2)];
-
-            [strctTrial.m_aiCoordinates(iNumOfDots,1)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,1),strctTrial.Dot_XY(iNumOfDots,2),...
-																		strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-																		
-            [strctTrial.m_aiCoordinates(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,1),strctTrial.Dot_XY(iNumOfDots,4),...
-																		strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-																		
-            [strctTrial.m_aiCoordinates(iNumOfDots,3)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,3),strctTrial.Dot_XY(iNumOfDots,4),...
-																		strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-																		
-            [strctTrial.m_aiCoordinates(iNumOfDots,4)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,3),strctTrial.Dot_XY(iNumOfDots,2),...
-																		strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            
-			
-
-
-		
-		strctTrial.coordinates(1:4,:,iNumOfDots) = vertcat(round(linspace(strctTrial.Dot_XY(iNumOfDots,1:4)
-			
-			
-        
-			
-    end
-else
-    strctTrial.NumberOfDots = 1;
-    strctTrial.location_x(1) = g_strctParadigm.m_aiCenterOfStimulus(1);
-    strctTrial.location_y(1) = g_strctParadigm.m_aiCenterOfStimulus(2);
-    strctTrial.Dot_XY(1,1:4) = [(g_strctParadigm.m_aiCenterOfStimulus(1) - strctTrial.m_iLength/2), (g_strctParadigm.m_aiCenterOfStimulus(2) - strctTrial.m_iWidth/2), ...
-        (g_strctParadigm.m_aiCenterOfStimulus(1) + strctTrial.m_iLength/2), (g_strctParadigm.m_aiCenterOfStimulus(2) + strctTrial.m_iWidth/2)];
-		
-		
-		
-		
-		
+    
+    
+    
+    [strctTrial.dot_starting_point(iNumOfDots,1),strctTrial.dot_starting_point(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.m_aiStimCenter(iNumOfDots,1),(strctTrial.m_aiStimCenter(iNumOfDots,2) -...
+        strctTrial.m_iMoveDistance/2),strctTrial.m_aiStimCenter(iNumOfDots,1),strctTrial.m_aiStimCenter(iNumOfDots,2),strctTrial.m_fRotationAngle);
+    
+    [strctTrial.dot_ending_point(iNumOfDots,1),strctTrial.dot_ending_point(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.m_aiStimCenter(iNumOfDots,1),(strctTrial.m_aiStimCenter(iNumOfDots,2) +...
+        strctTrial.m_iMoveDistance/2),strctTrial.m_aiStimCenter(iNumOfDots,1),strctTrial.m_aiStimCenter(iNumOfDots,2),strctTrial.m_fRotationAngle);
+    
+    strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,:) = [(strctTrial.dot_starting_point(iNumOfDots,1) - strctTrial.m_iLength/2), (strctTrial.dot_starting_point(iNumOfDots,2) - strctTrial.m_iDiscDiameter/2), ...
+        (strctTrial.dot_starting_point(iNumOfDots,1) + strctTrial.m_iLength/2), (strctTrial.dot_starting_point(iNumOfDots,2) + strctTrial.m_iDiscDiameter/2)];
+    
+    strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,:) = [(strctTrial.dot_ending_point(iNumOfDots,1) - strctTrial.m_iLength/2), (strctTrial.dot_ending_point(iNumOfDots,2) - strctTrial.m_iDiscDiameter/2), ...
+        (strctTrial.dot_ending_point(iNumOfDots,1) + strctTrial.m_iLength/2), (strctTrial.dot_ending_point(iNumOfDots,2) + strctTrial.m_iDiscDiameter/2)];
+    
+    strctTrial.m_aiCoordinates(1:4,:,iNumOfDots) = vertcat(round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,1),strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,1),strctTrial.numFrames)),...
+        round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,2),strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,2),strctTrial.numFrames)),...
+        round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,3), strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,3),strctTrial.numFrames)),...
+        round(linspace(strctTrial.m_aiStimRectangleStartingCoordinates(iNumOfDots,4), strctTrial.m_aiStimRectangleEndingCoordinates(iNumOfDots,4),strctTrial.numFrames)));
+    
 end
 
 
-
-%[strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.NumberOfDots));
-    
-	% We want the center of the edge for the drawoval function, so calculate edge coordinates vs center coordinates for opposite coordinate dimension
-    %{
-	if strctTrial.NumberOfDots == 1
-	
-        [strctTrial.point1(1,1), strctTrial.point1(1,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(1,1),strctTrial.location_y(1),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.point2(1,1), strctTrial.point2(1,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(1,2),strctTrial.location_x(1),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.point3(1,1), strctTrial.point3(1,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(1,3),strctTrial.location_y(1),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.point4(1,1), strctTrial.point4(1,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(1,4),strctTrial.location_x(1),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.dot_starting_point(1,1),strctTrial.dot_starting_point(1,2)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) - strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.dot_ending_point(1,1),strctTrial.dot_ending_point(1,2)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) + strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-    
-        for iNumOfDots = 1:strctTrial.NumberOfDots
-            [strctTrial.point1(iNumOfDots,1), strctTrial.point1(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,1),strctTrial.location_y(iNumOfDots),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.point2(iNumOfDots,1), strctTrial.point2(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,2),strctTrial.location_x(iNumOfDots),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.point3(iNumOfDots,1), strctTrial.point3(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,3),strctTrial.location_y(iNumOfDots),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.point4(iNumOfDots,1), strctTrial.point4(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,4),strctTrial.location_x(iNumOfDots),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.dot_starting_point(iNumOfDots,1),strctTrial.dot_starting_point(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.location_x(iNumOfDots),(strctTrial.location_y(iNumOfDots) - strctTrial.m_iMoveDistance/2),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.dot_ending_point(iNumOfDots,1),strctTrial.dot_ending_point(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.location_x(iNumOfDots),(strctTrial.location_y(iNumOfDots) + strctTrial.m_iMoveDistance/2),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-end
-    %}
-			
-    %{
-	backup
-[strctTrial.point1(1,1), strctTrial.point1(1,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(1,1),strctTrial.Dot_XY(1,2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.point2(1,1), strctTrial.point2(1,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(1,1),strctTrial.Dot_XY(1,4),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.point3(1,1), strctTrial.point3(1,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(1,3),strctTrial.Dot_XY(1,4),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.point4(1,1), strctTrial.point4(1,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(1,3),strctTrial.Dot_XY(1,2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.dot_starting_point(1,1),strctTrial.dot_starting_point(1,2)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) - strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.dot_ending_point(1,1),strctTrial.dot_ending_point(1,2)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) + strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-    else
-        for iNumOfDots = 1:strctTrial.NumberOfDots
-            [strctTrial.point1(iNumOfDots,1), strctTrial.point1(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,1),strctTrial.Dot_XY(iNumOfDots,2),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.point2(iNumOfDots,1), strctTrial.point2(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,1),strctTrial.Dot_XY(iNumOfDots,4),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.point3(iNumOfDots,1), strctTrial.point3(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,3),strctTrial.Dot_XY(iNumOfDots,4),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.point4(iNumOfDots,1), strctTrial.point4(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.Dot_XY(iNumOfDots,3),strctTrial.Dot_XY(iNumOfDots,2),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.dot_starting_point(iNumOfDots,1),strctTrial.dot_starting_point(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.location_x(iNumOfDots),(strctTrial.location_y(iNumOfDots) - strctTrial.m_iMoveDistance/2),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-            [strctTrial.dot_ending_point(iNumOfDots,1),strctTrial.dot_ending_point(iNumOfDots,2)] = fnRotateAroundPoint(strctTrial.location_x(iNumOfDots),(strctTrial.location_y(iNumOfDots) + strctTrial.m_iMoveDistance/2),strctTrial.location_x(iNumOfDots),strctTrial.location_y(iNumOfDots),strctTrial.m_fRotationAngle);
-    %}
-	
-	
-	
-	
-	
-	
-	
-            
-            % Calculate center points for all the bars based on random generation of coordinates inside the stimulus area, and generate the appropriate point list
-        
-    
-    % Check if the trial has more than 1 frame in it, so we can plan the trial
-    if strctTrial.numFrames > 1
-        for iNumOfDots = 1:strctTrial.NumberOfDots
-            % Calculate coordinates for every frame
-            
-            strctTrial.coordinatesX(1:4,:,iNumOfDots) = vertcat(round(linspace(strctTrial.point1(iNumOfDots,1) - (strctTrial.location_x(iNumOfDots) - strctTrial.dot_starting_point(iNumOfDots,1)),...
-															strctTrial.point1(iNumOfDots,1)-(strctTrial.location_x(iNumOfDots) - strctTrial.dot_ending_point(iNumOfDots,1)),strctTrial.numFrames)),...
-															round(linspace(strctTrial.point2(iNumOfDots,1) - (strctTrial.location_x(iNumOfDots) - strctTrial.dot_starting_point(iNumOfDots,1)),...
-															strctTrial.point2(iNumOfDots,1) - (strctTrial.location_x(iNumOfDots) - strctTrial.dot_ending_point(iNumOfDots,1)),strctTrial.numFrames)),...
-															round(linspace(strctTrial.point3(iNumOfDots,1) - (strctTrial.location_x(iNumOfDots) - strctTrial.dot_starting_point(iNumOfDots,1)),...
-															strctTrial.point3(iNumOfDots,1) - (strctTrial.location_x(iNumOfDots) - strctTrial.dot_ending_point(iNumOfDots,1)),strctTrial.numFrames)),...
-															round(linspace(strctTrial.point4(iNumOfDots,1) - (strctTrial.location_x(iNumOfDots) - strctTrial.dot_starting_point(iNumOfDots,1)),...
-															strctTrial.point4(iNumOfDots,1) - (strctTrial.location_x(iNumOfDots) - strctTrial.dot_ending_point(iNumOfDots,1)),strctTrial.numFrames)));
-			
-			strctTrial.coordinatesY(1:4,:,iNumOfDots) = vertcat(round(linspace(strctTrial.point1(iNumOfDots,2) - (strctTrial.location_y(iNumOfDots) - strctTrial.dot_starting_point(iNumOfDots,2)),...
-															strctTrial.point1(iNumOfDots,2)-(strctTrial.location_y(iNumOfDots) - strctTrial.dot_ending_point(iNumOfDots,2)),strctTrial.numFrames)),...
-															round(linspace(strctTrial.point2(iNumOfDots,2) - (strctTrial.location_y(iNumOfDots) - strctTrial.dot_starting_point(iNumOfDots,2)),...
-															strctTrial.point2(iNumOfDots,2) - (strctTrial.location_y(iNumOfDots) - strctTrial.dot_ending_point(iNumOfDots,2)),strctTrial.numFrames)),...
-															round(linspace(strctTrial.point3(iNumOfDots,2) - (strctTrial.location_y(iNumOfDots) - strctTrial.dot_starting_point(iNumOfDots,2)),...
-															strctTrial.point3(iNumOfDots,2) - (strctTrial.location_y(iNumOfDots) - strctTrial.dot_ending_point(iNumOfDots,2)),strctTrial.numFrames)),...
-															round(linspace(strctTrial.point4(iNumOfDots,2) - (strctTrial.location_y(iNumOfDots) - strctTrial.dot_starting_point(iNumOfDots,2)),...
-															strctTrial.point4(iNumOfDots,2) - (strctTrial.location_y(iNumOfDots) - strctTrial.dot_ending_point(iNumOfDots,2)),strctTrial.numFrames)));
-        end
-    else
-        for iNumOfDots = 1:strctTrial.NumberOfDots
-            % Only one frame, so the coordinates are static
-            
-            strctTrial.coordinatesX(1:4,:,iNumOfDots) = [strctTrial.point1(iNumOfDots,1), strctTrial.point2(iNumOfDots,1), strctTrial.point3(iNumOfDots,1),strctTrial.point4(iNumOfDots,1)];
-            strctTrial.coordinatesY(1:4,:,iNumOfDots) = [strctTrial.point1(iNumOfDots,2), strctTrial.point2(iNumOfDots,2), strctTrial.point3(iNumOfDots,2),strctTrial.point4(iNumOfDots,2)];
-        end
-    end
-
-
-
-    %}
-    
-    return;
-	
-	% ------------------------------------------------------------------------------------------------------------------------
-    % ------------------------------------------------------------------------------------------------------------------------
-	
-	
-function [g_strctParadigm, strctTrial] = fnPreparePositionTuningFunctionTrial(g_strctParadigm, g_strctPTB, strctTrial);
-	global g_strctStimulusServer
-	strctTrial.m_bUseStrobes = 1; 
-	strctTrial.m_iNumberOfBars = 1;
-	strctTrial.numberBlurSteps = 0;
-	% Choose new grid position
-		newGridXY = [ceil(rand(1)*g_strctParadigm.m_strctPositionTuningFunction.m_iNumCols),ceil(rand(1)*g_strctParadigm.m_strctPositionTuningFunction.m_iNumRows)];
-	 g_strctParadigm.m_iTrialStrobeID = newGridXY(1) * newGridXY(2);
-	 
-	strctTrial.location_x(1) = round(((g_strctStimulusServer.m_aiScreenSize(3)/g_strctParadigm.m_strctPositionTuningFunction.m_iNumCols)*...
-										newGridXY(1)) - g_strctStimulusServer.m_aiScreenSize(3)/g_strctParadigm.m_strctPositionTuningFunction.m_iNumCols/2);
-	strctTrial.location_y(1) = round(((g_strctStimulusServer.m_aiScreenSize(4)/g_strctParadigm.m_strctPositionTuningFunction.m_iNumRows)*...
-										newGridXY(2)) -  (g_strctStimulusServer.m_aiScreenSize(4)/g_strctParadigm.m_strctPositionTuningFunction.m_iNumRows/2));
-												
-	strctTrial.m_iWidth = g_strctParadigm.m_strctPositionTuningFunction.m_iStimulusWidth;
-	strctTrial.m_iLength = g_strctParadigm.m_strctPositionTuningFunction.m_iStimulusLength;
-	strctTrial.m_iMoveDistance = 0;
-	strctTrial.m_fRotationAngle = g_strctParadigm.m_strctPositionTuningFunction.m_fTheta ;
-	strctTrial.m_iFixationColor = [255 255 255];
-
-	
-	strctTrial.m_afBackgroundColor = g_strctParadigm.m_strctPositionTuningFunction.m_afBackgroundColor;
-	strctTrial.m_aiStimColor = g_strctParadigm.m_strctPositionTuningFunction.m_afBarColor;
-	strctTrial.m_bUseStrobes = 1;
-
-	strctTrial.m_iNumberOfBars = 1;
-	strctTrial.m_iMoveDistance = 0;
-
-	strctTrial.numFrames = g_strctParadigm.m_strctPositionTuningFunction.m_fNumFrames;
-	strctTrial.m_fStimulusON_MS = g_strctParadigm.m_strctPositionTuningFunction.m_fStimulusOnTime;
-	strctTrial.m_fStimulusOFF_MS = g_strctParadigm.m_strctPositionTuningFunction.m_fStimulusOffTime;
-	
-	
-	
-	
-	
-	strctTrial.bar_rect(1,1:4) = [(strctTrial.location_x - strctTrial.m_iLength/2),...
-    (strctTrial.location_y - strctTrial.m_iWidth/2),...
-    (strctTrial.location_x + strctTrial.m_iLength/2),...
-    (strctTrial.location_y + strctTrial.m_iWidth/2)];
-
-    [strctTrial.coordinatesX, strctTrial.coordinatesY]  = deal(zeros(4, strctTrial.numFrames, strctTrial.m_iNumberOfBars,strctTrial.numberBlurSteps+1));
-    
-		[strctTrial.point1(1,1), strctTrial.point1(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,1),strctTrial.bar_rect(1,2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.point2(1,1), strctTrial.point2(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,1),strctTrial.bar_rect(1,4),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.point3(1,1), strctTrial.point3(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,3),strctTrial.bar_rect(1,4),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.point4(1,1), strctTrial.point4(2,1)] = fnRotateAroundPoint(strctTrial.bar_rect(1,3),strctTrial.bar_rect(1,2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.bar_starting_point(1,1),strctTrial.bar_starting_point(2,1)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) - strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-        [strctTrial.bar_ending_point(1,1),strctTrial.bar_ending_point(2,1)] = fnRotateAroundPoint(strctTrial.location_x(1),(strctTrial.location_y(1) + strctTrial.m_iMoveDistance/2),strctTrial.location_x(1),strctTrial.location_y(1),strctTrial.m_fRotationAngle);
-  
-  strctTrial.coordinatesX(1:4,:,strctTrial.m_iNumberOfBars) = vertcat(round(linspace(strctTrial.point1(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point1(1,strctTrial.m_iNumberOfBars)-(strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point2(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point2(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point3(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point3(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point4(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(1,strctTrial.m_iNumberOfBars)),strctTrial.point4(1,strctTrial.m_iNumberOfBars) - (strctTrial.location_x(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(1,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)));
-    strctTrial.coordinatesY(1:4,:,strctTrial.m_iNumberOfBars) = vertcat(round(linspace(strctTrial.point1(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point1(2,strctTrial.m_iNumberOfBars)-(strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point2(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point2(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point3(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point3(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)),...
-        round(linspace(strctTrial.point4(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_starting_point(2,strctTrial.m_iNumberOfBars)),strctTrial.point4(2,strctTrial.m_iNumberOfBars) - (strctTrial.location_y(strctTrial.m_iNumberOfBars) - strctTrial.bar_ending_point(2,strctTrial.m_iNumberOfBars)),strctTrial.numFrames)));  
 return;
-    % ------------------------------------------------------------------------------------------------------------------------
-    % ------------------------------------------------------------------------------------------------------------------------
-    
-    function [g_strctParadigm, strctTrial] = fnChooseColor(g_strctParadigm, strctTrial)
-    
-	
-	
-    strctTrial.m_iSelectedColor = g_strctParadigm.m_iSelectedColor;
-    
-    % Random order?
-    if g_strctParadigm.m_strctTuningFunctionParams.m_bRandomColorOrder
-        strctTrial.m_iSelectedColor = ceil(rand*size(g_strctParadigm.m_strctCurrentSaturation,1));
-        if strctTrial.m_iSelectedColor == 0
-            strctTrial.m_iSelectedColor = 1;
-        end
-    elseif g_strctParadigm.m_strctTuningFunctionParams.m_bReverseColorOrder
-        if strctTrial.m_iSelectedColor == 1
-            strctTrial.m_iSelectedColor = size(g_strctParadigm.m_strctCurrentSaturation,1);
-        else
-            strctTrial.m_iSelectedColor = strctTrial.m_iSelectedColor-1;
-        end
-        
+
+% ------------------------------------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+function [g_strctParadigm, strctTrial] = fnChooseOrientation(g_strctParadigm, strctTrial)
+
+% Picks new orientation if called by prepare trial blocks
+
+strctTrial.OrientationID = g_strctParadigm.m_strctOrientationFunctionParams.fOrientationID;
+
+% Random order?
+if g_strctParadigm.m_strctOrientationFunctionParams.m_bRandomOrientation
+    % strctTrial.OrientationID = ceil(rand*g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest);
+    strctTrial.OrientationID = randi(g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest,1);
+    %(360/g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest).*ceil(rand*g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest);
+    strctTrial.m_bRandomOrientation = true;
+elseif g_strctParadigm.m_strctOrientationFunctionParams.m_bReverseOrientationOrder
+    if strctTrial.OrientationID == 1
+        strctTrial.OrientationID = g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest;
     else
-        if strctTrial.m_iSelectedColor == size(g_strctParadigm.m_strctCurrentSaturation,1)
-            strctTrial.m_iSelectedColor = 1;
-        else
-            strctTrial.m_iSelectedColor = strctTrial.m_iSelectedColor + 1;
-        end
+        strctTrial.OrientationID = strctTrial.OrientationID-1;
     end
     
-    strctTrial.Clut = g_strctParadigm.m_strctTuningFunctionParams.m_afMasterClut;
-    strctTrial.Clut(1,:) = [0,0,0];
-    strctTrial.Clut(2,:) = g_strctParadigm.m_strctMasterColorTable.(g_strctParadigm.m_strctTuningFunctionParams.m_strBGColor).RGB...
-        (g_strctParadigm.m_strctTuningFunctionParams.m_iBGColorRGBIndex,:);
-    strctTrial.Clut(3,:) = g_strctParadigm.m_strctCurrentSaturation(strctTrial.m_iSelectedColor,:);
-    strctTrial.Clut(256,:) = [65535, 65535, 65535];
+else
+    if strctTrial.OrientationID == g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest
+        strctTrial.OrientationID = 1;
+    else
+        strctTrial.OrientationID = strctTrial.OrientationID + 1;
+    end
+end
+strctTrial.m_fRotationAngle = round(strctTrial.OrientationID * 360/g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest);
+g_strctParadigm.m_strctOrientationFunctionParams.fOrientationID = strctTrial.OrientationID;
+g_strctParadigm.m_iTrialStrobeID = g_strctParadigm.m_strctOrientationFunctionParams.fOrientationID;
+return;
+
+% ------------------------------------------------------------------------------------------------------------------------
+% ------------------------------------------------------------------------------------------------------------------------
+
+
+function [strctTrial] = fnCycleColor(strctTrial)
+global g_strctParadigm
+
+% General purpose color choosing function. If called during trial preparation, will parse user settings for color type, order,
+% blurriness, etc, and return the completed trial.
+% DKL colors based on Qasim/Romain's solver is the most dynamic.
+% All settings are saved in the trial structure for online or offline analysis.
+
+%tic
+strctTrial.m_bUseBitsPlusPlus = 1;
+
+if ~g_strctParadigm.m_bRandomColor && ~g_strctParadigm.m_bCycleColors
+    strctTrial.m_bUseGaussianPulses  = 0;
+    % strctTrial.m_bFlipForegroundBackground = 0;
+    
+end
+if ~strcmp(strctTrial.m_strTrialType,'Image')
     
     
+    % dbstop if warning
+    % warning ('sivas warning')
+   if(strcmp(strctTrial.m_strTrialType,'Many Bar'))
+		if sum(strctTrial.numberBlurSteps) > 250
+				for iBars = 1:fnTsGetVar('g_strctParadigm','ManyBarNumberOfBarsSelected' )
+					strctTrial.numberBlurSteps(iBars) = 1;
+
+				end
+				fnParadigmToKofikoComm('DisplayMessage', 'More BlurSteps than CLUT entries, reduce total number of blur steps!')
+
+	    end
+	   for iBars = 1:fnTsGetVar('g_strctParadigm','ManyBarNumberOfBarsSelected' )
+	   min_distance = min((strctTrial.m_iLength(iBars)/2),(strctTrial.m_iWidth(iBars)/2));
+			if strctTrial.numberBlurSteps(iBars) > min_distance
+			strctTrial.numberBlurSteps(iBars) = floor(min_distance);
+			elseif strctTrial.numberBlurSteps(iBars) == 0
+				strctTrial.numberBlurSteps(iBars) = 1;
+			elseif strctTrial.numberBlurSteps(iBars) > 250
+				% don't exceed the number of CLUT slots
+				strctTrial.numberBlurSteps(iBars) = 250;
+			end
+			
+			
+		end
+		
+	else
+	min_distance = min((strctTrial.m_iLength/2),(strctTrial.m_iWidth/2));
+    if strctTrial.numberBlurSteps > min_distance
+        strctTrial.numberBlurSteps = floor(min_distance);
+    elseif strctTrial.numberBlurSteps == 0
+        strctTrial.numberBlurSteps = 1;
+    elseif strctTrial.numberBlurSteps > 250
+        % don't exceed the number of CLUT slots
+        strctTrial.numberBlurSteps = 250;
+    end
+	end
+end
+currentBlockStimBGColorsR = [g_strctParadigm.m_strCurrentlySelectedBlock,'BackgroundRed'];
+currentBlockStimBGColorsG = [g_strctParadigm.m_strCurrentlySelectedBlock,'BackgroundGreen'];
+currentBlockStimBGColorsB = [g_strctParadigm.m_strCurrentlySelectedBlock,'BackgroundBlue'];
+
+currentBlockStimulusColorsR = [g_strctParadigm.m_strCurrentlySelectedBlock,'StimulusRed'];
+currentBlockStimulusColorsG = [g_strctParadigm.m_strCurrentlySelectedBlock,'StimulusGreen'];
+currentBlockStimulusColorsB = [g_strctParadigm.m_strCurrentlySelectedBlock,'StimulusBlue'];
+
+
+
+
+strctTrial.m_afLocalBackgroundColor = [squeeze(g_strctParadigm.(currentBlockStimBGColorsR).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsR).BufferIdx))...
+    squeeze(g_strctParadigm.(currentBlockStimBGColorsG).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsG).BufferIdx))...
+    squeeze(g_strctParadigm.(currentBlockStimBGColorsB).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsB).BufferIdx))];
+
+strctTrial.m_afBackgroundColor = round((strctTrial.m_afLocalBackgroundColor/255) * 65535);
+
+
+%x(1,1) = [1,2]
+numSaturations = numel(g_strctParadigm.m_strctCurrentSaturation);
+
+% Prevent crash if user changed saturations between trials
+if g_strctParadigm.m_iSelectedSaturationIndex > numSaturations
+    g_strctParadigm.m_iSelectedSaturationIndex = numSaturations;
+end
+if ~iscell(g_strctParadigm.m_strctCurrentSaturation)
+    g_strctParadigm.m_strctCurrentSaturation = {g_strctParadigm.m_strctCurrentSaturation};
+end
+if strcmp(strctTrial.m_strTrialType,'Plain Bar') && g_strctParadigm.m_bUsePlainBarPresetColors ||...
+        strcmp(strctTrial.m_strTrialType,'Moving Bar') && g_strctParadigm.m_bUseMovingBarPresetColors ||...
+        strcmp(strctTrial.m_strTrialType,'Moving Dots') && g_strctParadigm.m_bUseDiscPresetColors ||...
+        strcmp(strctTrial.m_strTrialType,'Gabor') && g_strctParadigm.m_bUseGaborPresetColors
     
-    % Prepare colors for local machine
-    
-    strctTrial.m_afLocalBarColor = round([(([strctTrial.Clut(strctTrial.m_aiStimColor(1),1),...
-        strctTrial.Clut(strctTrial.m_aiStimColor(2),2)...
-        strctTrial.Clut(strctTrial.m_aiStimColor(3),3)]/65535)*255)]);
-    strctTrial.m_afLocalBackgroundColor = round([(([strctTrial.Clut(strctTrial.m_afBackgroundColor(1),1),...
-        strctTrial.Clut(strctTrial.m_afBackgroundColor(2),2)...
-        strctTrial.Clut(strctTrial.m_afBackgroundColor(3),3)]/65535)*255)]);
-    
-    g_strctParadigm.m_iSelectedColor = strctTrial.m_iSelectedColor;
-    g_strctParadigm.m_iTrialStrobeID = g_strctParadigm.m_iSelectedColor;
-    return;
-    
-    
-    
-    %% -------------------------------------------------------------------------------------------------------------------------
-    
-    
-    
-        function [g_strctParadigm, strctTrial] = fnChooseOrientation(g_strctParadigm, strctTrial)
+    switch strctTrial.m_strTrialType
+        case 'Plain Bar'
+            PresetColorIndex = fnTsGetVar('g_strctParadigm' ,'PlainBarStimulusPresetColor');
+            strctTrial.m_bUsingPresetColor = true;
+        case 'Moving Bar'
+            PresetColorIndex = fnTsGetVar('g_strctParadigm' ,'MovingBarStimulusPresetColor');
             
-            strctTrial.OrientationID = g_strctParadigm.m_strctOrientationFunctionParams.fOrientationID;
+        case 'Moving Dots'
+            PresetColorIndex = fnTsGetVar('g_strctParadigm' ,'DiscStimulusPresetColor');
             
-            % Random order?
-            if g_strctParadigm.m_strctOrientationFunctionParams.m_bRandomOrientation
-                strctTrial.OrientationID = ceil(rand*g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest);
-                %(360/g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest).*ceil(rand*g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest);
+        case 'Gabor'
+            PresetColorIndex = fnTsGetVar('g_strctParadigm' ,'GaborStimulusPresetColor');
+            
+    end
+    
+    if PresetColorIndex > size(g_strctParadigm.m_cPresetColors,1)
+        PresetColorIndex = size(g_strctParadigm.m_cPresetColors,1);
+    elseif PresetColorIndex <= 0
+        PresetColorIndex = 1;
+    end
+    
+    
+    
+    
+    strctTrial.m_aiLocalStimColor = g_strctParadigm.m_cPresetColors{PresetColorIndex,1};
+    strctTrial.m_afLocalBackgroundColor = g_strctParadigm.m_cPresetColors{PresetColorIndex,2};
+    
+    
+    strctTrial.m_aiStimColor = round((strctTrial.m_aiLocalStimColor/255) * 65535);
+    strctTrial.m_afBackgroundColor = round((strctTrial.m_afLocalBackgroundColor/255) * 65535);
+    
+    
+    
+    
+    
+elseif g_strctParadigm.m_bUseCartesianCoordinates
+    strctTrial.m_bUseCartesianCoordinates = g_strctParadigm.m_bUseCartesianCoordinates;
+    if ~g_strctParadigm.m_bCycleColors && ~g_strctParadigm.m_bRandomColor
+        strctTrial.m_bUseBitsPlusPlus = 1;
+        strctTrial.m_aiCLUT = zeros(256,3);
+        if g_strctParadigm.m_bUseLUVCoordinates
+            
+            XYZ2LMS_mat=[% transform xyz to lms
+                0.2420  0.8526 -0.0445
+                -0.3896  1.1601  0.0853
+                0.0034 -0.0018  0.5643];
+            M=calculate_matrix_M();
+            inv_M=inv(M);
+            
+            XCoord = squeeze(g_strctParadigm.CartesianXCoord.Buffer(1,:,g_strctParadigm.CartesianXCoord.BufferIdx));
+            YCoord = squeeze(g_strctParadigm.CartesianYCoord.Buffer(1,:,g_strctParadigm.CartesianYCoord.BufferIdx));
+            ZCoord = squeeze(g_strctParadigm.CartesianZCoord.Buffer(1,:,g_strctParadigm.CartesianZCoord.BufferIdx));
+            circ = [.2904,.3724];
+            circRad = .1694;
+            x_diff =((XCoord/1000)-1) * circRad*10;
+            y_diff =((YCoord/1000)-1) * circRad*10;
+            %z_diff =((ZCoord/1000)-1) * circRad;
+            %xyz=luv2xyz([(ZCoord/1000), circ(1) + x_diff, circ(2) + y_diff],'D65/2');
+            xyz=luv2xyz([(ZCoord/2000), (XCoord/1000)-1, (YCoord/1000)-1],'D65/2');
+            xyz
+            lms=XYZ2LMS_mat*xyz';
+            rgb = lms
+            %{
+			%xyz=luvp2xyz([(ZCoord/100), circ(1) + x_diff, circ(2) + y_diff],'D65/2');
+			%xyz=luv2xyz([(ZCoord/200), (XCoord/1000)-1, (YCoord/1000)-1],'D65/2');
+			XCoord = xyz(1);
+			YCoord = xyz(2);
+			ZCoord = xyz(3);
+            %}
+            XCoord = xyz(1);
+            ZCoord = xyz(2);
+            YCoord = xyz(3);
+            %[rgb] = ldrgyv2rgb(ZCoord, XCoord, YCoord);
+        else
+            YCoord = squeeze(g_strctParadigm.CartesianYCoord.Buffer(1,:,g_strctParadigm.CartesianYCoord.BufferIdx));
+            XCoord = squeeze(g_strctParadigm.CartesianXCoord.Buffer(1,:,g_strctParadigm.CartesianXCoord.BufferIdx));
+            ZCoord = squeeze(g_strctParadigm.CartesianZCoord.Buffer(1,:,g_strctParadigm.CartesianZCoord.BufferIdx));
+            
+            [rgb] = ldrgyv2rgb((ZCoord/1000), (XCoord/1000), (YCoord/1000));
+            %[rgb] = ldrgyv2rgb(ld,rg,yv)
+        end
+        
+        
+        
+        if any(rgb > 1) || any(rgb < 0)
+            fnParadigmToKofikoComm('DisplayMessage', 'Colors outside of range, mapped to nearest real color!!')
+            rgb(rgb >= 1) = 1;
+            rgb(rgb <= 0) = 0;
+            
+            
+        end
+        
+        
+        strctTrial.m_aiStimColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(round(rgb(1) * 65535)+1),...
+            g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(round(rgb(2) * 65535)+1),...
+            g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(round(rgb(3) * 65535)+1)];
+        strctTrial.m_aiLocalStimColor =  round((strctTrial.m_aiStimColor/65535) * 255);
+        
+        if g_strctParadigm.m_bUseChosenBackgroundColor && size(g_strctParadigm.m_strctCurrentBackgroundColors,1) == 1
+            strctTrial.m_afBackgroundColor = g_strctParadigm.m_strctCurrentBackgroundColors;
+            
+            
+            
+        else
+            % strctTrial.m_afBackgroundColor = g_strctParadigm.m_aiCalibratedBackgroundColor;
+            
+            
+            
+            temp = ldrgyv2rgb(0,0,0);
+            
+            strctTrial.m_afBackgroundColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(temp(1) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(temp(2) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(temp(3) * 65535) + 1)];
+        end
+        strctTrial.m_afLocalBackgroundColor = round((strctTrial.m_afBackgroundColor/65535) * 255);
+        % g_strctParadigm.m_strctConversionMatrices
+        
+        
+        strctTrial.m_aiCLUT(2,:) = strctTrial.m_afBackgroundColor;
+        strctTrial.m_aiCLUT(3,:) = strctTrial.m_aiStimColor;
+        strctTrial.m_aiCLUT(256,:) = ones(1,3) * 65535;
+    else
+        %sprintf('block 1 %f', toc)
+        if g_strctParadigm.m_bRandomColor
+            strctTrial.m_bRandomColor = true;
+            % g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID = ceil(rand(1,1) * round(squeeze(g_strctParadigm.DKLAzimuthSteps.Buffer(1,:,g_strctParadigm.DKLAzimuthSteps.BufferIdx))));
+            g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID = randi(squeeze(g_strctParadigm.DKLAzimuthSteps.Buffer(1,:,g_strctParadigm.DKLAzimuthSteps.BufferIdx)),1);%
+            if g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID < 1
+                g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID = 1;
+            end
+            
+        elseif ~g_strctParadigm.m_bReverseColorOrder
+            strctTrial.m_bReverseColorOrder = g_strctParadigm.m_bReverseColorOrder;
+            g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID = g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID + 1;
+        elseif g_strctParadigm.m_bReverseColorOrder
+            strctTrial.m_bReverseColorOrder = g_strctParadigm.m_bReverseColorOrder;
+            g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID = g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID - 1;
+        end
+        
+        if g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID > squeeze(g_strctParadigm.DKLAzimuthSteps.Buffer(1,:,g_strctParadigm.DKLAzimuthSteps.BufferIdx))
+            g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID = 1;
+        elseif g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID < 1
+            
+            g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID = round(squeeze(g_strctParadigm.DKLAzimuthSteps.Buffer(1,:,g_strctParadigm.DKLAzimuthSteps.BufferIdx)));
+            
+        end
+        strctTrial.m_iCurrentlySelectedDKLCoordinateID = g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID ;
+        strctTrial.dklRadius = squeeze(g_strctParadigm.DKLRadius.Buffer(1,:,g_strctParadigm.DKLRadius.BufferIdx));
+        strctTrial.dklElevation = squeeze(g_strctParadigm.DKLElevation.Buffer(1,:,g_strctParadigm.DKLElevation.BufferIdx));
+        strctTrial.dklAzimuthSteps = squeeze(g_strctParadigm.DKLAzimuthSteps.Buffer(1,:,g_strctParadigm.DKLAzimuthSteps.BufferIdx));
+        if strctTrial.dklAzimuthSteps < 1
+            strctTrial.dklAzimuthSteps = 1;
+        end
+        
+        strctTrial.DKLElevationSteps = squeeze(g_strctParadigm.DKLElevationSteps.Buffer(1,:,g_strctParadigm.DKLElevationSteps.BufferIdx));
+        if strctTrial.DKLElevationSteps > 1
+            %strctTrial.DKLElevationSteps
+            
+        end
+        
+        strctTrial.ai_dklAzimuthSteps = 0:360/strctTrial.dklAzimuthSteps:359.99;
+        strctTrial.dklElevationSteps = 0:360/strctTrial.dklAzimuthSteps:359.99;
+        %[strctTrial.m_iXCoordinate, strctTrial.m_iYCoordinate, strctTrial.m_iZCoordinate, ] = sph2cart(deg2rad(strctTrial.ai_dklAzimuthSteps),(strctTrial.dklElevation/100)-1,strctTrial.dklRadius/100);
+        % sin theta plus pi/2
+        
+        if strctTrial.m_bUseGaussianPulses
+            %[strctTrial.m_iXCoordinate, strctTrial.m_iYCoordinate, strctTrial.m_iZCoordinate, ] = sph2cart(deg2rad(strctTrial.ai_dklAzimuthSteps),deg2rad(strctTrial.dklElevationSteps),strctTrial.dklRadius/100);
+            
+            [strctTrial.m_iXCoordinate, strctTrial.m_iYCoordinate, strctTrial.m_iZCoordinate ] = sph2cart(deg2rad(strctTrial.ai_dklAzimuthSteps(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID)),...
+                ones(1,strctTrial.numFrames)*(strctTrial.dklElevation/100),sin(linspace(0,pi,strctTrial.numFrames))*strctTrial.dklRadius/100);
+            
+        else
+            %[strctTrial.m_iXCoordinate, strctTrial.m_iYCoordinate, strctTrial.m_iZCoordinate, ] = sph2cart(deg2rad(strctTrial.ai_dklAzimuthSteps),deg2rad(strctTrial.dklElevation),strctTrial.dklRadius/100);
+            [strctTrial.m_iXCoordinate, strctTrial.m_iYCoordinate, strctTrial.m_iZCoordinate ] = sph2cart(deg2rad(strctTrial.ai_dklAzimuthSteps),(strctTrial.dklElevation/100),strctTrial.dklRadius/100);
+            strctTrial.m_iZCoordinate = (strctTrial.dklElevation/100);
+        end
+        
+        %[strctTrial.m_iXCoordinate, strctTrial.m_iYCoordinate, strctTrial.m_iZCoordinate, ] = sph2cart(0,0,sin(linspace(0,2*pi,60)+.5));
+        %[strctTrial.m_iXCoordinate, strctTrial.m_iYCoordinate, strctTrial.m_iZCoordinate, ] = sph2cart(zeros(1,60*5), zeros(1,60*5), max(0,sin(linspace(0,pi*2,60*5))*strctTrial.dklRadius/100));
+        %[strctTrial.m_iXCoordinate, strctTrial.m_iYCoordinate, strctTrial.m_iZCoordinate, ] = sph2cart(zeros(1,60*5), zeros(1,60*5), max(0,sin(linspace(0,pi*2,60*5))*strctTrial.dklRadius/100));
+        
+        %{
+        for i = 1:numel(strctTrial.m_iXCoordinate)
+            if numel(strctTrial.m_iZCoordinate) == numel(strctTrial.m_iXCoordinate)
+                FullCycleRGB(i,:) = ldrgyv2rgb(strctTrial.m_iZCoordinate(i),strctTrial.m_iXCoordinate(i),strctTrial.m_iYCoordinate(i));
+            else
+                FullCycleRGB(i,:) = ldrgyv2rgb(strctTrial.m_iZCoordinate,strctTrial.m_iXCoordinate(i),strctTrial.m_iYCoordinate(i));
+            end
+            %theta = deg2rad(40);
+            
+            %FullCycleRGB(i,:) = ldrgyv2rgb(sin(theta),cos(theta),0);
+            %FullCycleRGB(i,:) = ldrgyv2rgb(z,sin(x(i)),cos(y(i)));
+        end
+        %}
+        
+        if numel(strctTrial.m_iZCoordinate) == numel(strctTrial.m_iXCoordinate)
+            FullCycleRGB = ldrgyv2rgb(strctTrial.m_iZCoordinate,strctTrial.m_iXCoordinate,strctTrial.m_iYCoordinate)';
+        else
+            FullCycleRGB = ldrgyv2rgb(ones(1,numel(strctTrial.m_iXCoordinate)) * strctTrial.m_iZCoordinate,strctTrial.m_iXCoordinate,strctTrial.m_iYCoordinate)';
+        end
+        
+        if size(FullCycleRGB,2) < 3
+            FullCycleRGB = FullCycleRGB';
+            
+        end
+        if any(any(FullCycleRGB > 1)) || any(any(FullCycleRGB < 0));
+            FullCycleRGB(FullCycleRGB >= 1) = 1;
+            FullCycleRGB(FullCycleRGB <= 0) = 0;
+            fnParadigmToKofikoComm('DisplayMessage', 'Colors outside of range, mapped to nearest real color!!')
+        end
+        %sprintf('block 2 %f', toc)
+        
+        if strctTrial.m_bUseGaussianPulses
+            for iFrames = 1:strctTrial.numFrames
+                strctTrial.m_aiStimColor(iFrames,:) = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(FullCycleRGB(iFrames, 1) * 65535) + 1),...
+                    g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(FullCycleRGB(iFrames, 2) * 65535) + 1),...
+                    g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(FullCycleRGB(iFrames, 3) * 65535) + 1)];
+                strctTrial.m_aiLocalStimColor(iFrames,:) = round((strctTrial.m_aiStimColor(iFrames,:)/65535) * 255);
                 
-            elseif g_strctParadigm.m_strctOrientationFunctionParams.m_bReverseOrientationOrder
-                if strctTrial.OrientationID == 1
-                    strctTrial.OrientationID = g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest;
-                else
-                    strctTrial.OrientationID = strctTrial.OrientationID-1;
-                end
+                
+            end
+            % strctTrial.m_iXCoordinate = strctTrial.m_iXCoordinate(round(strctTrial.numFrames/2));
+            %strctTrial.m_iYCoordinate = strctTrial.m_iYCoordinate(round(strctTrial.numFrames/2));
+            %strctTrial.m_iZCoordinate = strctTrial.m_iZCoordinate(round(strctTrial.numFrames/2));
+        else
+            
+            strctTrial.m_aiStimColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(FullCycleRGB(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID, 1) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(FullCycleRGB(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID, 2) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(FullCycleRGB(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID, 3) * 65535) + 1)];
+            strctTrial.m_aiLocalStimColor = round((strctTrial.m_aiStimColor/65535) * 255);
+            %strctTrial.m_iXCoordinate = strctTrial.m_iXCoordinate(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID);
+            %strctTrial.m_iYCoordinate = strctTrial.m_iYCoordinate(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID);
+            %strctTrial.m_iZCoordinate = strctTrial.m_iZCoordinate;
+        end
+        if g_strctParadigm.m_bPhaseShiftOffset
+            strctTrial.m_bShiftOffsetTrial = true;
+            strctTrial.m_iShiftOffset = squeeze(g_strctParadigm.ShiftOffsetDegrees.Buffer(1,:,g_strctParadigm.ShiftOffsetDegrees.BufferIdx));
+            [strctTrial.m_iXOffsetCoordinate, strctTrial.m_iYOffsetCoordinate, strctTrial.m_iZOffsetCoordinate ] =...
+                sph2cart(deg2rad(strctTrial.m_iShiftOffset)+...
+                deg2rad(strctTrial.ai_dklAzimuthSteps(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID)),...
+                (strctTrial.dklElevation/100)-1, strctTrial.dklRadius/100);
+            
+            shiftOffsetRGB = ldrgyv2rgb( strctTrial.m_iZOffsetCoordinate,strctTrial.m_iXOffsetCoordinate,strctTrial.m_iYOffsetCoordinate);
+            
+            if any(any(shiftOffsetRGB > 1)) || any(any(shiftOffsetRGB < 0));
+                shiftOffsetRGB(shiftOffsetRGB >= 1) = 1;
+                shiftOffsetRGB(shiftOffsetRGB <= 0) = 0;
+                fnParadigmToKofikoComm('DisplayMessage', 'Colors outside of range, mapped to nearest real color!!')
+            end
+            
+            %shiftOffsetRGB(shiftOffsetRGB >= 1) = 1;
+            % shiftOffsetRGB(shiftOffsetRGB <= 0) = 0;
+            %g_strctParadigm.m_iCurrentlySelectedDKLOffsetCoordinateID = round(rem((g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID+ (dklAzimuthSteps/4)),dklAzimuthSteps ));
+            strctTrial.m_afBackgroundColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(shiftOffsetRGB(1) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(shiftOffsetRGB(2) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(shiftOffsetRGB(3) * 65535) + 1)];
+            
+        else
+            if g_strctParadigm.m_bUseChosenBackgroundColor && size(g_strctParadigm.m_strctCurrentBackgroundColors,1) == 1
+                strctTrial.m_afBackgroundColor = g_strctParadigm.m_strctCurrentBackgroundColors;
+                
+                
+                
+                
                 
             else
-                if strctTrial.OrientationID == g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest
-                    strctTrial.OrientationID = 1;
-                else
-                    strctTrial.OrientationID = strctTrial.OrientationID + 1;
-                end
+                
+                strctTrial.m_afBackgroundColor = g_strctParadigm.m_aiCalibratedBackgroundColor;
+                
             end
-            strctTrial.m_fRotationAngle = round(strctTrial.OrientationID * 360/g_strctParadigm.m_strctOrientationFunctionParams.m_iNumberOfOrientationsToTest);
-            g_strctParadigm.m_strctOrientationFunctionParams.fOrientationID = strctTrial.OrientationID;
-            g_strctParadigm.m_iTrialStrobeID = g_strctParadigm.m_strctOrientationFunctionParams.fOrientationID;
-            return;
             
-            % --------------------------------------------------------------------------------------------------------------------------------------------------------------
             
-            function [strctTrial] = Choose_new_color(g_strctParadigm, strctTrial)
+        end
+        %sprintf('block 3 %f', toc)
+        strctTrial.m_afLocalBackgroundColor = round((strctTrial.m_afBackgroundColor/65535) * 255);
+        % strctTrial.m_afLocalBackgroundColor = round((strctTrial.m_afBackgroundColor/65535)*255);
+        %{
+        strctTrial.m_afLocalBackgroundColor = round((strctTrial.m_afBackgroundColor/65535)*255);
+        if strctTrial.m_bFlipForegroundBackground
+            % tempColor = strctTrial.m_aiStimColor ;
+            tempLocalColor = strctTrial.m_aiLocalStimColor;
+            tempBackgroundColor = strctTrial.m_afBackgroundColor;
+            strctTrial.m_afBackgroundColor = strctTrial.m_aiStimColor ;
+            strctTrial.m_afLocalBackgroundColor = tempLocalColor;
+            
+            strctTrial.m_aiStimColor = tempBackgroundColor;
+            strctTrial.m_aiLocalStimColor = round((tempBackgroundColor/65535)*255);
+            
+            
+        else
+            
+        end
+        %}
+    end
+elseif g_strctParadigm.m_bCycleColors || g_strctParadigm.m_bRandomColor
+    if g_strctParadigm.m_bUseChosenBackgroundColor && size(g_strctParadigm.m_strctCurrentBackgroundColors,1) == 1
+        strctTrial.m_afBackgroundColor = g_strctParadigm.m_strctCurrentBackgroundColors;
+        %strctTrial.m_afLocalBackgroundColor = round((strctTrial.m_afLocalBackgroundColor/65535) * 255);
+        
+        
+        
+    else
+        strctTrial.m_afBackgroundColor = g_strctParadigm.m_aiCalibratedBackgroundColor;
+    end
+    strctTrial.m_afLocalBackgroundColor = round((strctTrial.m_afBackgroundColor/65535)*255);
+    strctTrial.m_bUseBitsPlusPlus = 1;
+    if g_strctParadigm.m_bRandomColor
+        strctTrial.m_bRandomColor = true;
+        % g_strctParadigm.m_iSelectedSaturationIndex = ceil(rand(1) * numSaturations);
+        g_strctParadigm.m_iSelectedSaturationIndex = randi(numSaturations,1);% * numSaturations);
+        
+        % g_strctParadigm.m_iSelectedColorIndex = ceil(rand(1)* size(g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.RGB,1));
+        g_strctParadigm.m_iSelectedColorIndex = randi(size(g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.RGB,1),1);%* size(g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.RGB,1));
+        
+        strctTrial.m_aiStimColor = g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.RGB(g_strctParadigm.m_iSelectedColorIndex,:);
+        strctTrial.m_aiStimDKLCart = g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.XYZ(g_strctParadigm.m_iSelectedColorIndex,:);
+        strctTrial.m_iSelectedColorIndex = g_strctParadigm.m_iSelectedColorIndex;
+        strctTrial.m_iSelectedSaturationIndex = g_strctParadigm.m_iSelectedSaturationIndex;
+        strctTrial.m_strSelectedSaturationName = g_strctParadigm.m_strctCurrentSaturationLookup{g_strctParadigm.m_iSelectedSaturationIndex};
+        strctTrial.m_afSphereCoordinates =  g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.afSphereCoordinates(g_strctParadigm.m_iSelectedColorIndex,:);
+    elseif ~g_strctParadigm.m_bReverseColorOrder
+        g_strctParadigm.m_iSelectedColorIndex = g_strctParadigm.m_iSelectedColorIndex + 1;
+        if g_strctParadigm.m_iSelectedColorIndex > size(g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.RGB,1)
+            
+            g_strctParadigm.m_iSelectedSaturationIndex = g_strctParadigm.m_iSelectedSaturationIndex + 1;
+            if g_strctParadigm.m_iSelectedSaturationIndex > numSaturations
                 
-                strctTrial.m_iSelectedColor = g_strctParadigm.m_iSelectedColor;
-                g_strctParadigm.m_strctCurrentSaturation = g_strctParadigm.m_strctMasterColorTable.(g_strctParadigm.m_strctMasterColorTableLookup{g_strctParadigm.iSelectedColorList}).RGB;
-                if g_strctParadigm.m_bCycleColors
-                    % Random order? we can piggyback on the tuning function params here, since they are already in the GUI
-                    if g_strctParadigm.m_strctTuningFunctionParams.m_bRandomColorOrder
-                        strctTrial.m_iSelectedColor = ceil(rand*size(g_strctParadigm.m_strctCurrentSaturation,1));
-                        if strctTrial.m_iSelectedColor == 0
-                            strctTrial.m_iSelectedColor = 1;
-                        end
-                    elseif g_strctParadigm.m_strctTuningFunctionParams.m_bReverseColorOrder
-                        if strctTrial.m_iSelectedColor == 1
-                            strctTrial.m_iSelectedColor = size(g_strctParadigm.m_strctCurrentSaturation,1);
-                        else
-                            strctTrial.m_iSelectedColor = strctTrial.m_iSelectedColor-1;
-                        end
-                        
-                    else
-                        if strctTrial.m_iSelectedColor == size(g_strctParadigm.m_strctCurrentSaturation,1)
-                            strctTrial.m_iSelectedColor = 1;
-                        else
-                            strctTrial.m_iSelectedColor = strctTrial.m_iSelectedColor + 1;
-                        end
-                    end
-                else
-                    numberofcolors = size(g_strctParadigm.m_strctCurrentSaturation,1);
-                    redVal = ceil(squeeze(g_strctParadigm.StimulusRed.Buffer(1,:,g_strctParadigm.StimulusRed.BufferIdx))/numberofcolors);
-                    
-                    iColorVal = ceil(redVal/numberofcolors);
-                    if ~g_strctParadigm.m_iSelectedColor == iColorVal
-                        
-                        
-                        % We'll use the red bar color slider to determine which color we're using
-                        % The color wheel advances counterclockwise starting from East
-                        g_strctParadigm.m_iSelectedColor = iColorVal;
-                        g_strctParadigm.m_bColorUpdated = 1; % flag this so we don't have to update the color lookup table each trial
-                        % Sanity check
-                        if g_strctParadigm.m_iSelectedColor < 1
-                            g_strctParadigm.m_iSelectedColor = 1;
-                        elseif g_strctParadigm.m_iSelectedColor > numberofcolors
-                            g_strctParadigm.m_iSelectedColor = numberofcolors;
-                        end
-                    end
-                end
-                strctTrial.Clut = g_strctParadigm.m_strctTuningFunctionParams.m_afMasterClut;
-                strctTrial.Clut(1,:) = [0,0,0];
-                strctTrial.Clut(2,:) = g_strctParadigm.m_strctMasterColorTable.(g_strctParadigm.m_strctTuningFunctionParams.m_strBGColor).RGB...
-                    (g_strctParadigm.m_strctTuningFunctionParams.m_iBGColorRGBIndex,:);
-                strctTrial.Clut(3,:) = g_strctParadigm.m_strctCurrentSaturation(strctTrial.m_iSelectedColor,:);
-                strctTrial.Clut(256,:) = [65535, 65535, 65535];
+                g_strctParadigm.m_iSelectedSaturationIndex = 1;
+            end
+            g_strctParadigm.m_iSelectedColorIndex = 1;
+            
+            
+        end
+        strctTrial.m_aiStimColor = g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.RGB(g_strctParadigm.m_iSelectedColorIndex,:);
+        strctTrial.m_aiStimDKLCart = g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.XYZ(g_strctParadigm.m_iSelectedColorIndex,:);
+        strctTrial.m_iSelectedColorIndex = g_strctParadigm.m_iSelectedColorIndex;
+        strctTrial.m_iSelectedSaturationIndex = g_strctParadigm.m_iSelectedSaturationIndex;
+        strctTrial.m_strSelectedSaturationName = g_strctParadigm.m_strctCurrentSaturationLookup{g_strctParadigm.m_iSelectedSaturationIndex};
+        strctTrial.m_afSphereCoordinates =  g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.afSphereCoordinates(g_strctParadigm.m_iSelectedColorIndex,:);
+        
+        
+    elseif g_strctParadigm.m_bReverseColorOrder
+        g_strctParadigm.m_iSelectedColorIndex = g_strctParadigm.m_iSelectedColorIndex - 1;
+        
+        if g_strctParadigm.m_iSelectedColorIndex < 1
+            g_strctParadigm.m_iSelectedSaturationIndex = g_strctParadigm.m_iSelectedSaturationIndex - 1;
+            if g_strctParadigm.m_iSelectedSaturationIndex < 1
+                
+                g_strctParadigm.m_iSelectedSaturationIndex = numSaturations;
+            end
+            g_strctParadigm.m_iSelectedColorIndex = size(g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.RGB,1);
+            
+            
+        end
+        strctTrial.m_bReverseColorOrder = true;
+        strctTrial.m_aiStimColor = g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.RGB(g_strctParadigm.m_iSelectedColorIndex,:);
+        strctTrial.m_aiStimDKLCart = g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.XYZ(g_strctParadigm.m_iSelectedColorIndex,:);
+        strctTrial.m_iSelectedColorIndex = g_strctParadigm.m_iSelectedColorIndex;
+        strctTrial.m_iSelectedSaturationIndex = g_strctParadigm.m_iSelectedSaturationIndex;
+        strctTrial.m_strSelectedSaturationName = g_strctParadigm.m_strctCurrentSaturationLookup{g_strctParadigm.m_iSelectedSaturationIndex};
+        strctTrial.m_afSphereCoordinates =  g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.afSphereCoordinates(g_strctParadigm.m_iSelectedColorIndex,:);
+        
+    end
+    
+    if strctTrial.m_bUseGaussianPulses && ~strcmp(strctTrial.m_strSelectedSaturationName,'gray')
+        
+        [strctTrial.m_iXCoordinate, strctTrial.m_iYCoordinate, strctTrial.m_iZCoordinate ] = ...
+            sph2cart(g_strctParadigm.m_strctCurrentSaturation{strctTrial.m_iSelectedSaturationIndex}.azimuthSteps(strctTrial.m_iSelectedColorIndex),...
+            ones(1,strctTrial.numFrames)* ...
+            (g_strctParadigm.m_strctCurrentSaturation{strctTrial.m_iSelectedSaturationIndex}.Elevation), ...
+            sin(linspace(0,pi,strctTrial.numFrames))*g_strctParadigm.m_strctCurrentSaturation{strctTrial.m_iSelectedSaturationIndex}.Radius);
+        
+        if numel(strctTrial.m_iZCoordinate) == numel(strctTrial.m_iXCoordinate)
+            FullCycleRGB = ldrgyv2rgb(strctTrial.m_iZCoordinate,strctTrial.m_iXCoordinate,strctTrial.m_iYCoordinate)';
+        else
+            FullCycleRGB = ldrgyv2rgb(ones(1,numel(strctTrial.m_iXCoordinate)) * strctTrial.m_iZCoordinate,strctTrial.m_iXCoordinate,strctTrial.m_iYCoordinate)';
+        end
+        
+        if size(FullCycleRGB,2) < 3
+            FullCycleRGB = FullCycleRGB';
+            
+        end
+        if any(any(FullCycleRGB > 1)) || any(any(FullCycleRGB < 0));
+            FullCycleRGB(FullCycleRGB >= 1) = 1;
+            FullCycleRGB(FullCycleRGB <= 0) = 0;
+            fnParadigmToKofikoComm('DisplayMessage', 'Colors outside of range, mapped to nearest real color!!')
+        end
+        
+        for iFrames = 1:strctTrial.numFrames
+            strctTrial.m_aiStimColor(iFrames,:) = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(FullCycleRGB(iFrames, 1) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(FullCycleRGB(iFrames, 2) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(FullCycleRGB(iFrames, 3) * 65535) + 1)];
+            strctTrial.m_aiLocalStimColor(iFrames,:) = round((strctTrial.m_aiStimColor(iFrames,:)/65535) * 255);
+            
+            %strctTrial.m_aiLocalStimColor = round((strctTrial.m_aiStimColor/65535)*255);
+        end
+    else
+        strctTrial.m_bUseGaussianPulses = 0;
+        strctTrial.m_aiLocalStimColor = round((strctTrial.m_aiStimColor/65535)*255);
+        
+    end
+    
+    
+    
+    
+    
+elseif strctTrial.m_bUseBitsPlusPlus
+    if strcmp(g_strctParadigm.m_strTrialType,'Many Bar')
+        for iBars = 1:fnTsGetVar('g_strctParadigm','ManyBarNumberOfBars')
+            [strctTrial.m_aiLocalStimColor(iBars,1),strctTrial.m_aiLocalStimColor(iBars,2),strctTrial.m_aiLocalStimColor(iBars,3)] = ...
+                fnTsGetVar('g_strctParadigm',[currentBlockStimulusColorsR,num2str(iBars)],...
+                [currentBlockStimulusColorsG,num2str(iBars)],...
+                [currentBlockStimulusColorsB,num2str(iBars)]);
+        end
+        
+               strctTrial.m_aiStimColor = round((strctTrial.m_aiLocalStimColor /255)*65535);
+
+        
+        %fnTsGetVar('g_strctParadigm',[currentBlockStimulusColorsR,'0'])
+        %strctTrial.m_aiLocalStimColor = [squeeze(g_strctParadigm.([currentBlockStimulusColorsR,'0']).Buffer(1,:,g_strctParadigm.([currentBlockStimulusColorsR,'0']).BufferIdx))...
+        %  squeeze(g_strctParadigm.([currentBlockStimulusColorsG,'0']).Buffer(1,:,g_strctParadigm.([currentBlockStimulusColorsG,'0']).BufferIdx))...
+        % squeeze(g_strctParadigm.([currentBlockStimulusColorsB,'0']).Buffer(1,:,g_strctParadigm.([currentBlockStimulusColorsB,'0']).BufferIdx))];
+        % end
+        %  strctTrial.m_aiStimColor = round((strctTrial.m_aiLocalStimColor /255)*65535);
+        
+    else
+        strctTrial.m_aiLocalStimColor = [squeeze(g_strctParadigm.(currentBlockStimulusColorsR).Buffer(1,:,g_strctParadigm.(currentBlockStimulusColorsR).BufferIdx))...
+            squeeze(g_strctParadigm.(currentBlockStimulusColorsG).Buffer(1,:,g_strctParadigm.(currentBlockStimulusColorsG).BufferIdx))...
+            squeeze(g_strctParadigm.(currentBlockStimulusColorsB).Buffer(1,:,g_strctParadigm.(currentBlockStimulusColorsB).BufferIdx))];
+        
+        strctTrial.m_aiStimColor = round((strctTrial.m_aiLocalStimColor /255)*65535);
+    end
+else
+    
+    strctTrial.m_aiLocalStimColor = [squeeze(g_strctParadigm.MovingBarStimulusRed.Buffer(1,:,g_strctParadigm.MovingBarStimulusRed.BufferIdx)), ...
+        squeeze(g_strctParadigm.MovingBarStimulusGreen.Buffer(1,:,g_strctParadigm.MovingBarStimulusGreen.BufferIdx)),...
+        squeeze(g_strctParadigm.MovingBarStimulusBlue.Buffer(1,:,g_strctParadigm.MovingBarStimulusBlue.BufferIdx))];
+    strctTrial.m_aiStimColor = round((strctTrial.m_aiLocalStimColor/255)*65535);
+end
+
+
+
+if strcmp(strctTrial.m_strTrialType,'Many Bar') && (g_strctParadigm.m_bCycleColors || g_strctParadigm.m_bRandomColor)
+	%strctTrial.m_aiStimDKLCart
+	%strctTrial.m_iCurrentlySelectedDKLCoordinateID
+	
+	xCoord = strctTrial.m_iXCoordinate(strctTrial.m_iCurrentlySelectedDKLCoordinateID);
+	yCoord = strctTrial.m_iYCoordinate(strctTrial.m_iCurrentlySelectedDKLCoordinateID);
+	zCoord = strctTrial.m_iZCoordinate;
+	
+	sphCoords(3) = sqrt(xCoord^2+yCoord^2+zCoord^2);
+	sphCoords(1) = atan(yCoord/xCoord);
+	sphCoords(2) = atan(zCoord/sqrt(xCoord^2+yCoord^2));
+	
+	hue = atan(yCoord/xCoord);
+	sat = sqrt(xCoord^2+yCoord^2);
+	lum = 	sphCoords(3) * sin(sphCoords(2));
+
+	
+	numBars = fnTsGetVar('g_strctParadigm','ManyBarNumberOfBarsSelected');
+	
+	%fnTsGetVar('g_strctParadigm' ,'ManyBarLumFullWidth')
+	hueSpreadCoords = 	hue + ((rand(numBars,1)-.5) *...
+										(fnTsGetVar('g_strctParadigm' ,'ManyBarHueFullWidth')*pi)/180);
+
+	
+										
+	lumSpreadCoords = 	lum + ((rand(numBars,1)-.5) *...
+										(fnTsGetVar('g_strctParadigm' ,'ManyBarLumFullWidth'))/100);
+										
+	satSpreadCoords = 	sat + ((rand(numBars,1)-.5) *...
+										(fnTsGetVar('g_strctParadigm' ,'ManyBarSatFullWidth'))/100);
+										
+	radiusSpread = sqrt(lumSpreadCoords.^2 + satSpreadCoords.^2);
+	elevationSpread = atan(lumSpreadCoords./ satSpreadCoords);
+						
+	%sphCoords(3) = sqrt(xCoord^2+yCoord^2+zCoord^2);
+	%sphCoords(1) = atan(yCoord/xCoord);
+	%sphCoords(2) = atan(zCoord/sqrt(xCoord^2+yCoord^2));									
+		
+	[spreadXYZCoords(1,:),spreadXYZCoords(2,:),spreadXYZCoords(3,:)] = sph2cart(hueSpreadCoords, elevationSpread, radiusSpread);
+		
+    spreadRGBVals(1:numBars,:) = ldrgyv2rgb(spreadXYZCoords(3,:),spreadXYZCoords(1,:), spreadXYZCoords(2,:))';
+    
+    spreadRGBVals(spreadRGBVals > 1) = 1;
+    spreadRGBVals(spreadRGBVals < 0) = 0;
+    
+	for iBars = 1:numBars
+		strctTrial.m_aiStimColor(iBars,:) = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(spreadRGBVals(iBars, 1) * 65535) + 1),...
+			g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(spreadRGBVals(iBars, 2) * 65535) + 1),...
+			g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(spreadRGBVals(iBars, 3) * 65535) + 1)];
+		strctTrial.m_aiLocalStimColor(iBars,:) = 	round((strctTrial.m_aiStimColor(iBars,:) / 65535) * 255);
+			
+	end
+	strctTrial.m_bFlipForegroundBackground = false;
+end
+%strctTrial.m_iXCoordinate(strctTrial.m_iCurrentlySelectedDKLCoordinateID)
+%strctTrial.m_iYCoordinate(strctTrial.m_iCurrentlySelectedDKLCoordinateID)
+%strctTrial.m_iZCoordinate
+if strctTrial.m_bFlipForegroundBackground
+    %strctTrial.m_bFlipForegroundBackgroundMovingBar = g_strctParadigm.m_bFlipForegroundBackgroundMovingBar;
+    stimcolortemp = strctTrial.m_aiStimColor;
+    strctTrial.m_aiStimColor = strctTrial.m_afBackgroundColor;
+    strctTrial.m_aiLocalStimColor = round((strctTrial.m_aiStimColor/65535)*255);
+    strctTrial.m_afBackgroundColor = stimcolortemp;
+    strctTrial.m_afLocalBackgroundColor = round((strctTrial.m_afBackgroundColor/65535)*255);
+    strctTrial.m_bFlipForegroundBackground = 1;
+    %strctTrial.m_aiStimColor = g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.RGB(g_strctParadigm.m_iSelectedColorIndex,:);
+    %strctTrial.m_aiStimxyY = g_strctParadigm.m_strctCurrentSaturation{g_strctParadigm.m_iSelectedSaturationIndex}.xyY(g_strctParadigm.m_iSelectedColorIndex,:);
+end
+
+%if strctTrial.m_bUseBitsPlusPlus
+if ~strcmp(strctTrial.m_strTrialType,'Image') && any(strctTrial.numberBlurSteps > 0)
+    strctTrial.m_aiCLUT = zeros(256,3,strctTrial.numFrames);
+    if strctTrial.m_bUseGaussianPulses && size(strctTrial.m_aiStimColor,1) == strctTrial.numFrames
+        
+        for iFrames = 1:strctTrial.numFrames
+            
+            strctTrial.m_aiCLUT(2,:,iFrames) = strctTrial.m_afBackgroundColor;
+            strctTrial.m_aiCLUT(3:3+strctTrial.numberBlurSteps-1,1,iFrames) = round(linspace(strctTrial.m_afBackgroundColor(1),strctTrial.m_aiStimColor(iFrames,1),strctTrial.numberBlurSteps)) ;
+            strctTrial.m_aiCLUT(3:3+strctTrial.numberBlurSteps-1,2,iFrames) = round(linspace(strctTrial.m_afBackgroundColor(2),strctTrial.m_aiStimColor(iFrames,2),strctTrial.numberBlurSteps)) ;
+            strctTrial.m_aiCLUT(3:3+strctTrial.numberBlurSteps-1,3,iFrames) = round(linspace(strctTrial.m_afBackgroundColor(3),strctTrial.m_aiStimColor(iFrames,3),strctTrial.numberBlurSteps)) ;
+            strctTrial.m_aiCLUT(256,:,iFrames) = deal(65535);
+        end
+    elseif strctTrial.m_bUseGaussianPulses && strctTrial.m_bFlipForegroundBackground && size(strctTrial.m_afBackgroundColor,1) == strctTrial.numFrames
+        for iFrames = 1:strctTrial.numFrames
+            
+            strctTrial.m_aiCLUT(2,:,iFrames) = strctTrial.m_afBackgroundColor(iFrames,:);
+            strctTrial.m_aiCLUT(3:3+strctTrial.numberBlurSteps-1,1,iFrames) = round(linspace(strctTrial.m_afBackgroundColor(iFrames,1),strctTrial.m_aiStimColor(1),strctTrial.numberBlurSteps)) ;
+            strctTrial.m_aiCLUT(3:3+strctTrial.numberBlurSteps-1,2,iFrames) = round(linspace(strctTrial.m_afBackgroundColor(iFrames,2),strctTrial.m_aiStimColor(2),strctTrial.numberBlurSteps)) ;
+            strctTrial.m_aiCLUT(3:3+strctTrial.numberBlurSteps-1,3,iFrames) = round(linspace(strctTrial.m_afBackgroundColor(iFrames,3),strctTrial.m_aiStimColor(3),strctTrial.numberBlurSteps)) ;
+            strctTrial.m_aiCLUT(256,:) = deal(65535);
+        end
+        
+        
+    else
+        if(strcmp(strctTrial.m_strTrialType,'Many Bar'))
+			strctTrial.m_aiCLUT = zeros(256,3);
+			strctTrial.m_aiCLUT(256,:) = deal(65535);
+                 iLastCLUTIDX = 1;
+
+            for iBars=1:1:fnTsGetVar('g_strctParadigm','ManyBarNumberOfBarsSelected' )
+			%blurSteps = strctTrial.numberBlurSteps(numBars);
+                
+                strctTrial.m_aiCLUT(2,:) = strctTrial.m_afBackgroundColor;
+                strctTrial.m_aiCLUT(3+iLastCLUTIDX-1:3+strctTrial.numberBlurSteps(iBars)-1+ iLastCLUTIDX-1,1) = round(linspace(strctTrial.m_afBackgroundColor(1),strctTrial.m_aiStimColor(iBars,1),strctTrial.numberBlurSteps(iBars))) ;
+                strctTrial.m_aiCLUT(3+iLastCLUTIDX-1:3+strctTrial.numberBlurSteps(iBars)-1+ iLastCLUTIDX-1,2) = round(linspace(strctTrial.m_afBackgroundColor(2),strctTrial.m_aiStimColor(iBars,2),strctTrial.numberBlurSteps(iBars))) ;
+                strctTrial.m_aiCLUT(3+iLastCLUTIDX-1:3+strctTrial.numberBlurSteps(iBars)-1+ iLastCLUTIDX-1,3) = round(linspace(strctTrial.m_afBackgroundColor(3),strctTrial.m_aiStimColor(iBars,3),strctTrial.numberBlurSteps(iBars))) ;
+            strctTrial.m_iCLUTIDX(iBars,:) = [3+iLastCLUTIDX-1,3+strctTrial.numberBlurSteps(iBars)-1+ iLastCLUTIDX-1];
+			iLastCLUTIDX = iLastCLUTIDX + strctTrial.numberBlurSteps(iBars);
+            end
+        else
+            strctTrial.m_aiCLUT = zeros(256,3);
+            strctTrial.m_aiCLUT(2,:) = strctTrial.m_afBackgroundColor;
+            strctTrial.m_aiCLUT(3:3+strctTrial.numberBlurSteps-1,1) = round(linspace(strctTrial.m_afBackgroundColor(1),strctTrial.m_aiStimColor(1),strctTrial.numberBlurSteps)) ;
+            strctTrial.m_aiCLUT(3:3+strctTrial.numberBlurSteps-1,2) = round(linspace(strctTrial.m_afBackgroundColor(2),strctTrial.m_aiStimColor(2),strctTrial.numberBlurSteps)) ;
+            strctTrial.m_aiCLUT(3:3+strctTrial.numberBlurSteps-1,3) = round(linspace(strctTrial.m_afBackgroundColor(3),strctTrial.m_aiStimColor(3),strctTrial.numberBlurSteps)) ;
+            strctTrial.m_aiCLUT(256,:) = deal(65535);
+        end
+
+    end
+    
+elseif strcmp(strctTrial.m_strTrialType,'Image') && g_strctParadigm.m_bCycleColors || g_strctParadigm.m_bRandomColor
+    
+    strctTrial.m_aiUncorrectedColorValues =  FullCycleRGB(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID,:);
+    strctTrial.m_aiUncorrectedCLUT(1,:) = linspace(0,strctTrial.m_aiUncorrectedColorValues(1),248) ;
+    strctTrial.m_aiUncorrectedCLUT(2,:) = linspace(0,strctTrial.m_aiUncorrectedColorValues(2),248) ;
+    strctTrial.m_aiUncorrectedCLUT(3,:) = linspace(0,strctTrial.m_aiUncorrectedColorValues(3),248) ;
+    
+    strctTrial.m_aiCLUT(3:250,1) = g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(strctTrial.m_aiUncorrectedCLUT(1,:)*65535)+1);
+    strctTrial.m_aiCLUT(3:250,2) = g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(strctTrial.m_aiUncorrectedCLUT(2,:)*65535)+1);
+    strctTrial.m_aiCLUT(3:250,3) = g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(strctTrial.m_aiUncorrectedCLUT(3,:)*65535)+1);
+    %{
+ strctTrial.m_aiStimColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(FullCycleRGB(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID, 1) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(FullCycleRGB(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID, 2) * 65535) + 1),...
+                g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(FullCycleRGB(g_strctParadigm.m_iCurrentlySelectedDKLCoordinateID, 3) * 65535) + 1)];
+    %}
+    %strctTrial.m_aiCLUT = zeros(256,3);
+    %strctTrial.m_aiCLUT(2,:) = strctTrial.m_afBackgroundColor;
+    
+    %strctTrial.m_aiCLUT(3:250,1) = round(linspace(0,strctTrial.m_aiStimColor(1),248)) ;
+    %strctTrial.m_aiCLUT(3:250,2) = round(linspace(0,strctTrial.m_aiStimColor(2),248)) ;
+    %strctTrial.m_aiCLUT(3:250,3) = round(linspace(0,strctTrial.m_aiStimColor(3),248)) ;
+    
+    strctTrial.m_aiCLUT(256,:) = deal(65535);
+    
+else
+    strctTrial.m_aiCLUT = zeros(256,3);
+    strctTrial.m_aiCLUT(2,:) = strctTrial.m_afBackgroundColor;
+    strctTrial.m_aiCLUT(3,:) = strctTrial.m_aiStimColor;
+    strctTrial.m_aiCLUT(256,:) = deal(65535);
+    
+end
+strctTrial.m_aiLocalBlurStepHolder = zeros(3,sum(strctTrial.numberBlurSteps),strctTrial.numFrames);
+strctTrial.m_aiBlurStepHolder = zeros(3,sum(strctTrial.numberBlurSteps),strctTrial.numFrames);
+if strctTrial.m_bUseGaussianPulses && size(strctTrial.m_aiStimColor,1) == strctTrial.numFrames
+    for iFrames = 1:strctTrial.numFrames
+        
+        strctTrial.m_aiLocalBlurStepHolder(1,:,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(1),strctTrial.m_aiLocalStimColor(iFrames,1),strctTrial.numberBlurSteps));
+        strctTrial.m_aiLocalBlurStepHolder(2,:,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(2),strctTrial.m_aiLocalStimColor(iFrames,2),strctTrial.numberBlurSteps));
+        strctTrial.m_aiLocalBlurStepHolder(3,:,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(3),strctTrial.m_aiLocalStimColor(iFrames,3),strctTrial.numberBlurSteps));
+        strctTrial.m_aiBlurStepHolder(1,:,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset,g_strctParadigm.m_iCLUTOffset+strctTrial.numberBlurSteps-1,strctTrial.numberBlurSteps));
+        strctTrial.m_aiBlurStepHolder(2,:,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset,g_strctParadigm.m_iCLUTOffset+strctTrial.numberBlurSteps-1,strctTrial.numberBlurSteps));
+        strctTrial.m_aiBlurStepHolder(3,:,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset,g_strctParadigm.m_iCLUTOffset+strctTrial.numberBlurSteps-1,strctTrial.numberBlurSteps));
+    end
+    
+elseif strctTrial.m_bUseGaussianPulses && size(strctTrial.m_afLocalBackgroundColor,1) == strctTrial.numFrames
+    
+    for iFrames = 1:strctTrial.numFrames
+        
+        strctTrial.m_aiLocalBlurStepHolder(1,:,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(iFrames,1),strctTrial.m_aiLocalStimColor(1),strctTrial.numberBlurSteps));
+        strctTrial.m_aiLocalBlurStepHolder(2,:,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(iFrames,2),strctTrial.m_aiLocalStimColor(2),strctTrial.numberBlurSteps));
+        strctTrial.m_aiLocalBlurStepHolder(3,:,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(iFrames,3),strctTrial.m_aiLocalStimColor(3),strctTrial.numberBlurSteps));
+        strctTrial.m_aiBlurStepHolder(1,:,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset,g_strctParadigm.m_iCLUTOffset+strctTrial.numberBlurSteps-1,strctTrial.numberBlurSteps));
+        strctTrial.m_aiBlurStepHolder(2,:,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset,g_strctParadigm.m_iCLUTOffset+strctTrial.numberBlurSteps-1,strctTrial.numberBlurSteps));
+        strctTrial.m_aiBlurStepHolder(3,:,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset,g_strctParadigm.m_iCLUTOffset+strctTrial.numberBlurSteps-1,strctTrial.numberBlurSteps));
+    end
+    
+    
+else
+if ~strcmp(strctTrial.m_strTrialType,'Many Bar') 
+    for iFrames = 1:strctTrial.numFrames
+        
+        strctTrial.m_aiLocalBlurStepHolder(1,:,iFrames) = deal(round(linspace(strctTrial.m_afLocalBackgroundColor(1),strctTrial.m_aiLocalStimColor(1),strctTrial.numberBlurSteps)));
+        strctTrial.m_aiLocalBlurStepHolder(2,:,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(2),strctTrial.m_aiLocalStimColor(2),strctTrial.numberBlurSteps));
+        strctTrial.m_aiLocalBlurStepHolder(3,:,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(3),strctTrial.m_aiLocalStimColor(3),strctTrial.numberBlurSteps));
+        strctTrial.m_aiBlurStepHolder(1,:,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset,g_strctParadigm.m_iCLUTOffset+strctTrial.numberBlurSteps-1,strctTrial.numberBlurSteps));
+        strctTrial.m_aiBlurStepHolder(2,:,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset,g_strctParadigm.m_iCLUTOffset+strctTrial.numberBlurSteps-1,strctTrial.numberBlurSteps));
+        strctTrial.m_aiBlurStepHolder(3,:,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset,g_strctParadigm.m_iCLUTOffset+strctTrial.numberBlurSteps-1,strctTrial.numberBlurSteps));
+    end
+else
+    
+   
+    for iFrames = 1:strctTrial.numFrames
+        lastBlurStepIDX = 1;
+        
+        for iBars = 1:strctTrial.m_iNumberOfBars
+            strctTrial.m_aiLocalBlurStepHolder(1,lastBlurStepIDX:strctTrial.numberBlurSteps(iBars)+lastBlurStepIDX-1,iFrames) = deal(round(linspace(strctTrial.m_afLocalBackgroundColor(1),strctTrial.m_aiLocalStimColor(iBars,1),strctTrial.numberBlurSteps(iBars))));
+            strctTrial.m_aiLocalBlurStepHolder(2,lastBlurStepIDX:strctTrial.numberBlurSteps(iBars)+lastBlurStepIDX-1,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(2),strctTrial.m_aiLocalStimColor(iBars,2),strctTrial.numberBlurSteps(iBars)));
+            strctTrial.m_aiLocalBlurStepHolder(3,lastBlurStepIDX:strctTrial.numberBlurSteps(iBars)+lastBlurStepIDX-1,iFrames) = round(linspace(strctTrial.m_afLocalBackgroundColor(3),strctTrial.m_aiLocalStimColor(iBars,3),strctTrial.numberBlurSteps(iBars)));
+            strctTrial.m_aiBlurStepHolder(1,lastBlurStepIDX:strctTrial.numberBlurSteps(iBars)+lastBlurStepIDX-1,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset+lastBlurStepIDX-1,g_strctParadigm.m_iCLUTOffset+lastBlurStepIDX-1+strctTrial.numberBlurSteps(iBars)-1,strctTrial.numberBlurSteps(iBars)));
+            strctTrial.m_aiBlurStepHolder(2,lastBlurStepIDX:strctTrial.numberBlurSteps(iBars)+lastBlurStepIDX-1,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset+lastBlurStepIDX-1,g_strctParadigm.m_iCLUTOffset+lastBlurStepIDX-1+strctTrial.numberBlurSteps(iBars)-1,strctTrial.numberBlurSteps(iBars)));
+            strctTrial.m_aiBlurStepHolder(3,lastBlurStepIDX:strctTrial.numberBlurSteps(iBars)+lastBlurStepIDX-1,iFrames) = round(linspace(g_strctParadigm.m_iCLUTOffset+lastBlurStepIDX-1,g_strctParadigm.m_iCLUTOffset+lastBlurStepIDX-1+strctTrial.numberBlurSteps(iBars)-1,strctTrial.numberBlurSteps(iBars)));
+        strctTrial.m_iBlurStepIDX(iBars,:) = [lastBlurStepIDX,strctTrial.numberBlurSteps(iBars)+lastBlurStepIDX-1];
+		lastBlurStepIDX = lastBlurStepIDX + strctTrial.numberBlurSteps(iBars);
+        end
+    end
+end
+    
+    
+    
+    
+end
+%sprintf('block 4 %f', toc)
+return;
+
+% -------------------------------------------------------------------------------------------------------------
+% -------------------------------------------------------------------------------------------------------------
+
+
+
+function [strctTrial] = fnCheckVariableSettings(g_strctPTB, strctTrial)
+global g_strctStimulusServer g_strctParadigm
+
+% Check for user specified variable settings. Parse variable settings if they exist, and replace
+% default value if variable setting corresponds to a setting we actually want to change. Width, height, speed
+% implemented currently. Add new settings in the switch below.
+
+trialLength = (strctTrial.m_fStimulusON_MS + strctTrial.m_fStimulusOFF_MS)/1000;
+if trialLength == 0
+    trialLength =  g_strctStimulusServer.m_fRefreshRateMS/1000;
+    
+end
+TestObjects = size(strctTrial.m_acCurrentlyVariableFields,1);
+if any(TestObjects)
+    strctTrial.m_bVariableTestObject = true;
+    for iTestObjects = 1:TestObjects
+        testRange = (strctTrial.m_acCurrentlyVariableFields{iTestObjects,6}*strctTrial.m_acCurrentlyVariableFields{iTestObjects,2})*4;
+        fullCycleTimeS = 1/strctTrial.m_acCurrentlyVariableFields{iTestObjects,3};
+        
+        %for iTestObjects = 1:TestObjects
+        if strctTrial.m_acCurrentlyVariableFields{iTestObjects,7}
+            newVal = ((randi(1000)/1000) * (testRange * .5)) + (strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} - (testRange * .25));
+        else
+            changeBy = strctTrial.m_acCurrentlyVariableFields{iTestObjects,5} * ...
+                (testRange / (fullCycleTimeS / (g_strctStimulusServer.m_fRefreshRateMS/1000))) * ...
+                (trialLength / (g_strctStimulusServer.m_fRefreshRateMS/1000));
+            
+            newVal = strctTrial.m_acCurrentlyVariableFields{iTestObjects,4} + changeBy;
+        end
+        
+        
+        if newVal <= strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} * ...
+                strctTrial.m_acCurrentlyVariableFields{iTestObjects,2} + strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} && ...
+                newVal >= max(1,strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} - strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} * ...
+                strctTrial.m_acCurrentlyVariableFields{iTestObjects,2})
+            
+            
+            strctTrial.m_acCurrentlyVariableFields{iTestObjects,4} = newVal;
+            
+            
+            
+        elseif  newVal > strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} * ...
+                strctTrial.m_acCurrentlyVariableFields{iTestObjects,2} + strctTrial.m_acCurrentlyVariableFields{iTestObjects,6}
+            
+            g_strctParadigm.m_acCurrentlyVariableFields{iTestObjects,5} = -g_strctParadigm.m_acCurrentlyVariableFields{iTestObjects,5};
+            
+            
+            newVal = (strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} * ...
+                strctTrial.m_acCurrentlyVariableFields{iTestObjects,2} + strctTrial.m_acCurrentlyVariableFields{iTestObjects,6}) - ...
+                rem(newVal, strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} * ...
+                strctTrial.m_acCurrentlyVariableFields{iTestObjects,2} + strctTrial.m_acCurrentlyVariableFields{iTestObjects,6}) ;
+            
+            
+            %abs(strctTrial.m_acCurrentlyVariableFields{iTestObjects,4} - (strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} * ...
+            %strctTrial.m_acCurrentlyVariableFields{iTestObjects,2} + strctTrial.m_acCurrentlyVariableFields{iTestObjects,6})))
+            
+            
+        elseif  newVal < max(1,strctTrial.m_acCurrentlyVariableFields{iTestObjects,6}  - ...
+                strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} * ...
+                strctTrial.m_acCurrentlyVariableFields{iTestObjects,2})
+            g_strctParadigm.m_acCurrentlyVariableFields{iTestObjects,5} = -g_strctParadigm.m_acCurrentlyVariableFields{iTestObjects,5};
+            
+            bottomCap = max(1,strctTrial.m_acCurrentlyVariableFields{iTestObjects,6}  - ...
+                strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} * ...
+                strctTrial.m_acCurrentlyVariableFields{iTestObjects,2}) ;
+            if newVal == 0
+                newVal = 1e-4;
+                % no divide by zero plz
+                
+            end
+            newVal = bottomCap + rem(bottomCap,newVal) ;
+            
+            
+            
+            %newVal = strctTrial.m_acCurrentlyVariableFields{iTestObjects,6} * ...
+            %strctTrial.m_acCurrentlyVariableFields{iTestObjects,2};
+            
+            
+        end
+        %{
+			if isinf(newVal) || isnan(newVal)
+				assert(error)
+			end
+        %}
+        g_strctParadigm.m_acCurrentlyVariableFields{iTestObjects,4} = newVal;
+        
+        
+        switch strctTrial.m_acCurrentlyVariableFields{iTestObjects,1}
+            case {'PlainBarLength', 'MovingBarLength'}
+                strctTrial.m_iLength = round(newVal);
+                
+            case {'PlainBarWidth', 'MovingBarWidth'}
+                strctTrial.m_iWidth = round(newVal);
+                
+            case {'PlainBarMoveSpeed', 'MovingBarMoveSpeed'}
+                strctTrial.m_iMoveSpeed = round(newVal);
                 
                 
                 
-                
-                
-                % Prepare colors for local machine
-                
-                strctTrial.m_afLocalBarColor = round((([strctTrial.Clut(strctTrial.m_aiStimColor(1),1),...
-                    strctTrial.Clut(strctTrial.m_aiStimColor(2),2)...
-                    strctTrial.Clut(strctTrial.m_aiStimColor(3),3)]/65535)*255));
-                strctTrial.m_afLocalBackgroundColor = round((([strctTrial.Clut(strctTrial.m_afBackgroundColor(1),1),...
-                    strctTrial.Clut(strctTrial.m_afBackgroundColor(2),2)...
-                    strctTrial.Clut(strctTrial.m_afBackgroundColor(3),3)]/65535)*255));
-                strctTrial.m_aiStimColor = [2 2 2];
-                % Background color
-                strctTrial.m_afBackgroundColor = [1 1 1];
-                g_strctParadigm.m_iSelectedColor = strctTrial.m_iSelectedColor;
-                
-                
-                
-                
-                return;
-                
-                
-                
+        end
+        %end
+    end
+    
+end
+
+
+
+return;
+
+

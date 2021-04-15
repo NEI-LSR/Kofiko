@@ -116,11 +116,11 @@ switch strCallback
         end;
  
     case 'FixationSizePix'
-         fnParadigmToStimulusServer('UpdateFixationSize',fnTsGetVar(g_strctParadigm,'FixationSizePix'));
+         fnParadigmToStimulusServer('UpdateFixationSize',fnTsGetVar('g_strctParadigm','FixationSizePix'));
     case 'StimulusSizePix'
-         fnParadigmToStimulusServer('UpdateStimulusSize',fnTsGetVar(g_strctParadigm,'StimulusSizePix'));
+         fnParadigmToStimulusServer('UpdateStimulusSize',fnTsGetVar('g_strctParadigm','StimulusSizePix'));
     case 'RotationAngle'
-        fnParadigmToStimulusServer('UpdateRotationAngle',fnTsGetVar(g_strctParadigm,'RotationAngle'));
+        fnParadigmToStimulusServer('UpdateRotationAngle',fnTsGetVar('g_strctParadigm','RotationAngle'));
     case 'TR'
         g_strctParadigm.m_iMachineState = 1;
         g_strctParadigm.m_strctCurrentRun = fnPrepareStimuliTimingFromBlockDesign();

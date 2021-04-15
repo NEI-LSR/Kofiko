@@ -2,7 +2,7 @@ function aiUnitVertical = fnGetIntervalVerticalValueAux(astrctUnitIntervals)
 aiUnitVertical = [];
 
 % Determine the vertical value for each unit...
-MaxUnitsAtSameTimePoints = 20;
+MaxUnitsAtSameTimePoints = 10;
 abVerticalOccupied = zeros(1,MaxUnitsAtSameTimePoints)> 0;
 iNumUnitIntervals = length(astrctUnitIntervals);
 aiUnitVertical = zeros(1,iNumUnitIntervals);

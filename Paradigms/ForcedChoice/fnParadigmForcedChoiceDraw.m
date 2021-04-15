@@ -13,14 +13,14 @@ aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
 
 % Prepare the trial structure that is sent to the stimulus server
 pt2fFixationSpotPosition = aiScreenSize(3:4)/2;
-fChoicesHalfSizePix = fnTsGetVar(g_strctParadigm,'ChoicesHalfSizePix');
+fChoicesHalfSizePix = fnTsGetVar('g_strctParadigm','ChoicesHalfSizePix');
 if ~isempty(g_strctParadigm.m_ahPTBHandles)
     for k=1:length(g_strctParadigm.m_ahPTBHandles)
         Screen('DrawTexture', g_strctPTB.m_hWindow, g_strctParadigm.m_ahPTBHandles(k),[],  g_strctPTB.m_fScale * g_strctParadigm.m_a2iStimulusRect(k,:));
         
        if k > 1
            pt2fChoiceCenter = pt2fFixationSpotPosition + g_strctParadigm.m_strctTrialToStimulusServer.m_astrctRelevantChoices(k-1).m_pt2fRelativePos;
-           fHitRadius = fnTsGetVar(g_strctParadigm,'HitRadius'); 
+           fHitRadius = fnTsGetVar('g_strctParadigm','HitRadius'); 
            aiHitRect = [pt2fChoiceCenter-fHitRadius,pt2fChoiceCenter+fHitRadius];
            if k == 2
                % Correct answer
@@ -49,7 +49,7 @@ if ~isempty(g_strctParadigm.m_ahPTBHandles)
     end
 end
 
-fFixationRadiusPix = fnTsGetVar(g_strctParadigm,'FixationRadiusPix');
+fFixationRadiusPix = fnTsGetVar('g_strctParadigm','FixationRadiusPix');
 aiFixationArea = [g_strctParadigm.m_pt2fFixationSpot - fFixationRadiusPix,g_strctParadigm.m_pt2fFixationSpot + fFixationRadiusPix];
 Screen('FrameArc', g_strctPTB.m_hWindow, [255 255 255],g_strctPTB.m_fScale * aiFixationArea,0,360);
 

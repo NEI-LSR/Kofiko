@@ -22,8 +22,8 @@ switch g_strctParadigm.m_iMachineState
         fnParadigmToKofikoComm('SetParadigmState','Waiting for user to press Start');
     case 1
         % Make sure everything is ready (lists, etc)
-        iNumTargets = fnTsGetVar(g_strctParadigm,'NumTargets');
-        iNumNonTargets = fnTsGetVar(g_strctParadigm,'NumNonTargets');
+        iNumTargets = fnTsGetVar('g_strctParadigm','NumTargets');
+        iNumNonTargets = fnTsGetVar('g_strctParadigm','NumNonTargets');
         
         iNumAvailTargets = sum(g_strctParadigm.m_strctObjects.m_aiGroup == 1);
         iNumAvailNonTargets = sum(g_strctParadigm.m_strctObjects.m_aiGroup == 0);
@@ -38,14 +38,14 @@ switch g_strctParadigm.m_iMachineState
         % Set values for new trial!
         fnParadigmToStimulusServer('ClearScreen');
         % Set ITI value
-        fMin = fnTsGetVar(g_strctParadigm,'InterTrialIntervalMinSec');
-        fMax = fnTsGetVar(g_strctParadigm,'InterTrialIntervalMaxSec');
+        fMin = fnTsGetVar('g_strctParadigm','InterTrialIntervalMinSec');
+        fMax = fnTsGetVar('g_strctParadigm','InterTrialIntervalMaxSec');
         g_strctParadigm.m_fWaitInterval = rand() * (fMax-fMin) + fMin;
-        g_strctParadigm.m_fHoldFixationToStartTrialMS = fnTsGetVar(g_strctParadigm,'HoldFixationToStartTrialMS');
-        g_strctParadigm.m_fShowObjectsAfterSaccadeSec = fnTsGetVar(g_strctParadigm,'ShowObjectsAfterSaccadeMS')/1e3;        
+        g_strctParadigm.m_fHoldFixationToStartTrialMS = fnTsGetVar('g_strctParadigm','HoldFixationToStartTrialMS');
+        g_strctParadigm.m_fShowObjectsAfterSaccadeSec = fnTsGetVar('g_strctParadigm','ShowObjectsAfterSaccadeMS')/1e3;        
         
-        iNumTargets = fnTsGetVar(g_strctParadigm,'NumTargets');
-        iNumNonTargets = fnTsGetVar(g_strctParadigm,'NumNonTargets');
+        iNumTargets = fnTsGetVar('g_strctParadigm','NumTargets');
+        iNumNonTargets = fnTsGetVar('g_strctParadigm','NumNonTargets');
         iNumAvailTargets = sum(g_strctParadigm.m_strctObjects.m_aiGroup == 1);
         iNumAvailNonTargets = sum(g_strctParadigm.m_strctObjects.m_aiGroup == 0);
         
@@ -93,14 +93,14 @@ switch g_strctParadigm.m_iMachineState
         g_strctParadigm.m_strctCurrentTrial.m_fFlipStimulusON_TS_StimulusServer = [];
         g_strctParadigm.m_strctCurrentTrial.m_fFlipExtinguish_TS_StimulusServer = [];
         g_strctParadigm.m_strctCurrentTrial.m_pt2fHoldPos = [];
-        g_strctParadigm.m_strctCurrentTrial.m_bMicroStimulation = fnTsGetVar(g_strctParadigm,'StimulationON');
-        g_strctParadigm.m_strctCurrentTrial.m_fMicroStimulationOffsetMS = fnTsGetVar(g_strctParadigm,'StimulationOffsetMS');
+        g_strctParadigm.m_strctCurrentTrial.m_bMicroStimulation = fnTsGetVar('g_strctParadigm','StimulationON');
+        g_strctParadigm.m_strctCurrentTrial.m_fMicroStimulationOffsetMS = fnTsGetVar('g_strctParadigm','StimulationOffsetMS');
         g_strctParadigm.m_bMicroStimDone = false;
         
-        g_strctParadigm.m_strctCurrentTrial.m_fTimeOutSec = fnTsGetVar(g_strctParadigm,'TimeoutMS')/1e3;
-        g_strctParadigm.m_strctCurrentTrial.m_fHitRadius = fnTsGetVar(g_strctParadigm,'HitRadius');
-        g_strctParadigm.m_strctCurrentTrial.m_fObjectHalfSizePix = fnTsGetVar(g_strctParadigm,'ObjectHalfSizePix');
-        g_strctParadigm.m_strctCurrentTrial.m_fHoldTimeSec = fnTsGetVar(g_strctParadigm,'HoldFixationAtTargetMS')/1e3;
+        g_strctParadigm.m_strctCurrentTrial.m_fTimeOutSec = fnTsGetVar('g_strctParadigm','TimeoutMS')/1e3;
+        g_strctParadigm.m_strctCurrentTrial.m_fHitRadius = fnTsGetVar('g_strctParadigm','HitRadius');
+        g_strctParadigm.m_strctCurrentTrial.m_fObjectHalfSizePix = fnTsGetVar('g_strctParadigm','ObjectHalfSizePix');
+        g_strctParadigm.m_strctCurrentTrial.m_fHoldTimeSec = fnTsGetVar('g_strctParadigm','HoldFixationAtTargetMS')/1e3;
         
         
         
@@ -128,7 +128,7 @@ switch g_strctParadigm.m_iMachineState
         fnParadigmToStimulusServer('ShowFixationSpot', strctFixationSpot);
         fnParadigmToKofikoComm('SetParadigmState','Waiting for fixation spot to appear');
         
-        g_strctParadigm.m_fFixationRadiusPix = fnTsGetVar(g_strctParadigm,'FixationRadiusPix');
+        g_strctParadigm.m_fFixationRadiusPix = fnTsGetVar('g_strctParadigm','FixationRadiusPix');
         g_strctParadigm.m_iMachineState = 5;
         fnParadigmToKofikoComm('TrialStart',1);
         
@@ -312,7 +312,7 @@ switch g_strctParadigm.m_iMachineState
     case 10
         fJuiceWeight = g_strctParadigm.m_strctObjects.m_afWeights(g_strctParadigm.m_strctCurrentTrial.m_iGazedAtObject);
         if fJuiceWeight > 0
-            fJuiceTimeMS = fnTsGetVar(g_strctParadigm,'JuiceTimeMS');
+            fJuiceTimeMS = fnTsGetVar('g_strctParadigm','JuiceTimeMS');
             if g_strctParadigm.m_bJuicePulses 
                 g_strctParadigm.m_iJuicePulsesLeft = fJuiceWeight-1;
                 fnParadigmToKofikoComm('Juice',fJuiceTimeMS);
@@ -339,7 +339,7 @@ switch g_strctParadigm.m_iMachineState
         end
     case 12
         if (fCurrTime-g_strctParadigm.m_fTimer4 > 80/1e3)
-            fJuiceTimeMS = fnTsGetVar(g_strctParadigm,'JuiceTimeMS');
+            fJuiceTimeMS = fnTsGetVar('g_strctParadigm','JuiceTimeMS');
             fnParadigmToKofikoComm('Juice',fJuiceTimeMS);
             g_strctParadigm.m_iJuicePulsesLeft =  g_strctParadigm.m_iJuicePulsesLeft - 1;
             g_strctParadigm.m_iMachineState = 11;
@@ -354,7 +354,7 @@ switch g_strctParadigm.m_iMachineState
             if strcmp(g_strctParadigm.m_strctCurrentTrial.m_strResult,'Incorrect');
                fnParadigmToStimulusServer('ClearScreen');
                g_strctParadigm.m_fTimer6 = fCurrTime;
-               g_strctParadigm.m_fIncorrectTrialDelaySec = fnTsGetVar(g_strctParadigm,'IncorrectTrialDelayMS')/1e3;
+               g_strctParadigm.m_fIncorrectTrialDelaySec = fnTsGetVar('g_strctParadigm','IncorrectTrialDelayMS')/1e3;
                 g_strctParadigm.m_iMachineState = 14;
             else
                 g_strctParadigm.m_iMachineState = 15;

@@ -43,9 +43,9 @@ if ( all(strHeader(:) == strKofiko_v100_file(:)))
         case 'Normal'
             strctAnalog.m_afData = fread(hFileID, sum(strctAnalog.m_aiNumSamplesPerFrame),'single=>double');
             afTime = zeros(1, length(strctAnalog.m_afData));
-            aiStartInd = [1;1+cumsum(strctAnalog.m_aiNumSamplesPerFrame)];
+            aiStartInd = [1,cumsum(strctAnalog.m_aiNumSamplesPerFrame)];
             for k=1:length(strctAnalog.m_aiNumSamplesPerFrame)
-                afTime( aiStartInd(k):aiStartInd(k+1)-1) = strctAnalog.m_afStartTS(k) + [(0:(strctAnalog.m_aiNumSamplesPerFrame(k)-1))]/strctAnalog.m_fSamplingFreq;
+                afTime( aiStartInd(k):aiStartInd(k+1)) = strctAnalog.m_afStartTS(k) + (0:(strctAnalog.m_aiNumSamplesPerFrame(k)-1))/strctAnalog.m_fSamplingFreq;
             end
             
         case 'Interval'

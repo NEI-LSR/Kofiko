@@ -194,6 +194,7 @@ end
 
 return;
 
+%% ----------------------------------------------------------------------------
 
 function fnWaitMonocularImageOFFPeriod
 global g_strctDraw g_strctPTB g_strctServerCycle
@@ -206,14 +207,17 @@ if (fCurrTime - g_strctServerCycle.m_fLastFlipTime) > ...
 end
 return;
 
+%% ----------------------------------------------------------------------------
+
 function fnDisplayMonocularMovie()
 global g_strctDraw g_strctPTB g_strctServerCycle
 fCurrTime  = GetSecs();
 hTexturePointer = g_strctDraw.m_strctTrial.m_strctMedia.m_aiMediaToHandleIndexInBuffer(1);
 
 % Start playing movie
-Screen('PlayMovie', g_strctDraw.m_ahHandles(hTexturePointer), 1,0,1);
-Screen('SetMovieTimeIndex',g_strctDraw.m_ahHandles(hTexturePointer),0);
+Screen('PlayMovie', g_strctDraw.m_ahHandles(hTexturePointer), 1, 0, 1);
+Screen('SetMovieTimeIndex', g_strctDraw.m_ahHandles(hTexturePointer), 0, 0);
+g_strctDraw.m_iframeCounter = 0;
 g_strctDraw.m_fMovieOnset = GetSecs();
 % Show first frame and go to state 5
 
@@ -257,6 +261,7 @@ g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = fLastFlipTime; % A
 g_strctServerCycle.m_iMachineState = 5;
 return;
 
+%% ----------------------------------------------------------------------------
 
 
 function fnKeepPlayingMonocularMovie()
@@ -265,6 +270,10 @@ fCurrTime  = GetSecs();
 
 % Movie is playing... Fetch frame and display it
 hTexturePointer = g_strctDraw.m_strctTrial.m_strctMedia.m_aiMediaToHandleIndexInBuffer(1);
+%g_strctDraw.m_iframeCounter = g_strctDraw.m_iframeCounter + 1;
+%disp(g_strctDraw.m_iframeCounter);
+%Screen('SetMovieTimeIndex', g_strctDraw.m_ahHandles(hTexturePointer), g_strctDraw.m_iframeCounter, 0);
+Screen('SetMovieTimeIndex', g_strctDraw.m_ahHandles(hTexturePointer), (g_strctDraw.m_fMovieOnset + g_strctDraw.m_fMovieOnset - fCurrTime), 0);
 
 [hFrameTexture, fTimeToFlip] = Screen('GetMovieImage', g_strctPTB.m_hWindow, ...
     g_strctDraw.m_ahHandles(hTexturePointer),1);
@@ -284,6 +293,8 @@ if hFrameTexture == -1
     g_strctDraw.m_a2fFrameFlipTS = g_strctDraw.m_a2fFrameFlipTS(:,1:g_strctDraw.m_iFrameCounter-1);
     fnStimulusServerToKofikoParadigm('TrialFinished',g_strctDraw.m_a2fFrameFlipTS,fLastFlipTime );
     g_strctServerCycle.m_iMachineState = 0;
+elseif hFrameTexture == 0
+	return;
 else
     % Still have frames
 %     if fTimeToFlip == g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter)
@@ -307,7 +318,7 @@ else
         end
         
         
-        fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow, g_strctDraw.m_fMovieOnset+fTimeToFlip);  % Block (!)
+        fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow);%, g_strctDraw.m_fMovieOnset+fTimeToFlip);  % Block (!)
         Screen('Close', hFrameTexture);
         
         g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
@@ -316,6 +327,7 @@ else
 %     end
 end
 return;
+%% ----------------------------------------------------------------------------
 
 
 
@@ -382,6 +394,7 @@ g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % This
 fnStimulusServerToKofikoParadigm('FlipON',g_strctServerCycle.m_fLastFlipTime,g_strctDraw.m_strctTrial.m_iStimulusIndex);
 g_strctServerCycle.m_iMachineState = 7;
 return;
+%% ----------------------------------------------------------------------------
 
 function fnWaitStereoImageONPeriod()
 global g_strctDraw g_strctPTB g_strctServerCycle
@@ -420,6 +433,7 @@ if (fCurrTime - g_strctServerCycle.m_fLastFlipTime) > g_strctDraw.m_strctTrial.m
 end
 return;
 
+%% ----------------------------------------------------------------------------
 
 function fnWaitStereoImageOFFPeriod()
 global g_strctDraw g_strctPTB g_strctServerCycle
@@ -433,6 +447,7 @@ end
 
 return;
 
+%% ----------------------------------------------------------------------------
 
 
 
@@ -442,7 +457,7 @@ fCurrTime  = GetSecs();
 ahTexturePointers = g_strctDraw.m_strctTrial.m_strctMedia.m_aiMediaToHandleIndexInBuffer;
 
 % Start playing movie
-Screen('PlayMovie', g_strctDraw.m_ahHandles(ahTexturePointers(1)), 1,0,1);
+Screen('PlayMovie', g_strctDraw.m_ahHandles(ahTexturePointers(1)), 2,0,1);
 Screen('SetMovieTimeIndex',g_strctDraw.m_ahHandles(ahTexturePointers(1)),0);
 if ahTexturePointers(1) ~= ahTexturePointers(2)
     Screen('PlayMovie', g_strctDraw.m_ahHandles(ahTexturePointers(2)), 1,0,1);
@@ -511,6 +526,7 @@ g_strctServerCycle.m_iMachineState = 10;
 return;
 
 
+%% ----------------------------------------------------------------------------
 
 
 function fnKeepPlayingStereoMovie()
@@ -591,6 +607,7 @@ g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = fTimeToFlip;   % R
 g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = fLastFlipTime; % Actual Flip Time
 
 return;
+%% ----------------------------------------------------------------------------
 
 function fnDisplayMovingBar()
 global g_strctDraw g_strctPTB g_strctServerCycle
@@ -725,6 +742,7 @@ else
 	
 end
 return;
+%% ----------------------------------------------------------------------------
 
 function [newX, newY] = rotate_around_point(x ,y , centerX, centerY, angle_of_rotation)
 

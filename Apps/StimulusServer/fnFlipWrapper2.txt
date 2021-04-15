@@ -1,0 +1,17 @@
+function fFlipTime = fnFlipWrapper2(hWindow, RectColor, varargin)
+% A wrapper function to Screen('Flip')
+% used to draw a small rectangle (either black or white) just prior to the flip
+% to obtain the most accurate time stamp from a photodiode attached to the
+% screen....
+% This is to adjust for LCD lag time (which can range between 10-20 ms...)
+% Differs from fnFlipWrapper - allows for manual input of which color to display (fnFlipWrapper is a toggle)
+
+global g_bPhotoDiodeToggle
+iRectSizePix = 50;
+
+% Draw the small rectangle using input color
+Screen('FillRect', hWindow, RectColor,[0 1 iRectSizePix iRectSizePix]);
+
+fFlipTime = Screen('Flip', hWindow, varargin{:});
+
+return;

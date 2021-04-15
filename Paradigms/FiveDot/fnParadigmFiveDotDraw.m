@@ -1,4 +1,4 @@
-function fnParadigmFiveDotDraw()
+function fnParadigmFiveDotDraw(bPaused)
 %
 % Copyright (c) 2008 Shay Ohayon, California Institute of Technology.
 % This file is a part of a free software. you can redistribute it and/or modify

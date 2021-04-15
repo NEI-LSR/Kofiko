@@ -25,12 +25,12 @@ iButtonWidth = iPanelWidth / iNumButtonsInRow - 20;
     fnCreateParadigmSubPanel(hParadigmPanel, 50, 300,'MicroStim Control');
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers, strctMicroStimControllers.m_hPanel, 40+30*0, ...
-    'MicroStim Cycle (ms):', 'MicroStimCycleMS', 1, 3000, [1, 50], fnTsGetVar(g_strctParadigm,'MicroStimCycleMS'));
+    'MicroStim Cycle (ms):', 'MicroStimCycleMS', 1, 3000, [1, 50], fnTsGetVar('g_strctParadigm','MicroStimCycleMS'));
 
 strctMicroStimControllers.hBlockRunList = uicontrol('Style', 'listbox', 'String','',...
     'Position', [10 60 250 150], 'parent',strctMicroStimControllers.m_hPanel, 'Callback',[g_strctParadigm.m_strCallbacks,'(''SelectMicroStimBlocks'');']);
 
-BlockRunOrder = fnTsGetVar(g_strctParadigm, 'BlockRunOrder');
+BlockRunOrder = fnTsGetVar('g_strctParadigm', 'BlockRunOrder');
 if ~isempty(BlockRunOrder)
     fnUpdateListController(strctMicroStimControllers.hBlockRunList, BlockRunOrder,1:2:size(BlockRunOrder,1),true);
 end
@@ -43,19 +43,19 @@ set(strctMicroStimControllers.m_hPanel,'visible','off');
     fnCreateParadigmSubPanel(hParadigmPanel, 50, 300,'Juice Control');
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctJuiceControllers.m_hPanel, 40+30*0, ...
-    'Gaze Time(ms):', 'GazeTimeMS', 30, 10000, [1, 50], fnTsGetVar(g_strctParadigm,'GazeTimeMS'));
+    'Gaze Time(ms):', 'GazeTimeMS', 30, 10000, [1, 50], fnTsGetVar('g_strctParadigm','GazeTimeMS'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctJuiceControllers.m_hPanel, 40+30*1, ...
-    'Gaze Time (Low):', 'GazeTimeLowMS', 30, 10000, [1, 50], fnTsGetVar(g_strctParadigm,'GazeTimeLowMS'));
+    'Gaze Time (Low):', 'GazeTimeLowMS', 30, 10000, [1, 50], fnTsGetVar('g_strctParadigm','GazeTimeLowMS'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctJuiceControllers.m_hPanel, 40+30*2, ...
-    'Gaze area (pix):', 'GazeBoxPix', 0, 300, [1, 50], fnTsGetVar(g_strctParadigm,'GazeBoxPix'));
+    'Gaze area (pix):', 'GazeBoxPix', 0, 300, [1, 50], fnTsGetVar('g_strctParadigm','GazeBoxPix'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctJuiceControllers.m_hPanel, 40+30*3, ...
-    'Juice Time (ms):', 'JuiceTimeMS', 25, 100, [1, 5], fnTsGetVar(g_strctParadigm,'JuiceTimeMS'));
+    'Juice Time (ms):', 'JuiceTimeMS', 25, 100, [1, 5], fnTsGetVar('g_strctParadigm','JuiceTimeMS'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctJuiceControllers.m_hPanel, 40+30*4, ...
-    'Juice Time (High):', 'JuiceTimeHighMS', 25, 100, [1, 5], fnTsGetVar(g_strctParadigm,'JuiceTimeHighMS'));
+    'Juice Time (High):', 'JuiceTimeHighMS', 25, 100, [1, 5], fnTsGetVar('g_strctParadigm','JuiceTimeHighMS'));
 strctControllers= fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctJuiceControllers.m_hPanel, 40+30*5, ...
-    'Blink Time (ms):', 'BlinkTimeMS',10, 500, [1, 50], fnTsGetVar(g_strctParadigm,'BlinkTimeMS'));
+    'Blink Time (ms):', 'BlinkTimeMS',10, 500, [1, 50], fnTsGetVar('g_strctParadigm','BlinkTimeMS'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctJuiceControllers.m_hPanel, 40+30*6, ...
-    'Positive Increment (%):', 'PositiveIncrement',0, 100, [1, 5], fnTsGetVar(g_strctParadigm,'PositiveIncrement'));
+    'Positive Increment (%):', 'PositiveIncrement',0, 100, [1, 5], fnTsGetVar('g_strctParadigm','PositiveIncrement'));
 
 set(strctJuiceControllers.m_hPanel,'visible','off');
 
@@ -73,24 +73,24 @@ strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,s
     'Fixation Size (pix):', 'FixationSizePix',0, 300, [1, 50], ...
     fnTsGetVar(g_strctParadigm,'FixationSizePix'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctStimulusControllers.m_hPanel, 40+30*1, ...
-    'Stimulus size (pix):', 'StimulusSizePix',0, 700,  [1, 50], fnTsGetVar(g_strctParadigm,'StimulusSizePix'));
+    'Stimulus size (pix):', 'StimulusSizePix',0, 700,  [1, 50], fnTsGetVar('g_strctParadigm','StimulusSizePix'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctStimulusControllers.m_hPanel, 40+30*2, ...
     'Rotation Angle (Deg):', 'RotationAngle', -180, 180, [1, 5], ...
-    fnTsGetVar(g_strctParadigm,'RotationAngle'));
+    fnTsGetVar('g_strctParadigm','RotationAngle'));
 strctControllers.m_hChangeBackgroundColor = uicontrol('style','pushbutton','parent', strctStimulusControllers.m_hPanel,'position',...
     [10 120 100 25],'String','Change background color','callback',  [g_strctParadigm.m_strCallbacks,'(''ChangeBackgroundColor'');']);
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctStimulusControllers.m_hPanel, 40+30*4, ...
-    'TR (ms):', 'TR', 500, 4000, [500, 1000], fnTsGetVar(g_strctParadigm,'TR'));
+    'TR (ms):', 'TR', 500, 4000, [500, 1000], fnTsGetVar('g_strctParadigm','TR'));
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctStimulusControllers.m_hPanel, 40+30*5, ...
-    '# TRs per block:', 'NumTRsPerBlock', 1, 20, [1 5], fnTsGetVar(g_strctParadigm,'NumTRsPerBlock'));
+    '# TRs per block:', 'NumTRsPerBlock', 1, 20, [1 5], fnTsGetVar('g_strctParadigm','NumTRsPerBlock'));
 
 fRefreshRateMS = fnParadigmToKofikoComm('GetRefreshRate');
 strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers,strctStimulusControllers.m_hPanel, 40+30*6, ...
     'Stimulus Time (ms):', 'StimulusTimeMS',fRefreshRateMS, ...
     500*fRefreshRateMS, [fRefreshRateMS, fRefreshRateMS*5], ...
-    fnTsGetVar(g_strctParadigm ,'StimulusTimeMS'));
+    fnTsGetVar('g_strctParadigm' ,'StimulusTimeMS'));
 
 
 strctControllers.m_strctStimulusControllers = strctStimulusControllers;
@@ -120,9 +120,9 @@ strctControllers.hBlockList = uicontrol('Style', 'listbox', 'String','',...
     'Position', [10 140 140 80], 'parent',strctMRIControllers.m_hPanel, 'Callback',[g_strctParadigm.m_strCallbacks,'(''SelectBlocks'');'],...
     'min', 1,'max',1,'value',1,'UIContextMenu',strctControllers.hBlockContextMenu);
 
-acBlockNameList = fnTsGetVar(g_strctParadigm, 'BlockNameList');
+acBlockNameList = fnTsGetVar('g_strctParadigm', 'BlockNameList');
 if ~isempty(acBlockNameList)
-    acBlockImageIndicesList = fnTsGetVar(g_strctParadigm, 'BlockImageIndicesList');
+    acBlockImageIndicesList = fnTsGetVar('g_strctParadigm', 'BlockImageIndicesList');
     fnUpdateListController(strctControllers.hBlockList, acBlockNameList,1,false);
     set(strctControllers.hImageList,'value',acBlockImageIndicesList{1});
 end

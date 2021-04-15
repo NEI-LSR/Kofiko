@@ -35,7 +35,7 @@ switch strCallback
     case 'GazeSlider'
         iNewGazeTimeMS = round(get(g_strctParadigm.m_strctControllers.m_hGazeSlider,'value'));
         set(g_strctParadigm.m_strctControllers.m_hGazeEdit,'String',num2str(iNewGazeTimeMS));
-        g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeMS',iNewGazeTimeMS);
+        fnTsSetVar('g_strctParadigm','GazeTimeMS',iNewGazeTimeMS);
         fnDAQWrapper('StrobeWord', fnFindCode('Gaze Time Changed'));                
         fnLog('Setting gaze to %d', iNewGazeTimeMS);
         
@@ -44,7 +44,7 @@ switch strCallback
         iNewGazeTimeMS = fnMyStr2Num(strTemp);
         if ~isempty(iNewGazeTimeMS)
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hGazeSlider, iNewGazeTimeMS);
-            g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeMS',iNewGazeTimeMS);
+            fnTsSetVar('g_strctParadigm','GazeTimeMS',iNewGazeTimeMS);
             fnDAQWrapper('StrobeWord', fnFindCode('Gaze Time Changed'));                
             fnLog('Setting gaze to %d', iNewGazeTimeMS);
         end;
@@ -165,7 +165,7 @@ switch strCallback
   case 'JuiceTimeSlider'
         iNewJuiceTime = round(get(g_strctParadigm.m_strctControllers.m_hJuiceTimeSlider,'value'));
         set(g_strctParadigm.m_strctControllers.m_hJuiceTimeEdit,'String',num2str(iNewJuiceTime));
-        g_strctParadigm= fnTsSetVar(g_strctParadigm,'JuiceTimeMS',iNewJuiceTime);
+        fnTsSetVar('g_strctParadigm','JuiceTimeMS',iNewJuiceTime);
         fnDAQWrapper('StrobeWord', fnFindCode('Juice Time Changed'));                
         fnLog('Setting juice reward time to %d ms', iNewJuiceTime);
     case 'JuiceTimeEdit'
@@ -173,7 +173,7 @@ switch strCallback
         iNewJuiceTime = fnMyStr2Num(strTemp);
         if ~isempty(iNewJuiceTime)
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hJuiceTimeSlider, iNewJuiceTime);
-            g_strctParadigm= fnTsSetVar(g_strctParadigm,'JuiceTimeMS',iNewJuiceTime);
+            fnTsSetVar('g_strctParadigm','JuiceTimeMS',iNewJuiceTime);
             fnDAQWrapper('StrobeWord', fnFindCode('Juice Time Changed'));                
             fnLog('Setting juice reward time to %d ms', iNewJuiceTime);
         end;

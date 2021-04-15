@@ -1,0 +1,88 @@
+function [strctCurrentTrial] = fnDetermineRewardStructure(strctCurrentTrial)
+global g_strctParadigm
+% check for reward eligibility
+dbstop if warning
+warning('stop')
+% fraction of maximum color space radius to reward;
+strctCurrentTrial.m_strctReward.m_bBinaryReward = g_strctParadigm.m_bBinaryReward;
+strctCurrentTrial.m_strctReward.m_fRewardRange = .2;
+% Reward falloff rate
+strctCurrentTrial.m_strctReward.m_fRewardFalloffRate = .01;
+strctCurrentTrial.m_strctReward.m_fChoiceThetaTolerance = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceAngleTolerance;
+if strctCurrentTrial.m_strctTrialParams.m_bGrayTrial
+    nullCategoryID = find(strcmp(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname,g_strctParadigm.m_strNullCategoryName));
+    strctCurrentTrial.m_strctReward.m_aiRhoRange = unique(squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(nullCategoryID,:,:)));
+    strctCurrentTrial.m_strctReward.m_afColorSpaceTheta = 0;
+    strctCurrentTrial.m_strctReward.m_afRingTheta = 0;
+    strctCurrentTrial.m_strctReward.m_strRewardSaturationName = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{nullCategoryID};
+    strctCurrentTrial.m_strctReward.m_aiChoiceToCueMatchIndex = [0,0];
+else
+    strCurrentSaturationNames = fieldnames(strctCurrentTrial.m_cCurrentlySelectedSaturations);
+    thisSatName = deblank(strCurrentSaturationNames(strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID,:));
+    thisSatName = thisSatName{1};
+    [~,choiceSaturationID] = ismember(thisSatName,g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname);
+    %{
+g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(iRings,:) = afCurrentColorAzimuth; %vertcat(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceAngles, ...);
+    g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(iRings,:) = choiceParamsTemp.m_afChoiceAngles'; %vertcat(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceAngles, ...);
+    g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(iRings,:,:) = repmat(choiceParamsTemp.m_iRingRho, size(choiceParamsTemp.m_afChoiceAngles',1),1); %vertcat(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho,);
+    g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRGB(iRings,:,:) = choiceRGBTemp; %vertcat(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRGB,...);
+	g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{iRings} = cstrCurrentChoiceSaturations{iRings};
+    %}
+    if ~isempty(choiceSaturationID) && any(choiceSaturationID)
+        if ismember(myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec),...
+                myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec))
+            
+            % an exact match between cue and choice colors exists. Use this
+            % for binary choices, or as the starting point for variable reward
+            
+            choiceColorMatchID = find(ismember(myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec),...
+                myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec)));
+            
+            %strctCurrentTrial.m_strctReward.m_aiRhoRange = g_strctParadigm.m_strctChoiceVars.choiceParameters.(thisSatName).m_aiChoiceRho(choiceColorMatchID,:);
+            strctCurrentTrial.m_strctReward.m_aiRhoRange = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(choiceSaturationID,choiceColorMatchID,:));
+            %strctCurrentTrial.m_strctReward.m_aiTheta = g_strctParadigm.m_strctChoiceVars.choiceParameters.(thisSatName).m_afChoiceColorSpaceAngles(choiceColorMatchID);
+            strctCurrentTrial.m_strctReward.m_afColorSpaceTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,choiceColorMatchID,:));
+            strctCurrentTrial.m_strctReward.m_afRingTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(choiceSaturationID,choiceColorMatchID,:));
+            strctCurrentTrial.m_strctReward.m_strRewardSaturationName = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{choiceSaturationID};
+            strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex = [choiceSaturationID, choiceColorMatchID];
+            
+        else
+            % no exact match; different colors are selected for the cue and
+            % choice. Use the nearest choice value as the starting point.
+            % multiple correct choices will exist, even if binary reward is
+            % set
+            minAngle = min(abs(myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec) - ...
+                myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec)));
+            
+            allMatchingAngles = find(abs(myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec) - ...
+                myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec)) == minAngle);
+            
+            % if numel(allMatchingAngles) == 1
+            strctCurrentTrial.m_strctReward.m_aiTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,allMatchingAngles,:));
+            % elseif numel(allMatchingAngles) == 2
+            %matchingThetas = myRoundn(mean(g_strctParadigm.m_strctChoiceVars.choiceParameters.(thisSatName).m_afChoiceColorSpaceAngles(allMatchingAngles)),-2);
+            % strctCurrentTrial.m_strctReward.m_aiTheta = matchingThetas);
+            %[~,choiceColorMatchID] =
+            strctCurrentTrial.m_strctReward.m_aiRhoRange = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(choiceSaturationID,allMatchingAngles,:));
+            %strctCurrentTrial.m_strctReward.m_aiRhoRange = g_strctParadigm.m_strctChoiceVars.choiceParameters.(thisSatName).m_aiChoiceRho(allMatchingAngles,:);
+            strctCurrentTrial.m_strctReward.m_afRingTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(choiceSaturationID,allMatchingAngles,:));
+            strctCurrentTrial.m_strctReward.m_strRewardSaturationName = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{choiceSaturationID};
+            strctCurrentTrial.m_strctReward.m_aiChoiceToCueMatchIndex = [choiceSaturationID, allMatchingAngles];
+            
+        end
+        
+        %strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID
+        %strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation
+        
+        %strctCurrentTrial.m_strctReward.m_aiRhoRange = g_strctParadigm.m_strctChoiceVars.choiceParameters.NullArea.m_aiChoiceRho;
+        %strctCurrentTrial.m_strctReward.m_afTheta = 0;
+        % fraction of maximum color space radius to reward;
+        
+    else
+        
+        % this cue saturation is not one of the choice saturations
+    end
+end
+
+
+return;

@@ -2,6 +2,7 @@ function StimulusServer(strXMLConfigFile)
 clear global
 dbstop if error
 
+
 global g_strctPTB g_strctServerCycle g_strctConfig g_strctNet g_bVERBOSE g_bSIMULATE g_strctSoundMedia
 
 g_bVERBOSE = true; % this will display logged messages on screen
@@ -10,6 +11,7 @@ if ~exist('.\Config\StimServerConfigForDifferentRigs','dir')
     return;
 end
 
+%find config files
 strConfigFolder = '.\Config\StimServerConfigForDifferentRigs\';
 astrctConfigFiles = dir([strConfigFolder,'*.xml']);
 if isempty(astrctConfigFiles)
@@ -58,27 +60,26 @@ end
 g_strctConfig = fnLoadConfigXML([strConfigFolder,strXMLConfigFile]);
 
 
+fnParadigmToKofikoComm('GetFTS')
+
 g_strctSoundMedia.m_acSounds = [];
 
-if ~isempty(g_strctConfig.m_strctDirectories.m_strPTB_Folder)
-    
-    if g_strctConfig.m_strctDirectories.m_strPTB_Folder(end) ~= '\'
-        g_strctConfig.m_strctDirectories.m_strPTB_Folder(end+1) = '\';
-    end
-    addpath(genpath(g_strctConfig.m_strctDirectories.m_strPTB_Folder));
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychBasic']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychBasic\MatlabWindowsFilesR2007a']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychOneliners']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychRects']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychTests']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychPriority']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychAlphaBlending']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychOpenGL\MOGL\core']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychOpenGL\MOGL\wrap']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychGLImageProcessing']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychOpenGL']);
-    addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychSound']);
+if g_strctConfig.m_strctDirectories.m_strPTB_Folder(end) ~= '\'
+    g_strctConfig.m_strctDirectories.m_strPTB_Folder(end+1) = '\';
 end
+addpath(genpath(g_strctConfig.m_strctDirectories.m_strPTB_Folder));
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychBasic']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychBasic\MatlabWindowsFilesR2007a']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychOneliners']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychRects']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychTests']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychPriority']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychAlphaBlending']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychOpenGL\MOGL\core']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychOpenGL\MOGL\wrap']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychGLImageProcessing']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychOpenGL']);
+addpath([g_strctConfig.m_strctDirectories.m_strPTB_Folder,'PsychSound']);
 
 try
     GetSecs();
@@ -184,7 +185,7 @@ g_strctServerCycle.m_bPaused = false;
 g_strctServerCycle.m_strDrawFunc = [];
 g_strctServerCycle.m_strctDrawParams = [];
 g_strctServerCycle.m_iMachineState = 0;
-
+g_strctServerCycle.m_bUseSavedTrialsIfNecessary = false;
 return;
 
 

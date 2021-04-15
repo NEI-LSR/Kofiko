@@ -1,0 +1,59 @@
+       1,    //config_version
+" SkiaGraph8",    //camera_name
+" Rad-icon Imaging Corp.",    //description
+      16,    //pix_type
+0.167e-006,  //clock_period
+       1,    //clocks_per_sample
+       1,    //samples_per_pixel
+       1,    //clk_out
+       0,    //hdrive_out
+       1,    //HD_flags
+       0,    //vdrive_out
+       1,    //VD_flags
+       7,    //cam_io
+      10,    //EXP_flags
+       2,    //timing_flags
+       0,    //exposure_time
+       0,    //exposure_start
+       0,    //exposure_min
+       0,    //exposure_max
+     1.0,    //frame_period
+     0.1,    //frame_min_period
+       0,    //delay0_flags
+       0,    //delay0
+       1,    //strobe0_flags
+    0.01,    //strobe0
+       0,    //delay1_flags
+       0,    //delay1
+       0,    //strobe1_flags
+       0,    //strobe1
+      16,    //pix_bits
+       0,    //pad_bits
+    4100,    //width: actual width (8ch) + 4
+    1000,    //height
+       1,    //n_planes
+       1,    //n_fields
+       1,    //n_channels
+       0     //field_flags
+
+//////// FIELD 0 ////////
+       2,    //VSync_flags
+       0,    //Vlead_lines
+       0,    //Vlead_clocks
+      -1,    //Vtrail_lines
+    4100,    //first_pixel_count: actual width (8ch) + 4
+    1000     //line_count
+
+//////// CHANNEL 0 ////////
+       0,    //plane_number
+       0,    //start_pixel_x
+       0,    //start_pixel_y
+       1,    //pixel_pitch_x
+       0,    //pixel_pitch_y
+       0,    //line_pitch_x
+       1,    //line_pitch_y
+    4100,    //pixel_count: actual width (8ch) + 4
+       2,    //CLK_flags
+       2,    //HSync_flags
+      30,    //Hlead_clocks: actual clocks - 2
+      -1     //Htrail_clocks

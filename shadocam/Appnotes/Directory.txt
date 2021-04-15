@@ -1,0 +1,32 @@
+Rad-icon Application Notes
+
+AN01: Interfacing the RadEye1 Image Sensor to the
+National Instruments PCI-611x Data Acquisition Board
+
+AN02: White Paper on Large Area Digital X-ray Specific Imagers
+
+AN03: Guide to Image Quality and Pixel Correction Methods
+
+AN04: Imaging with Pulsed X-Ray Sources
+
+AN05: Paper - High-resolution CMOS imaging detector
+
+AN06: Detector Lifetime and Radiation Damage
+
+AN07: Scintillator Options for Shad-o-Box Cameras
+
+AN08: Polynomial Gain Correction for RadEye Sensors
+
+AN09: DQE Measurements for RadEye EV Sensors
+
+AN10: QE Measurements of the RadEye1 Image Sensor
+
+AN11: Analog Readout Circuitry for RadEye Sensors
+
+Easy Guide: A 10-step guide to acquiring images with your Shad-o-Box camera.
+
+ShadoBox HS Software Installation: Software Installation and Ethernet Settings
+
+Frequently Asked Questions: 1. X-Ray Systems. 2. Cameras. 3. Frame Grabbers, Imaging & Software
+
+ShadoBox HS Command Reference: Command List Reference

@@ -1,11 +1,18 @@
-function [strctOutput] = fnParadigmTouchForceChoiceCycle(strctInputs)
+function [strctOutput] = fnParadigmTouchForceChoiceCycle(strctInputs, varargin)
 %
 % Copyright (c) 2008 Shay Ohayon, California Institute of Technology.
 % This file is a part of a free software. you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (see GPL.txt)
 
-global g_strctParadigm
+global g_strctParadigm g_strctDynamicStimLog g_strctPTB g_strctDAQParams
+
+if g_strctParadigm.m_strctEyeSmoothing.m_bEyeSmoothingEnabled
+g_strctParadigm.m_strctEyeSmoothing.m_afEyeSmoothingArray(g_strctParadigm.m_strctEyeSmoothing.m_iEyeSmoothingIndex,:) = ...
+																							strctInputs.m_pt2iEyePosScreen;
+g_strctParadigm.m_strctEyeSmoothing.m_iEyeSmoothingIndex = mod(g_strctParadigm.m_strctEyeSmoothing.m_iEyeSmoothingIndex,fnTsGetVar('g_strctParadigm','EyeSmoothingKernel')) + 1;
+strctInputs.m_pt2iEyePosScreen = mean(g_strctParadigm.m_strctEyeSmoothing.m_afEyeSmoothingArray,1);
+end
 
 % Make sure stimulus server media files are in memory
 if ~isempty(strctInputs.m_acInputFromStimulusServer)
@@ -13,7 +20,16 @@ if ~isempty(strctInputs.m_acInputFromStimulusServer)
         g_strctParadigm.m_bStimulusServerLoadedMedia = true;
     end
 end
-
+if g_strctParadigm.m_iMachineState == 0 || varargin{1}
+    % Variable update crap. Only happens while paradigm is paused
+    fnVariableUpdateCheck();
+    if g_strctParadigm.m_iMachineState == 0
+        % We're short circuiting the switch's case 0 here so we need to duplicate it.
+        fnParadigmToKofikoComm('SetParadigmState','Waiting for user to press Start');
+    end
+    return;
+end
+TRIAL_DYNAMIC_CODE = 32690;
 TRIAL_START_CODE = 32700;
 TRIAL_END_CODE = 32699;
 TRIAL_ALIGN_CODE = 32698;
@@ -22,6 +38,89 @@ TRIAL_OUTCOME_CORRECT = 32697;
 TRIAL_OUTCOME_ABORTED = 32695;
 TRIAL_OUTCOME_TIMEOUT = 32694;
 
+%{
+if isfield(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim,'m_aSpikeTrain') && ...
+                            length(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_aSpikeTrain) > 1
+                        % Start with the first spike in the train
+                        g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_iSpikeIterator = 1;
+                        g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_fSpikeTrainStartTS = GetSecs();
+                        % Set as active. We'll check at the beginning of each cycle to see if we need to trigger another spike
+                        g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_bActive = 1;
+                        
+                        % Important! Stop the GUI from updating while we are stimulating. Updating takes until the start of the next screen refresh which can block the microstimulator!
+                        %g_strctParadigm.m_bDoNotDrawDueToCriticalSection = 1;
+                        fnParadigmToKofikoComm('criticalsectionon', true);
+                    elseif ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim)
+                        
+                        fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim);
+                    end
+%}
+% Handle microstim events
+
+% make sure the paradigm is running, there is supposed to be stimulation during this trial, there is supposed to be stimulation during this epoch
+%{
+if g_strctParadigm.m_bParadigmActive && g_strctParadigm.m_bMicroStimThisTrial && g_strctParadigm.m_bMicroStimThisEpoch
+	%tic
+	
+    fCurrentTime = GetSecs();
+	
+	% is the current time greater than the time for the next spike in the chain?
+	if fCurrentTime - g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_fSpikeTrainStartTS >=...
+		g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_afSpikeTrain(...
+		g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_iSpikeIterator)*1e-3
+		
+		% Send a spike request
+
+		fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim);
+
+		% Record the TS for this spike. It will be recorded in Plexon as well, but this is easier to extract for
+		% general purposes
+		g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_afStimTimes(...
+		g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_iSpikeIterator) = GetSecs();
+		
+		% iterate the iterator
+		g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_iSpikeIterator = ...
+		g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_iSpikeIterator + 1;
+
+		
+	
+    end
+    % see if we're at the last planned spike or if we've gone more than 10% over the max time planned for the spike train
+	if g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_iSpikeIterator > ...
+        size(g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_afSpikeTrain,2) ||...
+        fCurrentTime - g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_fSpikeTrainStartTS >=...
+        g_strctParadigm.m_strctCurrentTrial.(g_strctParadigm.m_strCurrentEpoch).m_astrctMicroStim.m_afSpikeTrain(end)*1.1
+    
+        % we're done with this spike train, but there might be others in
+        % the trial
+        g_strctParadigm.m_bMicroStimThisEpoch = 0;
+		g_strctParadigm.m_bMicroStimThisTrial = 0;
+		fnParadigmToKofikoComm('criticalsectionoff');
+    end
+%{
+    if g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_bActive && ...
+            g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_iSpikeIterator <= length(...
+            g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_aSpikeTrain)
+        if fCurrentTime - g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_fSpikeTrainStartTS >=...
+                g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_aSpikeTrain(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod(...
+                g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim.m_iSpikeIterator)*1e-3
+            % Send a spike request
+            
+            % Update the spike iterator
+            g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_iSpikeIterator =...
+                g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_iSpikeIterator + 1;
+            
+        end
+    elseif g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_bActive
+        g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_bActive = 0;
+        fnParadigmToKofikoComm('criticalsectionoff');
+        %g_strctParadigm.m_bDoNotDrawDueToCriticalSection = 0;
+    end
+%}
+	%disp(sprintf('stim check time is %f',toc))
+
+end
+%}
 % Support for running the paradigm in the scanner....
 fCurrTime = GetSecs();
 if g_strctParadigm.m_bMRI_Mode
@@ -37,7 +136,7 @@ if g_strctParadigm.m_bMRI_Mode
     % generate a new trial relevant for the new block!
     if g_strctParadigm.m_iTriggerCounter > 0 && ~isnan(g_strctParadigm.m_fRunLengthSec_fMRI)
         % We are running....
-        fTS_Sec = fnTsGetVar(g_strctParadigm, 'TR') / 1e3;
+        fTS_Sec = fnTsGetVar('g_strctParadigm', 'TR') / 1e3;
         
         fTimeElapsedSec = GetSecs()-g_strctParadigm.m_fFirstTriggerTS;
         fNumTRsPassed = fTimeElapsedSec / fTS_Sec;
@@ -55,7 +154,7 @@ if g_strctParadigm.m_bMRI_Mode
             fnParadigmToStimulusServer('AbortTrial');
             g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult = 'Cancelled;BlockOutOfTime';
             g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_fTrialAbortedTS_Kofiko = GetSecs();
-             fnParadigmToStatServerComm('Send','TrialEnd');          
+            fnParadigmToStatServerComm('Send','TrialEnd');
             fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialEndCode);
             fnTsSetVarParadigm('acTrials',g_strctParadigm.m_strctCurrentTrial);
             g_strctParadigm.m_iMachineState = 2;
@@ -90,11 +189,17 @@ if g_strctParadigm.m_bMRI_Mode
     
 end
 
+
 switch g_strctParadigm.m_iMachineState
     case 0
         fnParadigmToKofikoComm('SetParadigmState','Waiting for user to press Start');
+        
+        
+        
     case 1
-        % Make sure a design is avaialble...
+        g_strctParadigm.m_iMachineState = 2;
+        %{
+        % Make sure a design is available...
         if ~isempty(g_strctParadigm.m_strctDesign) && g_strctParadigm.m_bStimulusServerLoadedMedia
             if g_strctParadigm.m_bMRI_Mode &&  g_strctParadigm.m_iTriggerCounter == 0
                 % Are we running already ? If so, skip this step
@@ -105,63 +210,65 @@ switch g_strctParadigm.m_iMachineState
         else
             fnParadigmToKofikoComm('SetParadigmState','Please load an experiment design file!');
         end
+        %}
     case 2
         % Prepare next trial!
-        if isempty(g_strctParadigm.m_strctDesign)
-            fnParadigmToKofikoComm('SetParadigmState','Problem loading design!');
-            g_strctParadigm.m_iMachineState = 0;
+        % if isempty(g_strctParadigm.m_strctDesign)
+        %     fnParadigmToKofikoComm('SetParadigmState','Problem loading design!');
+        %     g_strctParadigm.m_iMachineState = 0;
+        % else
+        
+        %             % Which block are we at ?
+        %             aiNumTrials = cumsum(g_strctParadigm.m_strctDesign.m_strctOrder.m_aiNumTrialsPerBlock);
+        %             iBlockIndex= find(aiNumTrials >= g_strctParadigm.m_strctTrialTypeCounter.m_iTrialCounter,1,'first');
+        %             if isempty(iBlockIndex) % someone modified aiNumTrials in real time...
+        %                 iBlockIndex = length(aiNumTrials);
+        %             end
+        %
+        %             g_strctParadigm.m_strCurrentBlock = g_strctParadigm.m_strctDesign.m_strctOrder.m_acBlockNames{iBlockIndex};
+        %
+        if (~isempty(g_strctParadigm.m_strctCurrentTrial) && isfield(g_strctParadigm.m_strctCurrentTrial,'m_strctTrialOutcome') && ~g_strctParadigm.m_bDynamicStimuli && ...
+                isfield(g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome,'m_strResult') && ~strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult,'Correct') && ...
+                g_strctParadigm.m_strctDesign.m_strctOrder.m_abRepeatIncorrect(g_strctParadigm.m_strctCurrentTrial.m_iBlockIndex)) && ~g_strctParadigm.m_bTrialRepetitionOFF
+            g_strctParadigm.m_strctCurrentTrial =  g_strctParadigm.m_strctPrevTrial;
         else
-            
-            %             % Which block are we at ?
-            %             aiNumTrials = cumsum(g_strctParadigm.m_strctDesign.m_strctOrder.m_aiNumTrialsPerBlock);
-            %             iBlockIndex= find(aiNumTrials >= g_strctParadigm.m_strctTrialTypeCounter.m_iTrialCounter,1,'first');
-            %             if isempty(iBlockIndex) % someone modified aiNumTrials in real time...
-            %                 iBlockIndex = length(aiNumTrials);
-            %             end
-            %
-            %             g_strctParadigm.m_strCurrentBlock = g_strctParadigm.m_strctDesign.m_strctOrder.m_acBlockNames{iBlockIndex};
-            %
-            if (~isempty(g_strctParadigm.m_strctCurrentTrial) && isfield(g_strctParadigm.m_strctCurrentTrial,'m_strctTrialOutcome') && ...
-                    isfield(g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome,'m_strResult') && ~strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult,'Correct') && ...
-                    g_strctParadigm.m_strctDesign.m_strctOrder.m_abRepeatIncorrect(g_strctParadigm.m_strctCurrentTrial.m_iBlockIndex)) && ~g_strctParadigm.m_bTrialRepetitionOFF
-                g_strctParadigm.m_strctCurrentTrial =  g_strctParadigm.m_strctPrevTrial;
-            else
-                % First trial or previously correct trial...
-                [strctTemp,strWhatHappened] =  fnParadigmTouchForceChoicePrepareTrial();
-                
-                if isempty(strctTemp)
-                    if strcmpi(strWhatHappened, 'TR_Mode_FinishedAllBlocks')
-                        fnParadigmToKofikoComm('DisplayMessageNow','Finished fMRI Run');
-                        g_strctParadigm.m_iMachineState = 201; % Skip stimulus server prepare trial
-                        return;
-                    else
-                        fnParadigmToKofikoComm('DisplayMessageNow','Error generating trial. check design!');
-                    end
+            % First trial or previously correct trial...
+            %tic
+            [strctTemp,strWhatHappened] =  fnParadigmTouchForceChoicePrepareTrial();
+            %disp(sprintf('trial prep took %s', num2str(toc)));
+            if isempty(strctTemp)
+                if strcmpi(strWhatHappened, 'TR_Mode_FinishedAllBlocks')
+                    fnParadigmToKofikoComm('DisplayMessageNow','Finished fMRI Run');
+                    g_strctParadigm.m_iMachineState = 201; % Skip stimulus server prepare trial
+                    return;
                 else
-                    g_strctParadigm.m_strctCurrentTrial = strctTemp;
+                    fnParadigmToKofikoComm('DisplayMessageNow','Error generating trial. check design!');
                 end
-            end
-            
-            g_strctParadigm.m_strctPrevTrial = g_strctParadigm.m_strctCurrentTrial;
-            
-            if ~fnParadigmToKofikoComm('IsTouchMode')
-                fnParadigmToStimulusServer('PrepareTrial',g_strctParadigm.m_strctCurrentTrial);
             else
-                fnParadigmTouchForceChoiceDrawCycle({'PrepareTrial',g_strctParadigm.m_strctCurrentTrial});
-            end
-            
-            if ~fnParadigmToKofikoComm('IsTouchMode')
-                fnParadigmToKofikoComm('SetParadigmState', 'Waiting for  stimulus server...');
-                g_strctParadigm.m_iMachineState = 3;
-                g_strctParadigm.m_bTrialRepetitionOFF = false;
-            else
-                g_strctParadigm.m_iMachineState = 4; % Skip stimulus server prepare trial
-                g_strctParadigm.m_bTrialRepetitionOFF = false;
+                g_strctParadigm.m_strctCurrentTrial = strctTemp;
             end
         end
         
+        g_strctParadigm.m_strctPrevTrial = g_strctParadigm.m_strctCurrentTrial;
+        
+        if ~fnParadigmToKofikoComm('IsTouchMode')
+            fnParadigmToStimulusServer('PrepareTrial',g_strctParadigm.m_strctCurrentTrial);
+        else
+            fnParadigmTouchForceChoiceDrawCycle({'PrepareTrial',g_strctParadigm.m_strctCurrentTrial});
+        end
+        
+        if ~fnParadigmToKofikoComm('IsTouchMode')
+            fnParadigmToKofikoComm('SetParadigmState', 'Waiting for  stimulus server...');
+            g_strctParadigm.m_iMachineState = 3;
+            g_strctParadigm.m_bTrialRepetitionOFF = false;
+        else
+            g_strctParadigm.m_iMachineState = 4; % Skip stimulus server prepare trial
+            g_strctParadigm.m_bTrialRepetitionOFF = false;
+        end
+        %  end
+        
     case 3
-        % Wait until trial preparation is done (stimulus server loadedeverything?)
+        % Wait until trial preparation is done (stimulus server loaded everything?)
         if ~isempty(strctInputs.m_acInputFromStimulusServer)
             if strcmpi(strctInputs.m_acInputFromStimulusServer{1},'TrialPreparationDone')
                 g_strctParadigm.m_iMachineState = 4;
@@ -169,11 +276,11 @@ switch g_strctParadigm.m_iMachineState
         end
     case 4
         % Show fixation spot
-        if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation)
+        if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod)
             % Display fixation and wait until enough time has elapsed
             if ~fnParadigmToKofikoComm('IsTouchMode')
                 fnParadigmToStimulusServer('ShowFixationSpot');
-                fnParadigmToKofikoComm('SetFixationPosition', g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition);
+                fnParadigmToKofikoComm('SetFixationPosition', g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition);
                 
                 fnParadigmToKofikoComm('SetParadigmState', 'Waiting for  stimulus server...');
                 g_strctParadigm.m_iMachineState = 5;
@@ -199,23 +306,26 @@ switch g_strctParadigm.m_iMachineState
     case 6
         
         % Fixation spot is on screen. Wait until monkey look at it
-        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition(1);
-        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition(2);
+        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition(1);
+        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition(2);
         fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
-        fnParadigmToKofikoComm('SetParadigmState', sprintf('Block %d : Waiting for fixation... (%.2f)',g_strctParadigm.m_strctCurrentTrial.m_iBlockIndex,fDistToFixationSpot));
-        
+        if ~g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
+            fnParadigmToKofikoComm('SetParadigmState', sprintf('Block %d : Waiting for fixation... (%.2f)',g_strctParadigm.m_strctCurrentTrial.m_iBlockIndex,fDistToFixationSpot));
+        else
+            fnParadigmToKofikoComm('SetParadigmState', sprintf('Waiting for fixation... (%.2f)',fDistToFixationSpot));
+        end
         if fnParadigmToKofikoComm('IsTouchMode')
             % Monkey can only touch the fixation spot....
             if  strctInputs.m_abMouseButtons(1)
                 g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_pt2fTouchFixation = strctInputs.m_pt2iEyePosScreen;
                 g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_fDistToFixationSpot = fDistToFixationSpot;
                 g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_fTouchTS = GetSecs();
-                if fDistToFixationSpot < g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix
+                if fDistToFixationSpot < g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix
                     g_strctParadigm.m_fStartFixationTS = GetSecs();
                     
                     fnParadigmToKofikoComm('SetParadigmState', 'Monkey touched spot...');
-                    if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation) && ...
-                            g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fPreCueFixationPeriodMS == 0
+                    if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod) && ...
+                            g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueFixationPeriodMS == 0
                         g_strctParadigm.m_iMachineState = 9;
                     else
                         g_strctParadigm.m_iMachineState = 7;
@@ -223,7 +333,7 @@ switch g_strctParadigm.m_iMachineState
                 else
                     % Monkey touched outside fixation spot. what to do
                     % next?
-                    if g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_bAbortTrialUponTouchOutsideFixation
+                    if g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_bAbortTrialUponTouchOutsideFixation
                         % Clear the screen
                         g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult = 'Aborted;TouchOutsideFixation';
                         feval(g_strctParadigm.m_strCallbacks,'TrialOutcome',g_strctParadigm.m_strctCurrentTrial);
@@ -234,7 +344,7 @@ switch g_strctParadigm.m_iMachineState
                         
                         g_strctParadigm.m_fWaitTimer = GetSecs();
                         
-                        g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec+...
+                        g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec+...
                             g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fAbortedTrialPunishmentDelayMS/1e3;
                         g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
                         
@@ -247,7 +357,7 @@ switch g_strctParadigm.m_iMachineState
             
         else
             % Is monkey looking at the fixation spot?
-            if fDistToFixationSpot <= g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix
+            if fDistToFixationSpot <= g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix
                 fnParadigmToKofikoComm('SetParadigmState', 'Inside Fixation region');
                 g_strctParadigm.m_fStartFixationTS = GetSecs();
                 
@@ -258,23 +368,33 @@ switch g_strctParadigm.m_iMachineState
         end
         
     case 7
+        
+        % Eye drift correction, for my stupid monkeys that shift the chair around
+        
+        if ~(g_strctDAQParams.m_fUseMouseClickAsEyePosition || g_strctDAQParams.m_bMouseGazeEmulator) && g_strctParadigm.m_strctTrainingVars.m_bCorrectEyeDrift && ...
+                (GetSecs()- g_strctParadigm.m_fStartFixationTS) >= (fnTsGetVar('g_strctParadigm','EyeDriftCorrectionRate')/1e2)*g_strctParadigm.m_iDriftCorrectIteration
+            fnAdjustEyeGainForDrift(strctInputs.m_pt2iEyePosScreen);
+            g_strctParadigm.m_iDriftCorrectIteration = g_strctParadigm.m_iDriftCorrectIteration + 1;
+        end
+        
+        
         % Monkey is looking/ touching the fixation spot
         % If enough time has elapsed, go on with the trial (display cue,
         % etc)
-        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition(1);
-        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition(2);
+        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition(1);
+        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition(2);
         fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
         
         
         
         if fnParadigmToKofikoComm('IsTouchMode')
             
-            if fDistToFixationSpot >  g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix || ~strctInputs.m_abMouseButtons(1)
+            if fDistToFixationSpot >  g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix || ~strctInputs.m_abMouseButtons(1)
                 % Monkey moved his finger outside fixationi spot, or stopped
                 % pressing....
                 g_strctParadigm.m_iMachineState = 6;
             else
-                if (GetSecs()- g_strctParadigm.m_fStartFixationTS) >= g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fPreCueFixationPeriodMS/1e3
+                if (GetSecs()- g_strctParadigm.m_fStartFixationTS) >= g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueFixationPeriodMS/1e3
                     fnParadigmToKofikoComm('SetParadigmState', 'Trial Will start when touch released...');
                     g_strctParadigm.m_iMachineState = 9; % Monkey fixated for enough time. Wait until he releases touch
                 end
@@ -282,17 +402,27 @@ switch g_strctParadigm.m_iMachineState
         else
             
             % Is still looking?
-            if fDistToFixationSpot > g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix
+            if fDistToFixationSpot > g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix
                 %  Monkey broke fixation.
                 g_strctParadigm.m_iMachineState = 6;
+                
             end
             
             fnParadigmToKofikoComm('SetParadigmState', sprintf('Inside Fixation region for %.2f',GetSecs()- g_strctParadigm.m_fStartFixationTS ));
             
             % Eye tracking mode
-            if GetSecs()- g_strctParadigm.m_fStartFixationTS  >= g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fPreCueFixationPeriodMS/1e3
+            if GetSecs()- g_strctParadigm.m_fStartFixationTS  >= g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueFixationPeriodMS/1e3
                 
                 g_strctParadigm.m_iMachineState = 10; % Monkey fixated for enough time. Start the trial....
+                
+                if g_strctParadigm.m_bPreCueReward
+                    if rand() <  squeeze(g_strctParadigm.PreCueRewardProbability.Buffer(1,:,g_strctParadigm.PreCueRewardProbability.BufferIdx))/100
+                        fnParadigmToKofikoComm('Juice', squeeze(g_strctParadigm.PreCueJuiceTimeMS.Buffer...
+                            (1,:,g_strctParadigm.PreCueJuiceTimeMS.BufferIdx)), 0, ...
+                            squeeze(g_strctParadigm.NumberOfJuiceDrops.Buffer(1,:,g_strctParadigm.NumberOfJuiceDrops.BufferIdx)),...
+                            squeeze(g_strctParadigm.JuiceDropInterval.Buffer(1,:,g_strctParadigm.JuiceDropInterval.BufferIdx)));
+                    end
+                end
             end
             
         end
@@ -308,16 +438,18 @@ switch g_strctParadigm.m_iMachineState
         
         
         % Send request to stimulus server to initiate the trial....
-        if isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia) && isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia)
-            if g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_bRewardTouchFixation
-                if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_strRewardSound)
-                    fnParadigmToKofikoComm('PlaySound',g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_strRewardSound);
+        if isempty(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod) && isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia)
+            if g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_bRewardTouchFixation
+                if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_strRewardSound)
+                    fnParadigmToKofikoComm('PlaySound',g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_strRewardSound);
                 end
                 
                 if fnParadigmToKofikoComm('IsTouchMode')
                     fnParadigmToKofikoComm('JuiceBlock', g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS);
                 else
-                    fnParadigmToKofikoComm('Juice', g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS);
+                    fnParadigmToKofikoComm('Juice', g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS, 0, ...
+                        squeeze(g_strctParadigm.NumberOfJuiceDrops.Buffer(1,:,g_strctParadigm.NumberOfJuiceDrops.BufferIdx)),...
+                        squeeze(g_strctParadigm.JuiceDropInterval.Buffer(1,:,g_strctParadigm.JuiceDropInterval.BufferIdx)));
                 end
                 
             end
@@ -332,7 +464,7 @@ switch g_strctParadigm.m_iMachineState
             fnTsSetVarParadigm('acTrials',g_strctParadigm.m_strctCurrentTrial);
             
             g_strctParadigm.m_fWaitTimer = GetSecs();
-            g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec;
+            g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec;
             g_strctParadigm.m_iMachineState = 11; % Weird degenerate case, like in simple touch screen training....
         else
             if fnParadigmToKofikoComm('IsTouchMode')
@@ -346,10 +478,36 @@ switch g_strctParadigm.m_iMachineState
                 % server side
                 fnParadigmToStatServerComm('Send','TrialStart');
                 fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialStartCode);
-                % Delcare the trial type
-                fnParadigmToKofikoComm('TrialStart', g_strctParadigm.m_strctCurrentTrial.m_iTrialType);
-                if strcmp(g_strctParadigm.m_strAlignTo, 'CueOnset')                  
-                    fnParadigmToStatServerComm('Send','TrialAlign');         
+                
+                % Send trial information to Plexon
+                % Which Trial type is this?
+                
+                
+                if g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
+                    % Tell Plexon this is dynamic, so we can look up what happened later
+                    fnDAQWrapper('StrobeWord',TRIAL_DYNAMIC_CODE);
+                    
+                    % Send a unique vector to plexon so we can look this trial up in the recording event history
+                    % this method ensures that we can lose track of when a trial was presented relative to other trials
+                    % and still find it post hoc. Since every trial here is generated on the fly it is imperative that
+                    % we be able to find it in the backups
+                    
+                    % Supports n numbers of entries in the vector, but 3 is more than enough. This whole thing takes about
+                    % 1 ms, so we do it before the trial
+                    for i = 1:size(g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiTrialVec,2)
+                        fnDAQWrapper('StrobeWord',g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiTrialVec(i));
+                    end
+                    
+                    
+                else
+                    % which cue was presented?
+                    fnDAQWrapper('StrobeWord',g_strctParadigm.m_strctCurrentTrial.m_iTrialType);
+                    fnDAQWrapper('StrobeWord',g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iMediaIndex);
+                end
+                % Declare the trial start
+                fnParadigmToKofikoComm('TrialStart', g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_iTrialType);
+                if strcmp(g_strctParadigm.m_strAlignTo, 'CueOnset')
+                    fnParadigmToStatServerComm('Send','TrialAlign');
                     fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialAlignCode);  %Align spikes in real time to this time point.
                 end
                 
@@ -360,7 +518,10 @@ switch g_strctParadigm.m_iMachineState
         
         
     case 11
-        % Wait ITI after touch fixation (noe cue, no choices) and start
+        
+        
+        
+        % Wait ITI after touch fixation (no cue, no choices) and start
         % again...
         fElapsedTimeSec = GetSecs()-g_strctParadigm.m_fWaitTimer;
         fWaitTimeSec = g_strctParadigm.m_fWaitPeriodSec;
@@ -416,12 +577,12 @@ switch g_strctParadigm.m_iMachineState
                 fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition(1);
                 fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition(2);
                 
-                if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Rect')
-                    bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize && ...
-                        abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
-                elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Circular')
+                if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Rect')
+                    bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize && ...
+                        abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
+                elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Circular')
                     fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
-                    bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
+                    bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
                 end
                 
                 if bInsideChoice
@@ -430,7 +591,7 @@ switch g_strctParadigm.m_iMachineState
                     g_strctParadigm.m_fTouchChoiceTS = GetSecs();
                     g_strctParadigm.m_iSelectedChoice = iChoiceIter;
                     
-                    if g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS == 0
+                    if g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS == 0
                         % This is considered a commitment!
                         fnParadigmToKofikoComm('SetParadigmState', sprintf('Selected %d', g_strctParadigm.m_iSelectedChoice ));
                         g_strctParadigm.m_iMachineState = 15;
@@ -447,15 +608,20 @@ switch g_strctParadigm.m_iMachineState
         
     case 14
         % Trial timeout!
+        
         g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult = 'Timeout';
         fnParadigmTouchForceChoiceDrawCycle({'AbortTrial'}); % Clear screen & handles
         feval(g_strctParadigm.m_strCallbacks,'TrialOutcome',g_strctParadigm.m_strctCurrentTrial);
         fnTsSetVarParadigm('acTrials',g_strctParadigm.m_strctCurrentTrial);
         
         g_strctParadigm.m_fWaitTimer = GetSecs();
-        g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec;
+        g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec;
         g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
+        if g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
+            fnSaveBackup();
+        end
     case 15
+        
         % Monkey committed to a decision. Does he get a reward?
         g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectCounter = g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectCounter + 1;
         g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_afTouchChoiceTS(g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectCounter) = g_strctParadigm.m_fTouchChoiceTS;
@@ -469,26 +635,56 @@ switch g_strctParadigm.m_iMachineState
             if fnParadigmToKofikoComm('IsTouchMode')
                 fnParadigmToKofikoComm('JuiceBlock', g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS);
             else
-                fnParadigmToKofikoComm('Juice', g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS);
+                juiceRewardMS = g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS;
+                if g_strctParadigm.m_iPositiveJuiceIncrement
+                    juiceRewardMS =  min((juiceRewardMS + (juiceRewardMS * g_strctParadigm.m_iPositiveJuiceIncrement*1e-1)), g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fJuiceTimeMSHigh);
+                end
+                if g_strctParadigm.m_strctTrainingVars.m_bTrainingMode && g_strctParadigm.m_strctTrainingVars.m_bAutoBalanceJuiceReward
+                    
+                    [biasAdjustedJuiceReward] = fnAdjustJuiceReward();
+                    biasAdjustedJuiceDrops = max(round(biasAdjustedJuiceReward * squeeze(g_strctParadigm.NumberOfJuiceDrops.Buffer(1,:,g_strctParadigm.NumberOfJuiceDrops.BufferIdx))),1);
+                    %biasAdjustedJuiceDrops
+                    fnParadigmToKofikoComm('Juice', round(biasAdjustedJuiceReward * juiceRewardMS), 0, ...
+                        biasAdjustedJuiceDrops,...
+                        squeeze(g_strctParadigm.JuiceDropInterval.Buffer(1,:,g_strctParadigm.JuiceDropInterval.BufferIdx)));
+                    
+                    %% bias adjusted end
+                else
+                    % normal juice reward
+                    fnParadigmToKofikoComm('Juice', juiceRewardMS, 0, ...
+                        squeeze(g_strctParadigm.NumberOfJuiceDrops.Buffer(1,:,g_strctParadigm.NumberOfJuiceDrops.BufferIdx)),...
+                        squeeze(g_strctParadigm.JuiceDropInterval.Buffer(1,:,g_strctParadigm.JuiceDropInterval.BufferIdx)));
+                end
             end
+            
+            % Jackpot?
+            if rand() < g_strctParadigm.m_strctTrainingVars.m_fJackpotChance
+                fnParadigmToKofikoComm('Juice', juiceRewardMS, 0, ...
+                    squeeze(g_strctParadigm.NumberOfJuiceDrops.Buffer(1,:,g_strctParadigm.NumberOfJuiceDrops.BufferIdx))*5,...
+                    squeeze(g_strctParadigm.JuiceDropInterval.Buffer(1,:,g_strctParadigm.JuiceDropInterval.BufferIdx))/2);
+            end
+            
             % Correct trial!
             fnParadigmTouchForceChoiceDrawCycle({'AbortTrial',...
                 g_strctParadigm.m_iSelectedChoice, g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fRetainSelectedChoicePeriodMS});
+            
             g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult = 'Correct';
+            %g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectedChoice = g_strctParadigm.m_iSelectedChoice;
             fnTsSetVarParadigm('acTrials',g_strctParadigm.m_strctCurrentTrial);
             feval(g_strctParadigm.m_strCallbacks,'TrialOutcome',g_strctParadigm.m_strctCurrentTrial);
             g_strctParadigm.m_fWaitTimer = GetSecs();
-            g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec;
+            g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec;
             g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
         else
             % Monkey selected a target with no reward. What do we do next?
-            if g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_bMultipleAttemptsUntilJuice
+            if g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_bMultipleAttemptsUntilJuice
                 % Record that an attempt was made at this target, Wait
                 % until release, and try again...
                 g_strctParadigm.m_iMachineState = 17;
             else
                 % Incorrect trial
                 g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult = 'Incorrect';
+                %g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectedChoice = g_strctParadigm.m_iSelectedChoice;
                 if g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_bExtinguishNonSelectedChoicesAfterChoice
                     fnParadigmTouchForceChoiceDrawCycle({'AbortTrial',g_strctParadigm.m_iSelectedChoice, g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fRetainSelectedChoicePeriodMS});
                 else
@@ -498,14 +694,16 @@ switch g_strctParadigm.m_iMachineState
                 feval(g_strctParadigm.m_strCallbacks,'TrialOutcome',g_strctParadigm.m_strctCurrentTrial);
                 
                 g_strctParadigm.m_fWaitTimer = GetSecs();
-                g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec+...
+                g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec+...
                     g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fIncorrectTrialPunishmentDelayMS/1e3;
                 g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
                 
             end
             
         end
-        
+        if g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
+            fnSaveBackup();
+        end
     case 16
         
         fElapsedTime = GetSecs()-g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_fChoicesOnsetTS_Kofiko ;
@@ -518,19 +716,19 @@ switch g_strctParadigm.m_iMachineState
         % commit
         fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_pt2fPosition(1);
         fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_pt2fPosition(2);
-        if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Rect')
-            bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize && ...
-                abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
-        elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Circular')
+        if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Rect')
+            bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize && ...
+                abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
+        elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType,'Circular')
             fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
-            bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
+            bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize;
         end
         if ~bInsideChoice || ~strctInputs.m_abMouseButtons(1)
             % Monkey switched his mind and moved his hand from this choice
             % before the time to commit elapsed...
             g_strctParadigm.m_iMachineState = 13;
         else
-            if GetSecs()-g_strctParadigm.m_fTouchChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS/1e3
+            if GetSecs()-g_strctParadigm.m_fTouchChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS/1e3
                 g_strctParadigm.m_iMachineState = 15; % Monkey committed to a decision
             end
         end
@@ -559,28 +757,28 @@ switch g_strctParadigm.m_iMachineState
         if g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen == 0
             bMaintainFixationOnCue = false; % we cannot maintain fixation on screen until we are informed where the cues are...
             bMaintainFixationOnFixationSpot = false;
-            if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation)
+            if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod)
                 bMaintainFixationOnFixationSpot = true;
-                pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition;
-                fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix;
+                pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition;
+                fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix;
             end
         else
-            bMaintainFixationOnCue = g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_bAbortTrialIfBreakFixationOnCue;
-            bMaintainFixationOnFixationSpot = g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_bAbortTrialIfBreakFixationDuringCue;
+            bMaintainFixationOnCue = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_bAbortTrialIfBreakFixationOnCue;
+            bMaintainFixationOnFixationSpot = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_bAbortTrialIfBreakFixationDuringCue;
             if bMaintainFixationOnFixationSpot
-                pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_pt2fFixationPosition;
-                fThreshold = g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_fFixationRegionPix;
+                pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_pt2fFixationPosition;
+                fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_fFixationRegionPix;
             end
         end
         
         % We need to monitor eye position during cues presentation.
         if bMaintainFixationOnCue
-            fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_pt2fCuePosition(1);
-            fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_pt2fCuePosition(2);
-            switch lower(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_strCueFixationRegion)
+            fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_pt2fCuePosition(1);
+            fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_pt2fCuePosition(2);
+            switch lower(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_strCueFixationRegion)
                 case 'entirecue'
-                    if (abs(fDistX) > g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_fCueSizePix || ...
-                            abs(fDistY) > g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_fCueSizePix)
+                    if (abs(fDistX) > g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_fCueSizePix || ...
+                            abs(fDistY) > g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_fCueSizePix)
                         bAbortTrial = true;
                     end
             end
@@ -590,7 +788,17 @@ switch g_strctParadigm.m_iMachineState
             fDistX=strctInputs.m_pt2iEyePosScreen(1)-pt2fFixationCenter(1);
             fDistY=strctInputs.m_pt2iEyePosScreen(2)-pt2fFixationCenter(2);
             if sqrt(fDistX.^2+fDistY.^2) > fThreshold
-                bAbortTrial = true;
+                bBlinkTimerElapsed = fnCheckBlinkTimer('check');
+                %if g_strctParadigm.m_fBlinkTimer == 0
+                %	g_strctParadigm.m_fBlinkTimer = GetSecs();
+                if bBlinkTimerElapsed
+                    %elseif GetSecs() - g_strctParadigm.m_fBlinkTimer>...
+                    %			(squeeze(g_strctParadigm.BlinkTimeMS.Buffer(:,1,g_strctParadigm.BlinkTimeMS.BufferIdx)) /1e3)
+                    bAbortTrial = true;
+                end
+            else
+                g_strctParadigm.m_fBlinkTimer = 0;
+                fnCheckBlinkTimer('reset');
             end
         end
         
@@ -609,24 +817,27 @@ switch g_strctParadigm.m_iMachineState
             fnTsSetVarParadigm('acTrials',g_strctParadigm.m_strctCurrentTrial);
             feval(g_strctParadigm.m_strCallbacks,'TrialOutcome',g_strctParadigm.m_strctCurrentTrial);
             g_strctParadigm.m_fWaitTimer = GetSecs();
-            g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec+...
-                            g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fAbortedTrialPunishmentDelayMS/1e3;
+            g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec+...
+                g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fAbortedTrialPunishmentDelayMS/1e3;
             g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
+            if g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
+                fnSaveBackup();
+            end
         else
             % Information flowing from stimulus server...
             if ~isempty(strctInputs.m_acInputFromStimulusServer)
                 if strcmpi(strctInputs.m_acInputFromStimulusServer{1},'ChoicesOnsetTS')
                     
                     if strcmp(g_strctParadigm.m_strAlignTo, 'ChoicesOnset')
-                       fnParadigmToStatServerComm('Send','TrialAlign');
-                       fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialAlignCode);  %Align spikes in real time to this time point.
+                        fnParadigmToStatServerComm('Send','TrialAlign');
+                        fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialAlignCode);  %Align spikes in real time to this time point.
                     end
                     g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_fChoicesOnsetTS_Kofiko = GetSecs();
                     g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_fChoicesOnsetTS_StatServer = strctInputs.m_acInputFromStimulusServer{2};
                     g_strctParadigm.m_bWasOutsideChoice = true;
                     g_strctParadigm.m_iMachineState = 21;
                     
-                     
+                    
                     
                 elseif strcmpi(strctInputs.m_acInputFromStimulusServer{1},'CueOnset')
                     g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen = strctInputs.m_acInputFromStimulusServer{3};
@@ -639,9 +850,19 @@ switch g_strctParadigm.m_iMachineState
                         fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialAlignCode);  %Align spikes in real time to this time point.
                     end
                     
+                    %length(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim.m_aSpikeTrain)
+                    %isfield(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod,'m_aSpikeTrain')
+                    
                     % Micro stim
-                    if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim)
-                        fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_astrctCueMedia(g_strctParadigm.m_iLastKnownCueToBeDisplayedOnScreen).m_astrctMicroStim);
+                    
+                    
+                    
+                    
+                    if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim)
+                        
+                        fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim);
+                        % Important! Stop the GUI from updating while we are stimulating. Updating takes until the start of the next screen refresh which can block the microstimulator!
+                        %fnParadigmToKofikoComm('criticalsectionon', true);
                     end
                     
                 end
@@ -661,138 +882,313 @@ switch g_strctParadigm.m_iMachineState
         end
         
         
-           if  isfield(g_strctParadigm.m_strctCurrentTrial.m_strctChoices,'m_astrctMicroStim') && ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_astrctMicroStim) && ...
-                        strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_astrctMicroStim(1).m_strWhenToStimulate,'LeaveFixation') && ...
-                ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation)
+        if  isfield(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod,'m_astrctMicroStim') && ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_astrctMicroStim) && ...
+                strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_astrctMicroStim(1).m_strWhenToStimulate,'LeaveFixation') && ...
+                ~isempty(g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod)
             
-                    pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition;
-                    fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix;
-                    fDistX=strctInputs.m_pt2iEyePosScreen(1)-pt2fFixationCenter(1);
-                    fDistY=strctInputs.m_pt2iEyePosScreen(2)-pt2fFixationCenter(2);
-                    if sqrt(fDistX.^2+fDistY.^2) > fThreshold && g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fStimulated == false
-                        fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_astrctMicroStim);
-                        g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fStimulated = true;
-                    end
+            pt2fFixationCenter = g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition;
+            fThreshold = g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix;
+            fDistX=strctInputs.m_pt2iEyePosScreen(1)-pt2fFixationCenter(1);
+            fDistY=strctInputs.m_pt2iEyePosScreen(2)-pt2fFixationCenter(2);
+            if sqrt(fDistX.^2+fDistY.^2) > fThreshold && g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fStimulated == false
+                fnParadigmToKofikoComm('MultiChannelStimulation',g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_astrctMicroStim);
+                g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fStimulated = true;
             end
-                 
-        % Check for eye position.
-        iNumChoices = length(g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia);
+        end
         
-        for iChoiceIter=1:iNumChoices
-            
-            fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition(1);
-            fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition(2);
-            
-            if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Rect')
-                bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize && ...
-                    abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
-            elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Circular')
-                fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
-                bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
-            else
-                assert('Unknown inside choice. Use Rect or Circular');
-            end
-            
-            if bInsideChoice
+        % Check for eye position.
+        %iNumChoices = length(g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia);
+        
+        if g_strctParadigm.m_bDebugModeEnabled
+            %dbstop if warning
+            %warning('stop')
+        end
+        fDistX = strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_afChoiceRingLocation(1);
+        fDistY = strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_afChoiceRingLocation(2);
+        euclidianDistance = sqrt(fDistX^2 + fDistY^2);
+		%disp(sprintf('mouse distance = %f, choice ring size = %f',euclidianDistance, g_strctParadigm.m_strctCurrentTrial.m_iChoiceRingSize))
+		%dbstop if warning
+           % warning('stop')
+        if euclidianDistance < g_strctParadigm.m_strctCurrentTrial.m_iChoiceRingSize
+            if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'ring')
+                % eye trace is inside the choice ring
+                [choiceDirectionTheta, choiceDirectionRho] = cart2pol(strctInputs.m_pt2iEyePosScreen(1) - g_strctParadigm.m_strctCurrentTrial.m_afChoiceRingLocation(1), ...
+                    g_strctParadigm.m_strctCurrentTrial.m_afChoiceRingLocation(2) - strctInputs.m_pt2iEyePosScreen(2));
+                choiceDirectionTheta = wrapTo2Pi(choiceDirectionTheta);
+                
+                choiceDirectionTheta = wrapTo2Pi(choiceDirectionTheta + deg2rad(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle));
+                %choiceDirectionTheta - wrapTo2Pi(-deg2rad(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle));
                 g_strctParadigm.m_fInsideChoiceTS = GetSecs();
-                g_strctParadigm.m_iSelectedChoice = iChoiceIter;
-                
-                % This will keep track of multiple decisions....
-                % add only monkey exited the previous target
-                % first... otherwise, he keeps looking at the wrong
-                % one and we don't want to keep adding this to the
-                % selected choice list...
-                if g_strctParadigm.m_bWasOutsideChoice
-                    g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectCounter = g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectCounter + 1;
-                    g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_afSelectedChoiceTS(g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectCounter) = g_strctParadigm.m_fInsideChoiceTS;
-                    g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_aiSelectedChoice(g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectCounter) = g_strctParadigm.m_iSelectedChoice;
-                    g_strctParadigm.m_bWasOutsideChoice = false;
-                end
-                
-                
-                if g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS == 0
-                    % This is considered a commitment!
-                    fnParadigmToKofikoComm('SetParadigmState', sprintf('Selected %d', g_strctParadigm.m_iSelectedChoice ));
-                    % Monkey committed to a choice
-                    g_strctParadigm.m_iMachineState = 23;
+                [insideRhoSat,~] = find(choiceDirectionRho >= g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(:,:,1) & choiceDirectionRho < g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(:,:,2));
+                if isempty(insideRhoSat)
+                    
+                    bInsideChoice = false;
+                    
                 else
-                    % Still have time to change his mind....
-                    % Entered a choice region, but time has not elapsed
-                    % enough
+                    bInsideChoice = true;
+                    iSelectedChoiceRhoID = unique(insideRhoSat);
+                    
+                    [~, iSelectedChoiceThetaID] = min(abs(choiceDirectionTheta - g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(iSelectedChoiceRhoID,:)));
+                    
+                    g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice = [iSelectedChoiceRhoID,iSelectedChoiceThetaID];
+                    g_strctParadigm.m_strctCurrentTrial.m_aiAllChoiceSelections(end+1,:) = g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice;
+                    g_strctParadigm.m_fInsideChoiceTS = GetSecs();
+                    
+                    fnParadigmToKofikoComm('SetParadigmState',sprintf('Choice Theta = %f', choiceDirectionTheta) );
                     g_strctParadigm.m_iMachineState = 22;
                 end
-            else
-                g_strctParadigm.m_bWasOutsideChoice = true;
+            elseif strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') ||...
+                    strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli') ||...
+                    strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
+                %dbstop if warning
+                %warning('stop');
+                %{
+                insideChoices = strctInputs.m_pt2iEyePosScreen(1) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,1) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,2) & ...
+                    strctInputs.m_pt2iEyePosScreen(1) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,3) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,4);
+                %}
+				insideChoices = strctInputs.m_pt2iEyePosScreen(1) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,1) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,2) & ...
+                    strctInputs.m_pt2iEyePosScreen(1) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,3) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,4);
+				%g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiChoiceFramingRects
+                if any(any(insideChoices))
+                    [g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(1),...
+                    g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(2)] = ...
+                    find(strctInputs.m_pt2iEyePosScreen(1) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,1) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,2) & ...
+                    strctInputs.m_pt2iEyePosScreen(1) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,3) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,4));
+                %g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects( g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat, ...
+                % g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor,:)
+                %
+                %g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice = [g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat,...
+                %    g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor];
+                    bInsideChoice = true;
+                    g_strctParadigm.m_fInsideChoiceTS = GetSecs();
+                    g_strctParadigm.m_iMachineState = 22;
+					
+                end
             end
-            
-            
         end
+        
     case 22
         % Monkey saccaded to a choice, however, the "hold to choice" is
         % larger than zero, so the monkey needs to commit by staying on a
         % choice for enough time....
-        
+        bInsideChoice = true;
+		%dbstop if warning
+		%warning('stop');
         fElapsedTime = GetSecs()-g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_fChoicesOnsetTS_Kofiko ;
         if fElapsedTime > g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fTrialTimeoutMS/1e3
             % Trial Timeout!
             g_strctParadigm.m_iMachineState = 24;
         end
-        
-        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_pt2fPosition(1);
-        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_pt2fPosition(2);
-        if strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Rect')
-            bInsideChoice = abs(fDistX) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize && ...
-                abs(fDistY) <= g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
-        elseif strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType,'Circular')
-            fDistToFixationSpot = sqrt(fDistX*fDistX+fDistY*fDistY);
-            bInsideChoice = fDistToFixationSpot <=g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize;
+        if g_strctParadigm.m_bDebugModeEnabled
+            %dbstop if warning
+            %ShowCursor()
+            %warning('stop')
         end
-        
-        if ~bInsideChoice
-            % Monkey switched his mind and looked outside this target.
-            % before the time to commit elapsed...
-            g_strctParadigm.m_bWasOutsideChoice = true;
-            g_strctParadigm.m_iMachineState = 21;
+        fDistX=strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_afChoiceRingLocation(1);
+        fDistY=strctInputs.m_pt2iEyePosScreen(2)-g_strctParadigm.m_strctCurrentTrial.m_afChoiceRingLocation(2);
+        euclidianDistance = sqrt(fDistX^2 + fDistY^2);
+				%disp(sprintf('mouse distance = %f, choice ring size = %f',euclidianDistance, g_strctParadigm.m_strctCurrentTrial.m_iChoiceRingSize))
+
+        if euclidianDistance <  g_strctParadigm.m_strctCurrentTrial.m_iChoiceRingSize
+            if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'ring')
+                [choiceDirectionTheta, choiceDirectionRho] = cart2pol(strctInputs.m_pt2iEyePosScreen(1)-g_strctParadigm.m_strctCurrentTrial.m_afChoiceRingLocation(1), ...
+                    g_strctParadigm.m_strctCurrentTrial.m_afChoiceRingLocation(2) - strctInputs.m_pt2iEyePosScreen(2));
+                choiceDirectionTheta = wrapTo2Pi(choiceDirectionTheta);
+                
+                choiceDirectionTheta = wrapTo2Pi(choiceDirectionTheta + deg2rad(g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle));
+                fnParadigmToKofikoComm('SetParadigmState',sprintf('Choice Theta = %f', choiceDirectionTheta) );
+                
+                %g_strctParadigm.m_fInsideChoiceTS = GetSecs();
+                [insideRhoSat,~] = find(choiceDirectionRho >= g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(:,:,1) & choiceDirectionRho < g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(:,:,2));
+                if isempty(insideRhoSat)
+                    bBlinkTimerElapsed = fnCheckBlinkTimer('check');
+                    if bBlinkTimerElapsed
+                        bInsideChoice = false;
+                        g_strctParadigm.m_iMachineState = 21;
+                    end
+                else
+                    iSelectedChoiceRhoID = unique(insideRhoSat);
+                    [~, iSelectedChoiceThetaID] = min(abs(choiceDirectionTheta - g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(iSelectedChoiceRhoID,:)));
+                    iCurrentlySelectedChoice = [iSelectedChoiceRhoID,iSelectedChoiceThetaID];
+                    %fnParadigmToKofikoComm('SetParadigmState',sprintf('Currently selected choice = %i %i', iCurrentlySelectedChoice(1), iCurrentlySelectedChoice(2)));
+                    if ~(iCurrentlySelectedChoice(1) == g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(1)) || ...
+                            ~(iCurrentlySelectedChoice(2) == g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(2))
+                        % animal is still inside the choice region, but has a different choice selected than previous
+                        bBlinkTimerElapsed = fnCheckBlinkTimer('check');
+                        if bBlinkTimerElapsed
+                            % fnParadigmToKofikoComm('SetParadigmState','Choice Changed');
+                            
+                            g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice = iCurrentlySelectedChoice;
+                            g_strctParadigm.m_strctCurrentTrial.m_aiAllChoiceSelections(end+1,:) = g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice;
+                            % restart the inside choice region timer
+                            g_strctParadigm.m_fInsideChoiceTS = GetSecs();
+                        end
+                        
+                    elseif (iCurrentlySelectedChoice(1) == g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(1)) || ...
+                            (iCurrentlySelectedChoice(2) == g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(2))
+                        if g_strctParadigm.m_bBlinkTimerActive
+                            fnCheckBlinkTimer('reset');
+                        end
+                        
+                    end
+                    
+                    
+                end
+            elseif strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') || ...
+					strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli') || ...
+					strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
+               
+                 insideChoices = strctInputs.m_pt2iEyePosScreen(1) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,1) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,2) & ...
+                    strctInputs.m_pt2iEyePosScreen(1) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,3) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,4);
+                if any(any(insideChoices)) 
+                    [g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat,...
+                    g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor] = ...
+                    find(strctInputs.m_pt2iEyePosScreen(1) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,1) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,2) & ...
+                    strctInputs.m_pt2iEyePosScreen(1) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,3) & ...
+                    strctInputs.m_pt2iEyePosScreen(2) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,4));
+                
+                iCurrentlySelectedChoice = [g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat, ...
+                    g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor];
+                if ~any(iCurrentlySelectedChoice)
+                    bBlinkTimerElapsed = fnCheckBlinkTimer('check');
+                    if bBlinkTimerElapsed
+                        bInsideChoice = false;
+                        g_strctParadigm.m_iMachineState = 21;
+                    end
+                    
+                elseif ~(iCurrentlySelectedChoice(1) == g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(1)) || ...
+                        ~(iCurrentlySelectedChoice(2) == g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(2))
+                    % animal is still inside the choice region, but has a different choice selected than previous
+                    bBlinkTimerElapsed = fnCheckBlinkTimer('check');
+                    if bBlinkTimerElapsed
+                        % fnParadigmToKofikoComm('SetParadigmState','Choice Changed');
+                        
+                        g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice = iCurrentlySelectedChoice;
+                        g_strctParadigm.m_strctCurrentTrial.m_aiAllChoiceSelections(end+1,:) = g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice;
+                        % restart the inside choice region timer
+                        g_strctParadigm.m_fInsideChoiceTS = GetSecs();
+                    end
+                    
+                elseif (iCurrentlySelectedChoice(1) == g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(1)) || ...
+                        (iCurrentlySelectedChoice(2) == g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice(2))
+                    if g_strctParadigm.m_bBlinkTimerActive
+                        fnCheckBlinkTimer('reset');
+                    end
+                    
+                end
+                else
+                    bBlinkTimerElapsed = fnCheckBlinkTimer('check');
+                    if bBlinkTimerElapsed
+                        bInsideChoice = false;
+                        g_strctParadigm.m_iMachineState = 21;
+                    end
+                end
+                %bInsideChoice = true;
+                %g_strctParadigm.m_iMachineState = 22;
+                
+            end
         else
             
-            % Monkey is still looking at the choice he selected
-            if GetSecs()-g_strctParadigm.m_fInsideChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS/1e3
-                g_strctParadigm.m_iMachineState = 23; % Monkey committed to a decision
-            else
-                fnParadigmToKofikoComm('SetParadigmState', sprintf('Waiting for correct answer (%.2f Sec)',g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fTrialTimeoutMS/1e3-fElapsedTime));
+            bBlinkTimerElapsed = fnCheckBlinkTimer('check');
+            if bBlinkTimerElapsed
+                bInsideChoice = false;
+                g_strctParadigm.m_iMachineState = 21;
             end
+            
+            
         end
-        
+        if bInsideChoice && GetSecs()-g_strctParadigm.m_fInsideChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS/1e3
+            g_strctParadigm.m_iMachineState = 23; % Monkey committed to a decision
+            if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'ring')
+                g_strctParadigm.m_strctCurrentTrial.m_fChoiceDirectionTheta = choiceDirectionTheta;
+                g_strctParadigm.m_strctCurrentTrial.m_fchoiceDirectionRho = choiceDirectionRho;
+            end
+        else
+            %fnParadigmToKofikoComm('SetParadigmState', sprintf('Waiting for correct answer (%.2f Sec)',g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fTrialTimeoutMS/1e3-fElapsedTime));
+        end
         
         
     case 23
         % Monkey has committed to a choice
         % First thing - has he made decision which entitles juice?
         
+        bGiveJuice = 0;
+        [bGiveJuice, bJuiceDropMultiplier, fJuiceTimeMultiplier] = fnDetermineJuiceReward();
         
-        bGiveJuice = g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_bJuiceReward;
+        %g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_bJuiceReward;
         if bGiveJuice > 0
             % Correct trial!
+            fnParadigmToKofikoComm('SetParadigmState','Correct Answer!');
+            %{
             if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_strRewardSound)
                 fnParadigmToStimulusServer('PlaySound',g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_strRewardSound);
             end
-            
-                        fnParadigmToStatServerComm('Send',['TrialOutcome ',num2str(g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialOutcomesCodes(3))]);
-                        fnParadigmToStatServerComm('Send','TrialEnd');
+            %}
+            fnParadigmToStatServerComm('Send',['TrialOutcome ',num2str(g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialOutcomesCodes(3))]);
+            fnParadigmToStatServerComm('Send','TrialEnd');
             
             fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialOutcomesCodes(3)); % 4 = CORRECT TRIAL
             fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialEndCode);
             
-            if (bGiveJuice < 1)
+            g_strctParadigm.m_strctTrialCounter.m_iTrialCounter = g_strctParadigm.m_strctTrialCounter.m_iTrialCounter + 1;
+			
+				if g_strctParadigm.m_bDebugModeEnabled
+					dbstop if warning
+					ShowCursor();
+					warning('stop')
+				end
+            if (bGiveJuice <= 1)
                 % Flip a coin.
-                if rand() < bGiveJuice
-                    fnParadigmToKofikoComm('Juice', g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS);
+                if rand() <= bGiveJuice
+                    fnParadigmToKofikoComm('Juice', g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS, 0, ...
+                        fnTsGetVar('g_strctParadigm','NumberOfJuiceDrops'),... % squeeze(g_strctParadigm.NumberOfJuiceDrops.Buffer(1,:,g_strctParadigm.NumberOfJuiceDrops.BufferIdx)),...
+                        fnTsGetVar('g_strctParadigm','JuiceDropInterval'));% squeeze(g_strctParadigm.JuiceDropInterval.Buffer(1,:,g_strctParadigm.JuiceDropInterval.BufferIdx)));
                     g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_bRewardGiven = true;
                 else
                     g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_bRewardGiven = false;
                 end
             else
-                fnParadigmToKofikoComm('Juice', g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS);
+                
+                juiceRewardMS = g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS;
+                if g_strctParadigm.m_iPositiveJuiceIncrement
+                    juiceRewardMS =  min((juiceRewardMS + (juiceRewardMS * g_strctParadigm.m_iPositiveJuiceIncrement*1e-1)), g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fJuiceTimeMSHigh);
+                end
+                if g_strctParadigm.m_strctTrainingVars.m_bTrainingMode && g_strctParadigm.m_strctTrainingVars.m_bAutoBalanceJuiceReward
+                    [biasAdjustedJuiceReward] = fnAdjustJuiceReward();
+                    biasAdjustedJuiceDrops = max(round(biasAdjustedJuiceReward * squeeze(g_strctParadigm.NumberOfJuiceDrops.Buffer(1,:,g_strctParadigm.NumberOfJuiceDrops.BufferIdx))),1);
+                    %biasAdjustedJuiceDrops
+                    
+                    
+                    fnParadigmToKofikoComm('Juice', round(biasAdjustedJuiceReward * juiceRewardMS), 0, ...
+                        biasAdjustedJuiceDrops,...
+                        squeeze(g_strctParadigm.JuiceDropInterval.Buffer(1,:,g_strctParadigm.JuiceDropInterval.BufferIdx)));
+                    
+                else
+                    
+                    fnParadigmToKofikoComm('Juice', juiceRewardMS, 0, ...
+                        squeeze(g_strctParadigm.NumberOfJuiceDrops.Buffer(1,:,g_strctParadigm.NumberOfJuiceDrops.BufferIdx)),...
+                        squeeze(g_strctParadigm.JuiceDropInterval.Buffer(1,:,g_strctParadigm.JuiceDropInterval.BufferIdx)));
+                    
+                    
+                    
+                    
+                end
+                
+                % Jackpot?
+                if rand() < g_strctParadigm.m_strctTrainingVars.m_fJackpotChance
+                    fnParadigmToKofikoComm('Juice', juiceRewardMS, 0, ...
+                        squeeze(g_strctParadigm.NumberOfJuiceDrops.Buffer(1,:,g_strctParadigm.NumberOfJuiceDrops.BufferIdx))*5,...
+                        squeeze(g_strctParadigm.JuiceDropInterval.Buffer(1,:,g_strctParadigm.JuiceDropInterval.BufferIdx))/2);
+                end
                 g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_bRewardGiven = true;
             end
             
@@ -804,29 +1200,31 @@ switch g_strctParadigm.m_iMachineState
                 % Just clear the screen?
                 fnParadigmToStimulusServer('AbortTrial');
             end
-            
+            %g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectedChoice = g_strctParadigm.m_iSelectedChoice;
             g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult = 'Correct';
             
             fnTsSetVarParadigm('acTrials',g_strctParadigm.m_strctCurrentTrial);
             feval(g_strctParadigm.m_strCallbacks,'TrialOutcome',g_strctParadigm.m_strctCurrentTrial);
             g_strctParadigm.m_fWaitTimer = GetSecs();
-            g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec;
+            g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec;
             g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
         else
             % Monkey selected a target with no reward. What do we do next?
-            if g_strctParadigm.m_strctCurrentTrial.m_strctChoices.m_bMultipleAttemptsUntilJuice
+            if g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_bMultipleAttemptsUntilJuice
                 % Record that an attempt was made at this target, Wait
                 % until release, and try again...
                 g_strctParadigm.m_iMachineState = 21;
             else
                 % Incorrect trial
+                %g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_iSelectedChoice = g_strctParadigm.m_iSelectedChoice;
                 g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult = 'Incorrect';
                 
-                        fnParadigmToStatServerComm('Send',['TrialOutcome ',num2str(g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialOutcomesCodes(2))]);
-                        fnParadigmToStatServerComm('Send','TrialEnd');
-                
+                fnParadigmToStatServerComm('Send',['TrialOutcome ',num2str(g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialOutcomesCodes(2))]);
+                fnParadigmToStatServerComm('Send','TrialEnd');
+                g_strctParadigm.m_strctTrialCounter.m_iTrialCounter = g_strctParadigm.m_strctTrialCounter.m_iTrialCounter + 1;
                 fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialOutcomesCodes(2)); % 4 = INCORRECT TRIAL
                 fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialEndCode);
+                
                 
                 if g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_bExtinguishNonSelectedChoicesAfterChoice
                     fnParadigmToStimulusServer('AbortTrial',...
@@ -838,14 +1236,16 @@ switch g_strctParadigm.m_iMachineState
                 fnTsSetVarParadigm('acTrials',g_strctParadigm.m_strctCurrentTrial);
                 feval(g_strctParadigm.m_strCallbacks,'TrialOutcome',g_strctParadigm.m_strctCurrentTrial);
                 g_strctParadigm.m_fWaitTimer = GetSecs();
-                g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec+...
+                g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec+...
                     g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fIncorrectTrialPunishmentDelayMS/1e3;
                 g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
                 
             end
             
         end
-        
+        if g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
+            fnSaveBackup();
+        end
         
     case 24
         % Trial Timeout!
@@ -855,15 +1255,19 @@ switch g_strctParadigm.m_iMachineState
         fnParadigmToStatServerComm('Send',['TrialOutcome ',num2str(g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialOutcomesCodes(4))]);
         fnParadigmToStatServerComm('Send','TrialEnd');
         
+        
+        
         fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialOutcomesCodes(4)); % 4 = TIMEOUT
         fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctDesign.m_strctStatServerDesign.TrialEndCode);
         
         fnTsSetVarParadigm('acTrials',g_strctParadigm.m_strctCurrentTrial);
         feval(g_strctParadigm.m_strCallbacks,'TrialOutcome',g_strctParadigm.m_strctCurrentTrial);
         g_strctParadigm.m_fWaitTimer = GetSecs();
-        g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec;
+        g_strctParadigm.m_fWaitPeriodSec =  g_strctParadigm.m_strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec;
         g_strctParadigm.m_iMachineState = 11; % Wait ITI and start new trial
-        
+        if g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
+            fnSaveBackup();
+        end
     case 200
         % Waiting for first MRI trigger
         fnParadigmToKofikoComm('SetParadigmState','Waiting for first MRI trigger');
@@ -943,4 +1347,143 @@ g_strctParadigm.m_hNoiseHandle = Screen('MakeTexture', g_strctPTB.m_hWindow,  a3
 
 
 return;
+
+function [bGiveJuice, bJuiceDropMultiplier, fJuiceTimeMultiplier] = fnDetermineJuiceReward()
+global g_strctParadigm
+if g_strctParadigm.m_bDebugModeEnabled
+    dbstop if warning
+    ShowCursor();
+    warning('stop')
+end
+%dbstop if warning
+%warning('stop')
+if ~isfield(g_strctParadigm.m_strctCurrentTrial,'m_iCurrentlySelectedChoiceSat') || isempty(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat)
+bGiveJuice = 0;
+bJuiceDropMultiplier= 0;
+fJuiceTimeMultiplier = 0;
+return;
+end
+if g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor <= 16
+       g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat = 1;
+       g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor = g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor;
+    elseif g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor > 16 && ...
+            g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor <= 24
+         g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat = 2;
+          g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor = g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor - 16;
+    else
+         g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat = 3;
+          g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor = g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor - 24;
+    end
+
+g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_strChosenSaturation = ...
+				g_strctParadigm.m_strctCurrentTrial.m_strActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat};
+
+g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_strctChosenSaturation = ...
+	g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat};
+
+g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_afChosenCartColorCoordinates = ...
+	g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat}.m_afCartCoordinates(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor,:);
+
+g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_afChosenSphColorCoordinates = ...
+	g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat}.m_afSphereCoordinates(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor,:);
+	
+%strctCurrentTrial = g_strctParadigm.m_strctCurrentTrial;
+if g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_bBinaryReward
+    if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') ...
+            || strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli') ...
+            || strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
+        if any(g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{1} == ...
+                g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat) && ...
+                any(g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{2} == ...
+                g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor) 
+            bGiveJuice = true;
+            bJuiceDropMultiplier = 1;
+            fJuiceTimeMultiplier = 1;
+        else
+            bGiveJuice = false;
+            bJuiceDropMultiplier = 0;
+            fJuiceTimeMultiplier =0;
+        end
+        %strctCurrentTrial.m_aiInsideChoiceRects
+        % Null trial case. Do we reward null trials? If so, check the rho to
+        % make sure its in the null trial zone, and set reward
+    elseif  strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'ring')
+        if strcmp(g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_strRewardSaturationName, 'null') && g_strctParadigm.m_bRewardCorrectNullTrials && ...
+                (g_strctParadigm.m_strctCurrentTrial.m_fchoiceDirectionRho > g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiRhoRange(1)) && ...
+                (g_strctParadigm.m_strctCurrentTrial.m_fchoiceDirectionRho < g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiRhoRange(2))
+            bGiveJuice = true;
+            bJuiceDropMultiplier = 1;
+            fJuiceTimeMultiplier = 1;
+        else
+            % only cue color and saturation are rewarded
+            
+            
+            
+            
+            if (g_strctParadigm.m_strctCurrentTrial.m_fChoiceDirectionTheta < (g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_afRingTheta + g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_fChoiceThetaTolerance)) && ...
+                    (g_strctParadigm.m_strctCurrentTrial.m_fChoiceDirectionTheta > (g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_afRingTheta - g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_fChoiceThetaTolerance)) && ...
+                    (g_strctParadigm.m_strctCurrentTrial.m_fchoiceDirectionRho > g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiRhoRange(1)) && ...
+                    (g_strctParadigm.m_strctCurrentTrial.m_fchoiceDirectionRho < g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiRhoRange(2))
+                bGiveJuice = true;
+                bJuiceDropMultiplier = 1;
+                fJuiceTimeMultiplier = 1;
+                
+                %g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID
+                %g_strctParadigm.m_strctCurrentTrial.m_strctReward
+            else
+                bGiveJuice = false;
+                bJuiceDropMultiplier = 0;
+                fJuiceTimeMultiplier = 0;
+            end
+        end
+    end
+    
+else
+    % animal can be rewarded for wrong answers within a certain range of
+    % the correct answer
+    
+end
+return;
+
+function [rewardAdjust] = fnAdjustJuiceReward()
+global g_strctParadigm
+
+
+
+
+
+%% bias adjusted juice reward calculations
+
+% positively adjusts non-biased direction and negatively adjusts positively biased directions
+% adjusts based on direction from fixation point
+
+
+
+
+
+[choiceDirection, choiceDirectionOpposite] = fnCalculateAnswerDirection();
+
+if g_strctParadigm.m_strctStatistics.m_strctAllDesigns.m_iNumTrials >= g_strctParadigm.m_strctTrainingVars.m_iMinimumTrialsBeforeBalance
+    
+    if 5 > abs((g_strctParadigm.m_strctStatistics.m_aiAnswerDirectionBias(choiceDirection) - (g_strctParadigm.m_strctStatistics.m_aiAnswerDirectionBias(choiceDirectionOpposite))))
+        rewardAdjust = 1 / (g_strctParadigm.m_strctStatistics.m_aiAnswerDirectionBias(choiceDirection) / ...
+            (g_strctParadigm.m_strctStatistics.m_aiAnswerDirectionBias(choiceDirectionOpposite)));
+    else
+        rewardAdjust = 1;
+        
+    end
+    
+    
+    if rewardAdjust == 0 || isnan(rewardAdjust) || rewardAdjust <= .8
+        rewardAdjust = .7;
+    elseif isinf(rewardAdjust) || rewardAdjust >= 1.2
+        rewardAdjust = 1.3;
+    end
+else
+    rewardAdjust = 1;
+    
+end
+
+return;
+
 

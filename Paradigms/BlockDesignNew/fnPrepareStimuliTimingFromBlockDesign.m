@@ -43,7 +43,7 @@ end
 
 clear strctRun
 % Iterate over blocks and build the presentation list.
-fTR_MS = fnTsGetVar(g_strctParadigm,'TR');
+fTR_MS = fnTsGetVar('g_strctParadigm','TR');
 strctRun.m_strOrderName = strctBlockOrder.m_strName;
 strctRun.m_iOrderIndex = g_strctParadigm.m_iActiveOrder;
 strctRun.m_acBlockNames = cell(1,iNumBlocks);
@@ -151,7 +151,7 @@ else
         if strcmp(g_strctParadigm.m_strctDesign.m_astrctGlobalVars(iVarIter).m_strName,ValueXML)
             % This is indeed a global variable!
             % We should have a time stampped variable with that name!
-            Value = fnTsGetVar(g_strctParadigm, ValueXML);
+            Value = fnTsGetVar('g_strctParadigm', ValueXML);
             return;
         end
     end

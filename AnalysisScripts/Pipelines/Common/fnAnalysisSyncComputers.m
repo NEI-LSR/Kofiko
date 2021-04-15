@@ -63,21 +63,7 @@ if iNumKofikoFrames ~= iNumPlexonFrames
                 assert(false);
             end
     else
-        for k=1:50
-            fprintf('Warning, running a dirty hack to sync things. This will probably not work on your session\n');
-        end
-        % Weird. Hacking to fix this....
-        % Get rid of the first plexon frame?
-        iSelectedPlexonFrame = 2;
-        strctPlexon.m_strctFrames.m_afStartTS_PLX= strctPlexon.m_strctFrames.m_afStartTS_PLX(iSelectedPlexonFrame);
-        strctPlexon.m_strctFrames.m_afEndTS_PLX= strctPlexon.m_strctFrames.m_afEndTS_PLX(iSelectedPlexonFrame);
-        strctPlexon.m_strctFrames.m_aiStartAD_Ind= strctPlexon.m_strctFrames.m_aiStartAD_Ind(iSelectedPlexonFrame);
-        strctPlexon.m_strctFrames.m_aiEndAD_Ind= strctPlexon.m_strctFrames.m_aiEndAD_Ind(iSelectedPlexonFrame);
-        strctPlexon.m_strctFrames.m_aiNumAD_Samples= strctPlexon.m_strctFrames.m_aiNumAD_Samples(iSelectedPlexonFrame);
-        strctPlexon.m_strctFrames.m_aiStartStrobe_Ind= strctPlexon.m_strctFrames.m_aiStartStrobe_Ind(iSelectedPlexonFrame);
-        strctPlexon.m_strctFrames.m_aiEndStrobe_Ind= strctPlexon.m_strctFrames.m_aiEndStrobe_Ind(iSelectedPlexonFrame);
-        strctPlexon.m_strctFrames.m_aiNumStrobeWord= strctPlexon.m_strctFrames.m_aiNumStrobeWord(iSelectedPlexonFrame);
-        iNumPlexonFrames = 1;
+        assert(false);
     end
     
 end

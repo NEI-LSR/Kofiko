@@ -1,11 +1,10 @@
 function [fSNR,afSNR_Time] = fnComputeUnitSNR_Aux(a2fWaveforms, afTimestamps)
 % Compute single unit Signal to noise ratio (see Kelly et al. J.
-% Neuroscience 2007) Comparison of Recordings from Microelectrode Arrays and Single Electrodes in the Visual Corte
+% Neuroscience 2007)
 afMean = mean(a2fWaveforms,1);
 fDenominator = (max(afMean(:))-min(afMean(:)));
 a2fDiff = a2fWaveforms-repmat(afMean,size(a2fWaveforms,1),1);
 SDe = std(a2fDiff(:));
-fSNR = fDenominator / (2*SDe);
 
 afTimeStampMinutes = (afTimestamps-afTimestamps(1))/60;
 fNumberMinutes = ceil(max(afTimeStampMinutes));
@@ -19,6 +18,7 @@ for i=1:fNumberMinutes+1
     end
 end
 
+fSNR = fDenominator / (2*SDe);
 afSNR_Time = afSNR_Time;
 
 return

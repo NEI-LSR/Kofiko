@@ -52,7 +52,7 @@ switch Command
     case 'get'
         switch strct
             case 'g_strctPlexon'
-                numElementsToExtract =  varargin{1};
+                %numElementsToExtract =  varargin{1};
                 
                 for i = 1:size(conditionIndex,2)
                     if g_strctPlexon.(subStruct).m_aiCircularBufferIndices(conditionIndex(i)) - varargin{1} <= 0

@@ -2,42 +2,55 @@
 <!-- Behavior GUI Configuration -->
 
 <Config>
-
+<!--PTB = psychophysics folder-->
 <Directories
-   LogFolder = "C:\Shay\Data\Logs\"
-   PTB_Folder = "C:\Shay\Code\PublicLib\PTB\"
+   LogFolder = "E:\Data\"
+   PTB_Folder = "C:\Toolbox\"
 > </Directories>
-
+<!--set static IP address for stimulus and stat servers-->
 <StimulusServer
     SingleComputerMode = "0"
     PTBScreen = "2"
-    Address = "192.168.50.94"
+    Address = "192.168.0.103"
     Port = "1502"
 > </StimulusServer>
 
+<!-- for accessing stimulus or stat server from each other?-->
 <RemoteAccess
     Port = "2000"
 > </RemoteAccess>
 
+<!--unknown, presumably device name refers to video capture card or output from primary video card-->
 <VideoStreaming
     DeviceName = ""
     SampleRateHz = "0"
 > </VideoStreaming>
 
+<!--stat server info-->
 <RealTimeStatisticsServer
-    Address = "192.168.50.96"
+    Address = "192.168.0.100"
     Port = "4003"    
 > </RealTimeStatisticsServer>
 
+<!--get information from specific IScan hardware, fill in here-->
 <EyeCalib
-    CenterX = "2041"
-    CenterY = "2018"
+    CenterX = "1967"
+    CenterY = "2022"
     ScaleX = "-3.3"
     ScaleY = "3.3"
 > </EyeCalib>
 
+<!-- sounds and audiodevices added by josh, threw undefined field error otherwise-->
+<Sounds
+	DeviceName = "Digital Audio (S/PDIF) (High De"
+></Sounds>
+
+<AudioDevices
+	AudioDeviceName = "Digital Audio (S/PDIF) (High De"
+></AudioDevices>
+
 <VarSave
-    EyePos = "0"
+    EyePos = "1"
     EyePosSampleRateHz = "120"
     ExternalTriggers = "1"
     Spikes = "0"
@@ -46,6 +59,10 @@
     WaterLevelUponExit = "0"
 > </VarSave>
 
+<!--some unknown values here, will have to fiddle
+key numbers correspond to keys as per: http://help.adobe.com/en_US/AS2LCR/Flash_10.0/help.html?content=00000520.html
+PTB refers to psychophysics toolbox, screen = ? presumably PTB GUI
+-->
 <GUIParams
     PTBScreen = "0"
     Experimental = "0"
@@ -59,7 +76,8 @@
     ResetStatKey = "82"
     TogglePTB = "80"
     ToggleStat = "72"
-
+	
+	
     RefreshRateMS = "60"
     SpikeRateUpdateMS = "500"
     StatisticsRefreshRateMS = "1000"
@@ -72,11 +90,13 @@
 
 > </GUIParams>
 
+<!--data acquisition stuff, will have to fill in with values from specific hardware
+setting VirtualDAQ and usemouseclickaseyeposition to 1 for testing purposes, 0 for default-->
 <DAQ
     VirtualDAQ = "0"
-    AcqusitionCard = "mc"
+    AcqusitionCard = "ni"
     AcqusitionCardBoard = "0"
-    JuicePort = "16"
+    JuicePort = "6"
     StartRecordPort = "17"
     StimulationPort = "18"
     UseMouseClickAsEyePosition = "0"
@@ -99,7 +119,6 @@
     MouseWheelToMM = "115"
     SystemStrobeFile = "SystemStrobeEvents.txt"
 > </DAQ>
-
 
 <Paradigms>
 
@@ -130,8 +149,8 @@
         Initial_JuiceTimeMS = "50"
         Initial_JuiceTimeHighMS = "70"
         Initial_BlinkTimeMS = "200"
-        Initial_GazeTimeMS = "3500"
-        Initial_GazeTimeLowMS = "3000"
+        Initial_GazeTimeMS = "1500"
+        Initial_GazeTimeLowMS = "1000"
         Initial_BackgroundColor = "128 128 128"
         Initial_FixationSizePix = "4"
         Initial_GazeBoxPix = "150"
@@ -178,8 +197,8 @@
         Initial_StimulusOFF_MS = "200"
         Initial_RandomStimuli = "1"
   
-        Initial_DefaultImageFolder = "\\Kofiko-23B\StimulusSet\"
-        Initial_DefaultImageList = "\\Kofiko-23B\StimulusSet\Monkey_Bodyparts\StandardFOB_v2.txt"
+        Initial_DefaultImageFolder = "\\CONWAYLAB-PC\Kofiko\stimulusSet\passive_fix\"
+        Initial_DefaultImageList = "\\CONWAYLAB-PC\Kofiko\stimulusSet\passive_fix\Fixate_Microstim.xml"
         Initial_FavroiteList1 = "\\Kofiko-23B\StimulusSet\Monkey_Bodyparts\StandardFOB_v5_Inv_Edges.txt"
         Initial_FavroiteList2 = "\\Kofiko-23B\StimulusSet\Monkey_Bodyparts\StandardFOB_v4_Inv_Cropped.txt"
         Initial_FavroiteList3 = "\\Kofiko-23B\StimulusSet\Monkey_Bodyparts\StandardFOB_v4_Inv_Cropped_External.txt"
@@ -207,6 +226,68 @@
 
    > </Paradigm>   
    
+   
+   <Paradigm Name = "Calibrate"
+        Init = "fnParadigmPassiveFixationInitNew"
+        Cycle = "fnParadigmPassiveFixationCycleNew"
+        Draw = "fnParadigmPassiveFixationDrawNew"
+        DrawCycle = "fnParadigmPassiveFixationDrawCycleNew"
+        Callbacks = "fnParadigmCalibrateCallbacks"
+        GUI = "fnCalibrationGUI"
+        Close = "fnParadigmPassiveFixationCloseNew"
+        ParadigmSwitch = "fnParadigmPassiveFixationParadigmSwitchNew"
+        StrobeCodes = "PassiveFixationStrobeCodesNew.txt"
+
+        Initial_ShowPhotodiodeRect = "1"
+
+        Initial_ShowImagesOnLoad = "0"
+        Initial_RescaleToPower2 = "0"
+        Initial_PreloadTexturesVRAM = "1"
+
+        Initial_GazeBoxPix = "100"
+        Initial_JuiceTimeMS = "45"
+        Initial_JuiceTimeHighMS = "55"
+        Initial_BlinkTimeMS = "300"
+        Initial_GazeTimeMS = "3500"
+        Initial_GazeTimeLowMS = "3000"
+        Initial_PositiveIncrementPercent = "10"
+
+        Initial_BackgroundColor = "128 128 128"
+        Initial_FixationSizePix = "4"
+        Initial_StimulusSizePix = "128"
+        Initial_StimulusON_MS = "200"
+        Initial_StimulusOFF_MS = "200"
+        Initial_RandomStimuli = "1"
+  
+        Initial_DefaultImageFolder = "Z:\stimulusSet\passive_fix\"
+        Initial_DefaultImageList = "Z:\stimulusSet\passive_fix\Fix.xml"
+        Initial_FavroiteList1 = "\\Kofiko-23B\StimulusSet\Monkey_Bodyparts\StandardFOB_v5_Inv_Edges.txt"
+        Initial_FavroiteList2 = "\\Kofiko-23B\StimulusSet\Monkey_Bodyparts\StandardFOB_v4_Inv_Cropped.txt"
+        Initial_FavroiteList3 = "\\Kofiko-23B\StimulusSet\Monkey_Bodyparts\StandardFOB_v4_Inv_Cropped_External.txt"
+        Initial_FavroiteList4 = "\\Kofiko-23B\StimulusSet\Monkey_Bodyparts\StandardFOB_v4_Inv_Cropped_HistEq.txt"
+        Initial_FavroiteList5 = "\\Kofiko-23B\StimulusSet\CMU_CBCL_Experiment_Inv\CMU_CBCL_Experiment_Inv.txt"
+        Initial_FavroiteList6 = "\\Kofiko-23B\StimulusSet\face_views\imlist_faceviews.txt"
+        Initial_FavroiteList7 = "\\Kofiko-23B\StimulusSet\Sinha_v2_FOB\Sinha_v2_FOB.txt"
+        Initial_FavroiteList8 = "\\Kofiko-23B\StimulusSet\Sinha_Profile\Sinha_Profile.txt"
+        Initial_FavroiteList9 = "\\Kofiko-23B\StimulusSet\Caltech256_VJ\ViolaJones.txt"
+        Initial_FavroiteList10 = "\\Kofiko-23B\StimulusSet\Illumination\Illumination.txt"
+        Initial_FavroiteList11 = "\\Kofiko-23B\StimulusSet\Sinha_Edges\Sinha_Edges.txt"
+        Initial_FavroiteList12 = "\\Kofiko-23B\StimulusSet\Sinha_v2_FOB_LP_32\Sinha_v2_FOB_LP_32.txt"
+        Initial_FavroiteList13 = "\\Kofiko-23B\StimulusSet\Sinha_v2_FOB_SecondTemplate\Sinha_v2_FOB_SecondTemplate.txt"
+        Initial_FavroiteList14 = "\\Kofiko-23B\StimulusSet\CMU_CBCL_Experiment\CMU_CBCL_Experiment.txt"
+        Initial_FavroiteList15 = "\\Kofiko-23B\StimulusSet\Monkey_Bodyparts\imlist.txt"
+
+        Initial_RandomPosition = "1"
+        Initial_RandomPositionMin = "50"
+        Initial_RandomPositionMax = "90"
+        Initial_RandomPositionRadius = "150"
+
+        Initial_HideStimulusWhenNotLooking = "1"
+
+        Initial_ParameterSweep = "0"
+		Initial_FitToScreen = "1"
+
+   > </Paradigm>   
 
 
     <Paradigm Name = "fMRI Block Design"

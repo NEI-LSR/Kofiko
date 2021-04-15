@@ -4,7 +4,7 @@ function fnRunParadigm()
 global g_bParadigmRunning g_strctGUIParams g_iCurrParadigm  g_strctAppConfig
 global g_strctParadigm g_strctStimulusServer g_strctDAQParams g_strctSystemCodes 
 global g_abParadigmInitialized g_astrctAllParadigms 
-global g_strctCycle g_iNextParadigm 
+global g_strctCycle g_iNextParadigm
 
 g_strctParadigm = g_astrctAllParadigms{g_iCurrParadigm};
 
@@ -117,7 +117,7 @@ fnDAQWrapper('StrobeWord', g_strctSystemCodes.m_iParadigmSwitch);
 fnLog('Switching to paradigm %s',g_strctParadigm.m_strName);
 
 % This will replace the silly fnLog in version later than 1010
-g_strctAppConfig = fnTsSetVar(g_strctAppConfig,'ParadigmSwitch',g_strctParadigm.m_strName);
+fnTsSetVar('g_strctAppConfig','ParadigmSwitch',g_strctParadigm.m_strName);
 
 fnLog('Finite state machine of %s is running, starting from state %d',...
     g_strctParadigm.m_strName, g_strctParadigm.m_iMachineState);
@@ -231,13 +231,15 @@ g_strctCycle.m_fMouseTouchTimer = GetSecs();
 g_strctCycle.m_pt2fPrevMousePos = [0,0];
 
 g_strctCycle.m_iDebugCounter = 1;
-g_strctCycle.m_a2fDebugTS = zeros(50,50000);
+%g_strctCycle.m_a2fDebugTS = zeros(50,50000);
 
 g_strctCycle.m_strState  = '';
 %% Main call is here
-while (g_bParadigmRunning)
+%while (g_bParadigmRunning)
+		
+        %fnKofikoCycleClean(g_bParadigmRunning);
         fnKofikoCycleClean();
- end;
+%%end;
 
 %%
 

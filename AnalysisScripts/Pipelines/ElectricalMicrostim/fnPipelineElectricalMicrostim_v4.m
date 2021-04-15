@@ -118,10 +118,10 @@ end;
          afDepthMM_Ch = fnMyInterp1(strctAdvancersInformation.m_afAdvancerChangeTS_Plexon(strctAdvancersInformation.m_aiAdvancerUniqueID == iAdvancerUniqueID_Ch),...
                 strctAdvancersInformation.m_afDepthRelativeToGridTop(strctAdvancersInformation.m_aiAdvancerUniqueID == iAdvancerUniqueID_Ch),afTrainsDeliveredAtThisDepth_TS_PLX) + ...
                 fChannelDepthOffset_RelativeToAdvancerReadoutMM;
-        [afUniqueDepthMM_Ch, aiMappingToUnique, aiCount2] = fnMyUnique(afDepthMM_Ch, fMergeDistanceMM);
+        [afUniqueDepthMM_Ch, aiMappingToUnique, aiCount] = fnMyUnique(afDepthMM_Ch, fMergeDistanceMM);
         iUniqueRecordingDepth = length(afUniqueDepthMM_Ch);
          
-         fnWorkerLog('Analyzing Channel %d. %d Unique depths found',strctChannel.m_iChannelID, iUniqueRecordingDepth);
+         fnWorkerLog('Analyzing Channel %d. %d Unique depths found',strctChannel.m_iChannelID, iNumUniqueDepthsStimulationGiven);
          for iDepthAtRecordingElectrodeIter=1:iUniqueRecordingDepth
              aiTrainSubset_TS_PLX = afTrainsDeliveredAtThisDepth_TS_PLX(aiMappingToUnique == iDepthAtRecordingElectrodeIter);
             fnWorkerLog('Ch %d at %.2f, %d Stimulations at %.2f',strctChannel.m_iChannelID, afUniqueDepthMM_Ch(iDepthAtRecordingElectrodeIter),...
@@ -147,44 +147,11 @@ end;
                      [a2bRaster,aiPeriStimulusRangeMS] = fnRaster3(afSpikeTimes_PLX,afTrainsOnset_TS_PLX, -iBeforeMS, iAfterMS,0.1);
                      
                      % Find stimulations triggered by spikes
-                     aiSpikingBeforeInd = find(aiPeriStimulusRangeMS >= -0.9 & aiPeriStimulusRangeMS <= -0.4);
-                     
-                     aiSpikingAfterInd = find(aiPeriStimulusRangeMS >= 3 & aiPeriStimulusRangeMS <= 5);
-                     
+                     aiSpikingBeforeInd = find(aiPeriStimulusRangeMS >= -0.9 & aiPeriStimulusRangeMS <= -0.7);
                      aiTrialsTriggeredBySpike = find(sum(double(a2bRaster(:,aiSpikingBeforeInd)),2) > 0.5);
-                     aiTrialsNotTriggeredBySpike = find(sum(double(a2bRaster(:,aiSpikingBeforeInd)),2) == 0 & ...
-                                                        sum(double(a2bRaster(:,aiSpikingAfterInd)),2) > 0.5);
-                     
-                      figure(15);
-                      clf;
-                      imagesc(aiPeriStimulusRangeMS,1:size(a2bRaster,1), a2bRaster);colormap gray
-                      
-                                                    figure(13);
+                      figure(13);
                      imagesc(aiPeriStimulusRangeMS,1:length(aiTrialsTriggeredBySpike), a2bRaster(aiTrialsTriggeredBySpike,:));colormap gray
-                     figure(14);
-                     imagesc(aiPeriStimulusRangeMS,1:length(aiTrialsNotTriggeredBySpike), a2bRaster(aiTrialsNotTriggeredBySpike,:));colormap gray
                      
-                     iMaxTrials = 100;
-                     aiSpikeBeforeInd = [];
-                     for iIter=1:min(iMaxTrials, length(aiTrialsTriggeredBySpike));
-                         aiSpikeBeforeInd = [aiSpikeBeforeInd; find(afSpikeTimes_PLX >= (afTrainsOnset_TS_PLX(aiTrialsTriggeredBySpike(iIter)) - 10/1000) & ...
-                             afSpikeTimes_PLX <= (afTrainsOnset_TS_PLX(aiTrialsTriggeredBySpike(iIter)) + 10/1000))];
-                     end
-                     
-                      aiSpikeAfterInd = [];
-                     for iIter=1:min(iMaxTrials, length(aiTrialsNotTriggeredBySpike))
-                         aiSpikeAfterInd = [aiSpikeAfterInd; find(afSpikeTimes_PLX >= (afTrainsOnset_TS_PLX(aiTrialsNotTriggeredBySpike(iIter)) + 3/1000) & ...
-                             afSpikeTimes_PLX <= (afTrainsOnset_TS_PLX(aiTrialsNotTriggeredBySpike(iIter)) + 5/1000))];
-                     end
-                     figure(15);
-                     clf; hold on;
-                     plot(a2fSpikeWaveForms(aiSpikeBeforeInd,:)','k')
-                     plot(a2fSpikeWaveForms(aiSpikeAfterInd,:)','r')
-                     
-                     
-                         
-%                      [a2fWaveFormsSubset, fnExtractSpikesByTrial(afSpikeTimes_PLX,a2fSpikeWaveForms, aiTrialsTriggeredBySpike)
-%                      
                      
                     aiSpikingAfterInd = find(aiPeriStimulusRangeMS >= 0.5 & aiPeriStimulusRangeMS <= 15);
                     

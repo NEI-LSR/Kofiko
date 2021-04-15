@@ -34,13 +34,13 @@ switch g_strctParadigm.m_iMachineState
 
         
         % Set ITI value
-        fMin = fnTsGetVar(g_strctParadigm,'InterTrialIntervalMinSec');
-        fMax = fnTsGetVar(g_strctParadigm,'InterTrialIntervalMaxSec');
+        fMin = fnTsGetVar('g_strctParadigm','InterTrialIntervalMinSec');
+        fMax = fnTsGetVar('g_strctParadigm','InterTrialIntervalMaxSec');
         g_strctParadigm.m_fWaitInterval = rand() * (fMax-fMin) + fMin;
         g_strctParadigm.m_fTimer1 = fCurrTime;
         % Set Next Touch Position
         aiStimulusScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-        fSpotSizePix = fnTsGetVar(g_strctParadigm,'SpotRadius');
+        fSpotSizePix = fnTsGetVar('g_strctParadigm','SpotRadius');
         fSpotX = fSpotSizePix + rand()*(aiStimulusScreenSize(3)-2*fSpotSizePix);
         fSpotY = fSpotSizePix + rand()*(aiStimulusScreenSize(4)-2*fSpotSizePix);
          
@@ -53,7 +53,7 @@ switch g_strctParadigm.m_iMachineState
         else
              g_strctParadigm.m_iMachineState = 2;
              g_strctParadigm.m_fWaitInterval = 0;
-             g_strctParadigm.m_fMin = fnTsGetVar(g_strctParadigm,'InterTrialIntervalMinSec');
+             g_strctParadigm.m_fMin = fnTsGetVar('g_strctParadigm','InterTrialIntervalMinSec');
         end
     case 2
         
@@ -103,7 +103,7 @@ switch g_strctParadigm.m_iMachineState
             end
         end
     case 5
-        fTimeout = fnTsGetVar(g_strctParadigm,'TrialTimeOutSec');
+        fTimeout = fnTsGetVar('g_strctParadigm','TrialTimeOutSec');
         if fCurrTime - g_strctParadigm.m_fTimer2 > fTimeout
             % Timeout!
             g_strctParadigm.m_strctCurrentTrial.m_strResult = 'TimeOut';
@@ -125,7 +125,7 @@ switch g_strctParadigm.m_iMachineState
                 
                 % Monkey touched the screen
                 fDistTouchToSpot = sqrt(sum((strctInputs.m_pt2iEyePosScreen - g_strctParadigm.m_strctCurrentTrial.m_pt2fSpotPos).^2));
-                fCorrectDist = fnTsGetVar(g_strctParadigm, 'CorrectDistancePix');
+                fCorrectDist = fnTsGetVar('g_strctParadigm', 'CorrectDistancePix');
                 
                 g_strctParadigm.m_strctCurrentTrial.m_fMonkeyTouch_TS = fCurrTime;
                 g_strctParadigm.m_strctCurrentTrial.m_pt2fMonkeyTouchPos = strctInputs.m_pt2iEyePosScreen;
@@ -144,7 +144,7 @@ switch g_strctParadigm.m_iMachineState
                     fnDrawSpotOnStimulusScreen(g_strctParadigm.m_strctCurrentTrial.m_pt2fSpotPos, ...
                                      g_strctParadigm.m_strctCurrentTrial.m_fSpotRad,[0 255 0]);
                       
-                    fJuiceTimeMS = fnTsGetVar(g_strctParadigm, 'JuiceTimeMS');
+                    fJuiceTimeMS = fnTsGetVar('g_strctParadigm', 'JuiceTimeMS');
                     fnParadigmToKofikoComm('Juice',  fJuiceTimeMS);
                     g_strctParadigm.m_iMachineState = 7; % Wait for monkey release                    
                 else

@@ -14,7 +14,7 @@ end
 AngleDiff = 360/iNumObjects;
 
 afAngles = [0:iNumObjects-1] * AngleDiff + fAngleOffset;
-fObjectSeparationPix = fnTsGetVar(g_strctParadigm,'ObjectSeparationPix');
+fObjectSeparationPix = fnTsGetVar('g_strctParadigm','ObjectSeparationPix');
 aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
 
 apt2fPos = [fObjectSeparationPix * sin(afAngles/180*pi) + aiScreenSize(3)/2;

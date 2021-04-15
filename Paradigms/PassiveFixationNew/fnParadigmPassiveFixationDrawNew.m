@@ -9,7 +9,7 @@ function fnParadigmPassiveFixationDrawNew()
 global g_strctPTB g_strctParadigm
 
 
-%% Get releavnt parameters
+%% Get relevant parameters
 aiStimulusScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
 pt2iFixationSpot = g_strctParadigm.FixationSpotPix.Buffer(1,:,g_strctParadigm.FixationSpotPix.BufferIdx);
 pt2fStimulusPos = g_strctParadigm.StimulusPos.Buffer(1,:,g_strctParadigm.StimulusPos.BufferIdx);

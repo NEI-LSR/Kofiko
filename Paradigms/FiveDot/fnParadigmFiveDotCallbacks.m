@@ -16,13 +16,13 @@ switch strCallback
     case 'GazeSlider'
         iNewGazeTimeMS = round(get(g_strctParadigm.m_strctControllers.m_hGazeSlider,'value'));
         set(g_strctParadigm.m_strctControllers.m_hGazeEdit,'String',num2str(iNewGazeTimeMS));
-        g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeMS',iNewGazeTimeMS);
+        fnTsSetVar('g_strctParadigm','GazeTimeMS',iNewGazeTimeMS);
         fnDAQWrapper('StrobeWord', fnFindCode('Gaze Time Changed'));                
         fnLog('Setting gaze to %d', iNewGazeTimeMS);
         g_strctParadigm.m_strctDynamicJuice.m_iFixationCounter = 0;
         iGazeTimeLowMS = g_strctParadigm.GazeTimeLowMS.Buffer(g_strctParadigm.GazeTimeLowMS.BufferIdx);
         if iNewGazeTimeMS < iGazeTimeLowMS
-            g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeLowMS',iNewGazeTimeMS);
+            fnTsSetVar('g_strctParadigm','GazeTimeLowMS',iNewGazeTimeMS);
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hGazeLowSlider, iNewGazeTimeMS);
             set(g_strctParadigm.m_strctControllers.m_hGazeLowEdit,'String',num2str(iNewGazeTimeMS));
         end
@@ -34,13 +34,13 @@ switch strCallback
         if ~isempty(iNewGazeTimeMS)
              iGazeTimeLowMS = g_strctParadigm.GazeTimeLowMS.Buffer(g_strctParadigm.GazeTimeLowMS.BufferIdx);
             if iNewGazeTimeMS < iGazeTimeLowMS
-                g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeLowMS',iNewGazeTimeMS);
+                fnTsSetVar('g_strctParadigm','GazeTimeLowMS',iNewGazeTimeMS);
                 fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hGazeLowSlider, iNewGazeTimeMS);
                 set(g_strctParadigm.m_strctControllers.m_hGazeLowEdit,'String',num2str(iNewGazeTimeMS));
             end
             g_strctParadigm.m_strctDynamicJuice.m_iFixationCounter = 0;
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hGazeSlider, iNewGazeTimeMS);
-            g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeMS',iNewGazeTimeMS);
+            fnTsSetVar('g_strctParadigm','GazeTimeMS',iNewGazeTimeMS);
             fnDAQWrapper('StrobeWord', fnFindCode('Gaze Time Changed'));                
             fnLog('Setting gaze to %d', iNewGazeTimeMS);
         end;
@@ -50,13 +50,13 @@ switch strCallback
         iNewGazeTimeLowMS = round(get(g_strctParadigm.m_strctControllers.m_hGazeLowSlider,'value'));
         iGazeTimeMS = g_strctParadigm.GazeTimeMS.Buffer(g_strctParadigm.GazeTimeMS.BufferIdx);
         if iNewGazeTimeLowMS > iGazeTimeMS
-           g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeMS',iNewGazeTimeLowMS);
+           fnTsSetVar('g_strctParadigm','GazeTimeMS',iNewGazeTimeLowMS);
            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hGazeSlider, iNewGazeTimeLowMS);  
            set(g_strctParadigm.m_strctControllers.m_hGazeEdit,'String',num2str(iNewGazeTimeLowMS));
         end
         g_strctParadigm.m_strctDynamicJuice.m_iFixationCounter = 0;
         set(g_strctParadigm.m_strctControllers.m_hGazeLowEdit,'String',num2str(iNewGazeTimeLowMS));
-        g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeLowMS',iNewGazeTimeLowMS);
+        fnTsSetVar('g_strctParadigm','GazeTimeLowMS',iNewGazeTimeLowMS);
         fnLog('Setting low gaze time to %d', iNewGazeTimeLowMS);
     case 'GazeLowEdit'
         strTemp = get(g_strctParadigm.m_strctControllers.m_hGazeLowEdit,'string');
@@ -65,14 +65,14 @@ switch strCallback
            
             iGazeTimeMS = g_strctParadigm.GazeTimeMS.Buffer(g_strctParadigm.GazeTimeMS.BufferIdx);
             if iNewGazeTimeLowMS > iGazeTimeMS
-                g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeMS',iNewGazeTimeLowMS);
+                fnTsSetVar('g_strctParadigm','GazeTimeMS',iNewGazeTimeLowMS);
                 fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hGazeSlider, iNewGazeTimeLowMS);
                 set(g_strctParadigm.m_strctControllers.m_hGazeEdit,'String',num2str(iNewGazeTimeLowMS));
             end
 
             g_strctParadigm.m_strctDynamicJuice.m_iFixationCounter = 0;
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hGazeLowSlider, iNewGazeTimeLowMS);
-            g_strctParadigm = fnTsSetVar(g_strctParadigm,'GazeTimeLowMS',iNewGazeTimeLowMS);
+            fnTsSetVar('g_strctParadigm','GazeTimeLowMS',iNewGazeTimeLowMS);
             fnLog('Setting low gaze time to %d', iNewGazeTimeLowMS);
         end;
         
@@ -80,7 +80,7 @@ switch strCallback
   case 'PositiveIncSlider'
         iNewPositiveInc = round(get(g_strctParadigm.m_strctControllers.m_hPositiveIncSlider,'value'));
         set(g_strctParadigm.m_strctControllers.m_hPositiveIncEdit,'String',num2str(iNewPositiveInc));
-        g_strctParadigm= fnTsSetVar(g_strctParadigm,'PositiveIncrement',iNewPositiveInc);
+        fnTsSetVar('g_strctParadigm','PositiveIncrement',iNewPositiveInc);
         fnLog('Setting positive increment percentage to %d ', iNewPositiveInc);
         g_strctParadigm.m_strctDynamicJuice.m_iFixationCounter = 0;
     case 'PositiveIncEdit'
@@ -88,7 +88,7 @@ switch strCallback
         iNewPositiveInc = fnMyStr2Num(strTemp);
         if ~isempty(iNewPositiveInc)
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPositiveIncSlider, iNewPositiveInc);
-            g_strctParadigm= fnTsSetVar(g_strctParadigm,'PositiveIncrement',iNewPositiveInc);
+            fnTsSetVar('g_strctParadigm','PositiveIncrement',iNewPositiveInc);
              fnLog('Setting positive increment percentage to %d ', iNewPositiveInc);
              g_strctParadigm.m_strctDynamicJuice.m_iFixationCounter = 0;
         end;
@@ -104,7 +104,7 @@ switch strCallback
         iNewBlinkTime = fnMyStr2Num(strTemp);
         if ~isempty(iNewBlinkTime)
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hBlinkTimeSlider, iNewBlinkTime);
-            g_strctParadigm= fnTsSetVar(g_strctParadigm,'BlinkTimeMS',iNewBlinkTime);
+            fnTsSetVar('g_strctParadigm','BlinkTimeMS',iNewBlinkTime);
             fnLog('Setting Blink time to %d ms', iNewBlinkTime);
         end;
 
@@ -219,13 +219,13 @@ switch strCallback
    case 'JuiceSlider'
         iNewJuiceTimeMS = round(get(g_strctParadigm.m_strctControllers.m_hJuiceSlider,'value'));
         set(g_strctParadigm.m_strctControllers.m_hJuiceEdit,'String',num2str(iNewJuiceTimeMS));
-        g_strctParadigm = fnTsSetVar(g_strctParadigm,'JuiceTimeMS',iNewJuiceTimeMS);
+        fnTsSetVar('g_strctParadigm','JuiceTimeMS',iNewJuiceTimeMS);
         fnDAQWrapper('StrobeWord', fnFindCode('Juice Time Changed'));                
         fnLog('Setting Juice to %d', iNewJuiceTimeMS);
         
         iJuiceTimeHighMS = g_strctParadigm.JuiceTimeHighMS.Buffer(g_strctParadigm.JuiceTimeHighMS.BufferIdx);
         if iNewJuiceTimeMS > iJuiceTimeHighMS
-            g_strctParadigm = fnTsSetVar(g_strctParadigm,'JuiceTimeHighMS',iNewJuiceTimeMS);
+            fnTsSetVar('g_strctParadigm','JuiceTimeHighMS',iNewJuiceTimeMS);
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hJuiceHighSlider, iNewJuiceTimeMS);
             set(g_strctParadigm.m_strctControllers.m_hJuiceHighEdit,'String',num2str(iNewJuiceTimeMS));
         end
@@ -237,12 +237,12 @@ switch strCallback
         if ~isempty(iNewJuiceTimeMS)
              iJuiceTimeHighMS = g_strctParadigm.JuiceTimeHighMS.Buffer(g_strctParadigm.JuiceTimeHighMS.BufferIdx);
             if iNewJuiceTimeMS > iJuiceTimeHighMS
-                g_strctParadigm = fnTsSetVar(g_strctParadigm,'JuiceTimeHighMS',iNewJuiceTimeMS);
+                fnTsSetVar('g_strctParadigm','JuiceTimeHighMS',iNewJuiceTimeMS);
                 fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hJuiceHighSlider, iNewJuiceTimeMS);
                 set(g_strctParadigm.m_strctControllers.m_hJuiceHighEdit,'String',num2str(iNewJuiceTimeMS));
             end
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hJuiceSlider, iNewJuiceTimeMS);
-            g_strctParadigm = fnTsSetVar(g_strctParadigm,'JuiceTimeMS',iNewJuiceTimeMS);
+            fnTsSetVar('g_strctParadigm','JuiceTimeMS',iNewJuiceTimeMS);
             fnDAQWrapper('StrobeWord', fnFindCode('Juice Time Changed'));                
             fnLog('Setting Juice to %d', iNewJuiceTimeMS);
         end;
@@ -252,13 +252,13 @@ switch strCallback
         iNewJuiceTimeHighMS = round(get(g_strctParadigm.m_strctControllers.m_hJuiceHighSlider,'value'));
         iJuiceTimeMS = g_strctParadigm.JuiceTimeMS.Buffer(g_strctParadigm.JuiceTimeMS.BufferIdx);
         if iNewJuiceTimeHighMS < iJuiceTimeMS
-           g_strctParadigm = fnTsSetVar(g_strctParadigm,'JuiceTimeMS',iNewJuiceTimeHighMS);
+           fnTsSetVar('g_strctParadigm','JuiceTimeMS',iNewJuiceTimeHighMS);
            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hJuiceSlider, iNewJuiceTimeHighMS);  
            set(g_strctParadigm.m_strctControllers.m_hJuiceEdit,'String',num2str(iNewJuiceTimeHighMS));
         end
         
         set(g_strctParadigm.m_strctControllers.m_hJuiceHighEdit,'String',num2str(iNewJuiceTimeHighMS));
-        g_strctParadigm = fnTsSetVar(g_strctParadigm,'JuiceTimeHighMS',iNewJuiceTimeHighMS);
+        fnTsSetVar('g_strctParadigm','JuiceTimeHighMS',iNewJuiceTimeHighMS);
         fnLog('Setting High Juice time to %d', iNewJuiceTimeHighMS);
     case 'JuiceHighEdit'
         strTemp = get(g_strctParadigm.m_strctControllers.m_hJuiceHighEdit,'string');
@@ -267,14 +267,14 @@ switch strCallback
            
             iJuiceTimeMS = g_strctParadigm.JuiceTimeMS.Buffer(g_strctParadigm.JuiceTimeMS.BufferIdx);
             if iNewJuiceTimeHighMS < iJuiceTimeMS
-                g_strctParadigm = fnTsSetVar(g_strctParadigm,'JuiceTimeMS',iNewJuiceTimeHighMS);
+                fnTsSetVar('g_strctParadigm','JuiceTimeMS',iNewJuiceTimeHighMS);
                 fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hJuiceSlider, iNewJuiceTimeHighMS);
                 set(g_strctParadigm.m_strctControllers.m_hJuiceEdit,'String',num2str(iNewJuiceTimeHighMS));
             end
 
             
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hJuiceHighSlider, iNewJuiceTimeHighMS);
-            g_strctParadigm = fnTsSetVar(g_strctParadigm,'JuiceTimeHighMS',iNewJuiceTimeHighMS);
+            fnTsSetVar('g_strctParadigm','JuiceTimeHighMS',iNewJuiceTimeHighMS);
             fnLog('Setting High Juice time to %d', iNewJuiceTimeHighMS);
         end;
                 
@@ -286,7 +286,7 @@ switch strCallback
                 fGainX = 0.05;
             end;
             set(g_strctParadigm.m_strctControllers.m_hEyeXGainEdit,'String',num2str(fGainX));
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'GainX', fGainX);
+            fnTsSetVar('g_strctEyeCalib','GainX', fGainX);
             fnLog('Setting new eye X gain %.2f', fGainX);
         end;
     case 'EyeXGainEdit'
@@ -298,7 +298,7 @@ switch strCallback
                 fGainX = 0.05;
             end;
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hEyeXGainSlider, fGainX);
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'GainX', fGainX);
+            fnTsSetVar('g_strctEyeCalib','GainX', fGainX);
             fnLog('Setting new eye X gain %.2f', fGainX);
         end;
 
@@ -310,7 +310,7 @@ switch strCallback
                 fGainY = 0.05;
             end;
             set(g_strctParadigm.m_strctControllers.m_hEyeYGainEdit,'String',num2str(fGainY));
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'GainY', fGainY);
+            fnTsSetVar('g_strctEyeCalib','GainY', fGainY);
             fnLog('Setting new eye Y gain %.2f', fGainY);
         end;
     case 'EyeYGainEdit'
@@ -325,7 +325,7 @@ switch strCallback
                 fGainY = 0.05;
             end;
             fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hEyeYGainSlider, fGainY);
-            g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'GainY', fGainY);
+            fnTsSetVar('g_strctEyeCalib','GainY', fGainY);
             fnLog('Setting new eye Y gain %.2f', fGainY);
         end;
     case 'DrawAttention'

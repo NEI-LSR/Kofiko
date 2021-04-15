@@ -4,8 +4,8 @@
 <Config>
     
     <m_strctDirectories
-        m_strDataFolder = "D:\Data\Doris\Electrophys\"
-        m_strAlternativeDataFolder = "D:\Data\Doris\Electrophys\"
+        m_strDataFolder = "D:\Data\"
+        m_strAlternativeDataFolder = "D:\Data\"
     > </m_strctDirectories>
     
     <m_strctChannels
@@ -18,10 +18,10 @@
     
     
     <m_strctDistributedAnalysis
-        m_strJobsFolder = "D:\Data\Doris\Electrophys\Jobs\"
+        m_strJobsFolder = "D:\Data\"
         m_strClusterType = "condor"
-        m_strClusterBinaries = "C:\Condor\bin\"
-        m_strExecutablePlatform = "win32"
+        m_strClusterBinaries = "D:\Data\"
+        m_strExecutablePlatform = "win64"
     > </m_strctDistributedAnalysis>
     
     

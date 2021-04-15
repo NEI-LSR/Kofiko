@@ -119,7 +119,7 @@ for k=1:iNumSelectedUnits
 end
 setappdata(handles.figure1,'acUnits',acUnits);
 fnInvalidateUnitsList(handles);
-
+s
 return;
 
 
@@ -200,7 +200,7 @@ for iSessionIter=1:length(aiSelectedSessions)
     fprintf('Done!\n');
     if ~isfield(strctKofiko,'g_strctAppConfig')
         % This is not a kofiko file!
-        fprintf('Could not analyze file %s  - not a koifko file?!?!?\n',acSessions{aiSelectedSessions(iSessionIter)}.m_strKofikoFileName);
+        fprintf('Could not analyze file %s  - not a kofiko file?!?!?\n',acSessions{aiSelectedSessions(iSessionIter)}.m_strKofikoFileName);
         continue
     end
     
@@ -569,9 +569,11 @@ if ~isfield(X,'g_strctDAQParams')
     fprintf('Cannot add %s to the list. This is not a valid kofiko file!\n',strKofikoFullFileName);
     return;
 end
-iNumRecordedExperiments = sum(X.g_strctDAQParams.LastStrobe.Buffer == X.g_strctSystemCodes.m_iStartRecord);
-
-
+try
+    iNumRecordedExperiments = sum(X.g_strctDAQParams.LastStrobe.Buffer == X.g_strctSystemCodes.m_iStartRecord);
+catch
+    return;
+end
 strctSession.m_strKofikoFileName = strKofikoFullFileName;
 [strPath,strFile] = fileparts(strKofikoFullFileName);
 strctSession.m_strUID = strFile;

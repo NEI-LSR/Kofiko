@@ -13,7 +13,7 @@ switch strEvent
         fnParadigmToKofikoComm('SetFixationPosition', g_strctParadigm.m_pt2fFixationSpot);
 
 
-        strImageList = fnTsGetVar(g_strctParadigm,'ListFileName');
+        strImageList = fnTsGetVar('g_strctParadigm','ListFileName');
         if ~isempty(strImageList)
             fnParadigmToStimulusServer('LoadList',strImageList);
             [g_strctParadigm.m_strctObjects.m_ahPTBHandles, ...

@@ -30,13 +30,7 @@ else
     set(g_strctParadigm.m_strctDesignControllers.m_hNumTR,'string',sprintf('Num TRs : %d',sum(g_strctParadigm.m_strctCurrentRun.m_aiNumTRperBlock)));
     % Setup the block list according to the selected order.
     set(g_strctParadigm.m_strctDesignControllers.m_hBlockOrder,'string',g_strctParadigm.m_strctCurrentRun.m_acBlockNamesWithMicroStim);
-    iNumRuns = length(strctDesign.m_acBlockOrders);
-    acRunNames = cell(1,iNumRuns);
-    for k=1:iNumRuns
-        acRunNames{k} = strctDesign.m_acBlockOrders{k}.m_strName;
-    end
-    
-    set(g_strctParadigm.m_strctDesignControllers.m_hDesignOrder,'string', acRunNames);
+    set(g_strctParadigm.m_strctDesignControllers.m_hDesignOrder,'string', strctDesign.m_acBlockOrders{1}.m_strName);
     
     if fnParadigmToKofikoComm('IsPaused')
         fnParadigmToStimulusServer('Resume');

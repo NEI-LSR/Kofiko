@@ -9,7 +9,7 @@ global  g_strctSystemCodes  g_handles g_strctCycle  g_strctDAQParams g_strctAppC
 if ~g_strctCycle.m_bParadigmPaused
     % Machine is actually running. Pause
     g_strctCycle.m_bParadigmPaused = true;
-    % Make sure monkey doesn't accidently get juice if we paused during
+    % Make sure monkey doesn't accidentally get juice if we paused during
     % juice event
     fnDAQWrapper('SetBit',g_strctDAQParams.m_fJuicePort, 0);
     fnDAQWrapper('StrobeWord', g_strctSystemCodes.m_iJuiceOFF);
@@ -20,7 +20,6 @@ if ~g_strctCycle.m_bParadigmPaused
         fnParadigmToStimulusServer('Pause');
     end
     feval(g_strctParadigm.m_strCallbacks,'Pausing');
-    
     
     
     set(g_handles.hPauseButton, 'String','Resume','enable','on');

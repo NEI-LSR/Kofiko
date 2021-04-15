@@ -13,38 +13,38 @@ strctControllers.m_iPanelHeight = iPanelHeight;
 strctControllers.m_iPanelWidth = iPanelWidth;
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 40+30*0, ...
-     'Juice Pulse (ms):', 'JuiceTimeMS',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'JuiceTimeMS'));
+     'Juice Pulse (ms):', 'JuiceTimeMS',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','JuiceTimeMS'));
 
  strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*2, ...
-     'ITI minimum (sec):', 'InterTrialIntervalMinSec',  0, 60, [1 5], fnTsGetVar(g_strctParadigm,'InterTrialIntervalMinSec'));
+     'ITI minimum (sec):', 'InterTrialIntervalMinSec',  0, 60, [1 5], fnTsGetVar('g_strctParadigm','InterTrialIntervalMinSec'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*3, ...
-     'ITI maximum (sec):', 'InterTrialIntervalMaxSec',  0, 60, [1 5], fnTsGetVar(g_strctParadigm,'InterTrialIntervalMaxSec'));
+     'ITI maximum (sec):', 'InterTrialIntervalMaxSec',  0, 60, [1 5], fnTsGetVar('g_strctParadigm','InterTrialIntervalMaxSec'));
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*4, ...
-     'Hold To Start(ms):', 'HoldFixationToStartTrialMS',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'HoldFixationToStartTrialMS'));
+     'Hold To Start(ms):', 'HoldFixationToStartTrialMS',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','HoldFixationToStartTrialMS'));
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*5, ...
-     'Hold At Target(ms):', 'HoldFixationAtTargetMS',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'HoldFixationAtTargetMS'));
+     'Hold At Target(ms):', 'HoldFixationAtTargetMS',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','HoldFixationAtTargetMS'));
 
  strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*6, ...
-     'Trial Timeout (ms):', 'TimeoutMS',  0, 4000, [1 5], fnTsGetVar(g_strctParadigm,'TimeoutMS'));
+     'Trial Timeout (ms):', 'TimeoutMS',  0, 4000, [1 5], fnTsGetVar('g_strctParadigm','TimeoutMS'));
 
   strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*7, ...
-     'Incorrect Delay (ms):', 'IncorrectTrialDelayMS',  0, 2000, [1 5], fnTsGetVar(g_strctParadigm,'IncorrectTrialDelayMS'));
+     'Incorrect Delay (ms):', 'IncorrectTrialDelayMS',  0, 2000, [1 5], fnTsGetVar('g_strctParadigm','IncorrectTrialDelayMS'));
 
    strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*8, ...
-     'Persist Objects (ms):', 'ShowObjectsAfterSaccadeMS',  0, 3000, [1 5], fnTsGetVar(g_strctParadigm,'ShowObjectsAfterSaccadeMS'));
+     'Persist Objects (ms):', 'ShowObjectsAfterSaccadeMS',  0, 3000, [1 5], fnTsGetVar('g_strctParadigm','ShowObjectsAfterSaccadeMS'));
 
  strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*9, ...
-     'Fixation Radius (pix):', 'FixationRadiusPix',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'FixationRadiusPix'));
+     'Fixation Radius (pix):', 'FixationRadiusPix',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','FixationRadiusPix'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*10, ...
-     'Target Hit Radius (pix):', 'HitRadius',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'HitRadius'));
+     'Target Hit Radius (pix):', 'HitRadius',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','HitRadius'));
   
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*11, ...
-     'Object Size (pix):', 'ObjectHalfSizePix',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'ObjectHalfSizePix'));
+     'Object Size (pix):', 'ObjectHalfSizePix',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','ObjectHalfSizePix'));
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*12, ...
-     'Object Separation (pix):', 'ObjectSeparationPix',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'ObjectSeparationPix'));
+     'Object Separation (pix):', 'ObjectSeparationPix',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','ObjectSeparationPix'));
  
  
  
@@ -52,9 +52,9 @@ strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 8
  
  
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*13, ...
-     'Num Targets :', 'NumTargets',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'NumTargets'));
+     'Num Targets :', 'NumTargets',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','NumTargets'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*14, ...
-     'Num Non Targets:', 'NumNonTargets',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'NumNonTargets'));
+     'Num Non Targets:', 'NumNonTargets',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','NumNonTargets'));
 
 strctControllers.m_hLoadList = uicontrol('Parent',hParadigmPanel,'Style', 'pushbutton', 'String', 'Load Object List',...
      'Position', [5 iPanelHeight-80 130 30], 'Callback', [g_strctParadigm.m_strCallbacks,'(''LoadList'');']);
@@ -66,12 +66,12 @@ strctControllers.m_hResetStat = uicontrol('Parent',hParadigmPanel,'Style', 'push
  
  
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*17, ...
-     'MicroStim Offset(MS) :', 'StimulationOffsetMS',  -200, 200, [1 5], fnTsGetVar(g_strctParadigm,'StimulationOffsetMS'));
+     'MicroStim Offset(MS) :', 'StimulationOffsetMS',  -200, 200, [1 5], fnTsGetVar('g_strctParadigm','StimulationOffsetMS'));
 
  strctControllers.m_hExternalStimulation = uicontrol('Style','checkbox','String','Micro Stimulation',...
      'Position',[10 140 200 15],'HorizontalAlignment','Left','Parent',...
     hParadigmPanel,'Callback',[g_strctParadigm.m_strCallbacks,'(''ToggleMicroStim'');'],'value',...
-      fnTsGetVar(g_strctParadigm,'StimulationON'),'ForegroundColor','k','FontWeight','normal');
+      fnTsGetVar('g_strctParadigm','StimulationON'),'ForegroundColor','k','FontWeight','normal');
 
   
  strctControllers.m_hResponsePrediction = uicontrol('Style','checkbox','String','Response Prediction',...

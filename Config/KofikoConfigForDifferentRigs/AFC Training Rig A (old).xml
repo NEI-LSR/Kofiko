@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Behavior GUI Configuration -->
+
+<Config>
+
+<Directories
+   LogFolder = "C:\Data\"
+   PTB_Folder = "C:\Toolbox\"
+> </Directories>
+
+<StimulusServer
+    SingleComputerMode = "0"
+    PTBScreen = "2"
+    Address = "128.231.132.153"
+    Port = "1502"
+    VisibleOffset = "40 15 -35 0"
+> </StimulusServer>
+
+<RemoteAccess
+    Port = "2000"
+> </RemoteAccess>
+
+<VideoStreaming
+    DeviceName = ""
+    SampleRateHz = ""
+> </VideoStreaming>
+
+<EyeCalib
+    CenterX = "2041"
+    CenterY = "2018"
+    ScaleX = "250"
+    ScaleY = "250"
+> </EyeCalib>
+
+<VarSave
+    EyePos = "1"
+    EyePosSampleRateHz = "120"
+    ExternalTriggers = "0"
+    Spikes = "0"
+    Motion = "0"
+    MotionSampleRateHz = "10"
+    WaterLevelUponExit = "0"
+> </VarSave>
+
+<GUIParams
+    PTBScreen = "0"
+    Experimental = "0"
+    Debug = "0"
+    JuiceMl_To_Ms = "500"
+    JuiceTimeMS = "50"
+    JuiceKey = "74"
+    RecenterKey = "67"
+    DrawAttentionKey = "65"
+    EyeTracesKey = "69"
+    ResetStatKey = "82"
+    TogglePTB = "80"
+    ToggleStat = "72"
+
+    RefreshRateMS = "120"
+    SpikeRateUpdateMS = "500"
+    StatisticsRefreshRateMS = "1000"
+    SettingsRefreshRateMS = "1000"
+    MotionThreshold = "250"
+    PauseTaskAfterMotionSec = "0.1"
+    MotionResumeTaskSec = "3"
+    PSTHStartAvgAfterOnsetMS = "50"
+    PSTHEndAvgAfterOnsetMS = "200"
+	BitsPlusPlusMode = "1"
+> </GUIParams>
+
+
+<DAQ
+    VirtualDAQ = "0"
+    AcqusitionCard = "ni"
+    AcqusitionCardBoard = "0"
+    JuicePort = "6"
+    StartRecordPort = "[]"
+    StimulationPort = "4"
+
+	UseMouseClickAsEyePosition = "0"
+    MonitorIndexForEyePosition = "1"
+    SimulateTouchScreenForDebug = "0"
+	
+	
+    EyePortX = "0"
+    EyePortY = "1"
+    EyePortPupil = "2"
+    AnalogSpikePorts = "3  5 6"
+    AnalogSpikePortsMappingToChannels = "1 1 2 2"
+    LFPPorts = "8 9"
+    LFPPortsMappingToChannels = "1 2"
+    MotionPort = "7"
+    ExternalTriggers = "10"
+    ExternalTriggersNames = "MRI"
+    ExternalTriggerThreshold = "3000"
+    SpikeThreshold = "3000"
+    MouseWheelToMM = "115"
+    SystemStrobeFile = "SystemStrobeEvents.txt"
+> </DAQ>
+
+<Sounds
+    DeviceName = "ASIO4ALL v2"
+     	
+> </Sounds>
+
+<Paradigms>
+
+  <Paradigm Name = "Touch Force Choice"
+        Init = "fnParadigmTouchForceChoiceTrainingInit"
+        Cycle = "fnParadigmTouchForceChoiceTrainingCycle"
+        Draw = "fnParadigmTouchForceChoiceTrainingDraw"
+        DrawCycle = "fnParadigmTouchForceChoiceTrainingDrawCycle"
+        Callbacks = "fnParadigmTouchForceChoiceTrainingCallbacks"
+        GUI = "fnParadigmTouchForceChoiceTrainingGUI"
+        Close = "fnParadigmTouchForceChoiceTrainingClose"
+        ParadigmSwitch = "fnParadigmTouchForceChoiceTrainingParadigmSwitch"
+        
+		Initial_ColorConversionID = "1"
+		
+		Initial_ColorSpaceNames = "LUV DKL"
+		
+		Initial_NumColorsPerSaturations = "16 16 16 16 16 16 16"
+		Initial_SaturationsDKL = "90 50 30 10 5 50 50"
+		Initial_SaturationsLookupDKL = "sat9 sat5 sat3 sat1 sat05 sat5low sat5high"
+		Initial_SaturationsElevationDKL = "0 0 0 0 0 -.2 .2"
+		
+		Initial_PrincipleCellColorAxis = "0"
+		
+		Initial_NullConditionName = "Gray"
+		Initial_ChromaLUV = "37 25 18 12 08 05 02 0"
+		Initial_ChromaLookupLUV = "Chroma37 Chroma25 Chroma18 Chroma12 Chroma08 Chroma05 Chroma02 Gray"
+		Initial_ChromaElevationsLUV = "76.0693 76.0693 76.0693 76.0693 76.0693 76.0693 76.0693 76.0693"
+		Initial_SelectedCueColors = "1"
+		Initial_SelectedCueSaturations = "1"
+		Initial_BackgroundLUVCoordinates = "76.0693 0 0"
+		
+		Initial_numSelectionsPerSaturation = "1"
+		Initial_SelectedCueConversionID = "1"
+		Initial_CueLuminanceRange = ".05"
+		
+		Initial_ChoiceColorSpaceTypes = "LUV DKL"
+		Initial_ChoiceDisplayTypes = "NestedAnnuli Annuli Disc Bar Ring"
+		Initial_NumChoiceColorsPerSaturations = "16 16 16 16 16 16 16"
+		Initial_ChoiceSaturationsDKL = "90 50 30 10 5 50 50"
+		Initial_ChoiceSaturationsLookupDKL = "sat9 sat5 sat3 sat1 sat05 sat5low sat5high"
+		Initial_ChoiceSaturationsElevationDKL = "0 0 0 0 0 -.2 .2"
+		
+		Initial_ChoiceChromaLUV = "37 25 18 12 08 05 02 0"
+		Initial_ChoiceChromaLookupLUV = "Chroma37 Chroma25 Chroma18 Chroma12 Chroma08 Chroma05 Chroma02 Gray"
+		Initial_ChoiceChromaElevationsLUV = "76.0693 76.0693 76.0693 76.0693 76.0693 76.0693 76.0693 76.0693"
+		
+		Initial_SelectedChoiceConversionType = "1"
+		Initial_SelectedChoiceColors =  "1"
+		Initial_SelectedChoiceSaturations = "1"
+		
+		Initial_NumTexturesToPreparePerChoice = "200"
+		Initial_ChoiceLuminanceRange = ".05"
+		Initial_ChoiceLuminanceNoiseBlockSize = "3"
+				
+		Initial_EyeSmoothingKernel = "20"
+		Initial_EyeSmoothingEnabled = "1"
+		
+  		Initial_LogCounterBeforeSave = "20"
+        Initial_OverlayPreCueFixation = "1"
+		Initial_MicroStimActive = "0"
+		Initial_MicroStimBiPolar = "1"
+        Initial_MicroStimAmplitude = "1"
+		Initial_MicroStimDelayMS = "0"
+		Initial_MicroStimPulseWidthMS ="250"
+		Initial_MicroStimSecondPulseWidthMS = "150"
+		Initial_MicroStimBipolarDelayMS = "150"
+		Initial_MicroStimPulseRateHz = "300"
+		Initial_MicroStimTrainRateHz = "300"
+		Initial_MicroStimTrainDurationMS = "200"
+		
+		Initial_MicroStimSource = "wpi"
+		Initial_MicroStimType = "FixedRate"
+		
+		
+        Initial_PreCueFixationPeriodMS = "500"
+        Initial_PreCueFixationSpotSize = "8"
+        Initial_PreCueFixationSpotType = "Disc"
+        Initial_PreCueFixationRegion = "50"
+        Initial_PreCueReward = "0"
+        Initial_PreCueJuiceTimeMS = "50"
+		Initial_PreCueRewardProbability = "100"
+		
+		Initial_CLUTOffset = "2"
+		Initial_BackgroundColor = "1 1 1"
+		
+		Initial_CueDisplayType = "Disc"
+
+		
+		Initial_CueHighlight = "1"
+		Initial_DisplayCue = "1"
+		Initial_AbortTrialIfBreakFixationDuringCue = "1"
+		Initial_NumTexturesToPreparePerCue = "500"
+		Initial_CuePeriodMS = "500"
+		Initial_CueStimulusX = "512"
+		Initial_CueStimulusY = "384"
+        Initial_CueOrientation = "0"
+        Initial_CueLength = "100"
+		Initial_CueWidth = "50"
+		Initial_CueFixationSpotPix = "8"
+		Initial_CueFixationRegion = "50"
+		Initial_CueReward = "0"
+		Initial_CueJuiceTimeMS = "50"
+		Initial_NumberOfJuiceDrops = "1"
+		Initial_JuiceDropInterval = "200"
+		Initial_IncludeGrayTrials = "1"
+		Initial_GrayTrialProbability = "20"
+		Initial_CueLuminanceNoiseBlockSize = "3"
+		Initial_CueRhoDeviation = "0"
+				
+		Initial_MemoryPeriodMinMS = "750"
+		Initial_MemoryPeriodMaxMS = "750"
+		Initial_MemoryPeriodFixationSpotPix = "8"
+		Initial_MemoryPeriodFixationRegionPix = "50"
+		Initial_MemoryPeriodReward = "0"
+		Initial_MemoryPeriodJuiceTimeMS = "50"
+		Initial_MemoryChoicePeriodMinMS = "750"
+		Initial_MemoryChoicePeriodMaxMS = "750"
+		Initial_MemoryChoicePeriodFixSpotPix = "5"
+		Initial_MemoryChoiceReward = "0"
+        Initial_MemoryChoiceJuiceTimeMS = "50"
+		Initial_MemoryChoiceRewardProbability = "100"
+		
+			
+		Initial_JuiceTimeMS = "350"
+		Initial_JuiceTimeHighMS = "600"
+		Initial_PositiveIncrementPercent = "10"
+		Initial_SeparateRingChoicesBySaturation = "1"
+		Initial_AFCChoiceLocation = "512 384"
+		
+		Initial_CueMemoryPeriodMS = "1000"
+		
+
+		Initial_ChoiceDisplayID = "1"
+		Initial_ForceMatchChoiceShapeParamsToCue = "0"
+		Initial_ChoiceSize = "30"
+		
+		Initial_ChoiceTexturesToGenerate = "100"
+		Initial_ChoiceLength = "100"
+		Initial_ChoiceWidth = "100"
+		Initial_ChoiceMinimumSeparationMultiplier = "1.2"
+		Initial_ChoiceEccentricity = "100"
+		Initial_InsideChoiceRegion = "100"
+		Initial_ChoiceType = "disc"
+		Initial_ChoiceRingChoices = "16"
+		Initial_ChoiceRingElevation = "0 0 0 0 0"
+		Initial_ChoiceRingSaturation = ".9 .7 .5 .3 .1"
+		Initial_ChoiceRingSize = "600"
+		Initial_MinChoiceRingSize = "100"
+		Initial_MaxChoiceRingSize = "600"
+		Initial_NumChoiceRings = "5"
+		Initial_RotateChoiceRingOnEachTrial = "1"
+		Initial_InsertGrayBoundaryBetweenChoiceSaturations = "1"
+		Initial_InsertGrayBoundaryBetweenChoiceColors = "1"
+		Initial_SaturationBoundaryWidthMultiplier = "75"
+		Initial_AnnulusCenterOffset = "250"
+		Initial_AnnulusSaturationSeparation = "100"
+		Initial_RandomRingOrderInversion = "1"
+		Initial_QuadrantsSelected = "LowerRight LowerLeft UpperLeft UpperRight"
+		Initial_SortChoiceHues = "1"
+		Initial_NTargets = "4"
+		Initial_HoldToSelectChoiceMS = "25"
+		Initial_DirectMatchCueChoices = "1"
+		Initial_ProbeTrialProbability = "0" 
+		Initial_ProbeTrialRewardProbability = "50"
+		
+		Initial_FrameChoiceAreas = "1"
+		
+		Initial_NumNoisePatternsToGenerate = "1000"
+		
+		Initial_ChoiceRingOffset = "Opposite"
+		Initial_NumberOfChoices = "2"
+		Initial_FixationSpotPersistPeriodMS = "1000"
+		Initial_ChoiceFixationSpotPix = "8"
+		Initial_ChoiceFixationRegion = "50"
+		
+		Initial_TrialWeightingLimits = "30"
+		Initial_EyeDriftCorrectionRate = "10"
+		
+		Initial_NullCategoryName = "null"
+		Initial_RetainSelectedChoicePeriodMS = "400"
+		Initial_TrialTimeoutMS = "5000"
+		Initial_InterTrialIntervalMinMS = "1000"
+        Initial_InterTrialIntervalMaxMS = "1000"
+		Initial_IncorrectTrialPunishmentDelayMS = "1500"
+		Initial_AbortedTrialPunishmentDelayMS = "3000"
+		Initial_PostTrialFixationSpotPix = "5"
+		Initial_PostTrialFixationRegion = "50"
+		Initial_PostTrialJuiceTimeMS = "0"
+		Initial_PostTrialReward = "0"
+		
+		Initial_BinaryReward = "1"
+		
+		Initial_BlinkTimeMS = "0"
+
+		Initial_LogDirectoryPath = "C:\Data\"
+
+		Initial_DefaultFolder = "Z:\StimulusSet\"
+        Initial_ExtinguishChoicesAfterSaccade = "1"
+        Initial_ShowObjectsAfterSaccadeMS = "500"
+        Initial_IncorrectTrialDelayMS = "2000"
+
+        Initial_ImageHalfSizePix = "75"
+        Initial_ChoicesHalfSizePix = "75"
+
+        Initial_HitRadius = "100"
+        Initial_FixationRadiusPix = "50"
+
+        Initial_DesignFile = "Z:\StimulusSet\AFC\imList.xml"
+        
+
+        Initial_NoiseLevel = "10"
+        Initial_StairCaseUp = "0"
+        Initial_StairCaseDown = "0"
+        Initial_StairCaseStepPerc = "0"
+  > </Paradigm>
+  
+</Paradigms>
+
+</Config>

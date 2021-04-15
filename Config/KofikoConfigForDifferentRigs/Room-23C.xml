@@ -11,7 +11,7 @@
 <StimulusServer
     SingleComputerMode = "0"
     PTBScreen = "2"
-    Address = "STIM-23C"
+    Address = "192.168.50.142"
     Port = "1502"
 > </StimulusServer>
 
@@ -25,7 +25,7 @@
 > </VideoStreaming>
 
 <RealTimeStatisticsServer
-    Address = ""
+    Address = "192.168.50.96"
     Port = "4003"    
 > </RealTimeStatisticsServer>
 
@@ -90,10 +90,6 @@
     SystemStrobeFile = "SystemStrobeEvents.txt"
 > </DAQ>
 
-<Sounds
-    AudioDeviceName = "ASIO4ALL v2"
-     	
-> </Sounds>
 
 <Paradigms>
 
@@ -192,8 +188,6 @@
         Initial_FavroiteList12 = "\\Kofiko-23B\StimulusSet\Sinha_v2_FOB_LP_32\Sinha_v2_FOB_LP_32.txt"
         Initial_FavroiteList13 = "\\Kofiko-23B\StimulusSet\Sinha_v2_FOB_SecondTemplate\Sinha_v2_FOB_SecondTemplate.txt"
         Initial_FavroiteList14 = "\\Kofiko-23B\StimulusSet\CMU_CBCL_Experiment\CMU_CBCL_Experiment.txt"
-        Initial_FavroiteList15 = "\\Kofiko-23C\StimulusSet\stimulus_binding\stimulus.xml"
-
         
         Initial_RandomPosition = "1"
         Initial_RandomPositionMin = "50"

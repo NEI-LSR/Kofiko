@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Register GUI Configuration -->
+<Config>
+<Monkeys>
+
+    <Monkey
+ 	Name = "Debug"
+        Image = "Debug.jpg"
+    > </Monkey>
+	
+	
+	
+	
+	<Monkey
+ 	Name = "Pollux"
+        Image = "Pollux.jpg"
+    > </Monkey>
+	 <Monkey
+ 	Name = "Castor"
+        Image = "Castor.jpg"
+    > </Monkey>
+ > </Monkeys>
+
+</Config>

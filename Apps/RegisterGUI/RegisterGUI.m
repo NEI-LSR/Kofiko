@@ -24,6 +24,7 @@ function varargout = RegisterGUI(varargin)
 
 % Last Modified by GUIDE v2.5 18-Aug-2011 11:09:02
 
+
 % Begin initialization code - DO NOT EDIT
 
 gui_Singleton = 1;
@@ -57,6 +58,7 @@ function RegisterGUI_OpeningFcn(hObject, eventdata, handles, varargin)
 
 
 % Read from the XML file various config information (DAQ, GUI, paradigms, ...)
+% Actually occurs after this if statement, if statement exists to stop execution if there is no config file
 if ~exist('.\Config\RegisterGUI.xml','file')
     try
         delete(1);
@@ -65,16 +67,18 @@ if ~exist('.\Config\RegisterGUI.xml','file')
     fprintf('Cannot find register GUI configuration file (.\\Config\\RegisterGUI.xml), Aborting!\n');
     return;
 end;
-
+% Loading of config info happens here
 strctConfig = fnLoadRegisterXML('.\Config\RegisterGUI.xml');
 
-% Identify Rig-specific configuraiton files...
+% Identify Rig-specific configuration files...
 astrctConfigFiles = dir('.\Config\KofikoConfigForDifferentRigs\*.xml');
+% Check for existence of config files in directory ^
 if isempty(astrctConfigFiles)
     delete(1);
     fprintf('Cannot find any rig-specific configuration files under (.\\Config\\KofikoConfigForDifferentRigs\\), Aborting!\n');
     return;
 end;
+%display config files in ui
 iNumConfigFiles = length(astrctConfigFiles);
 acNames = cell(1,iNumConfigFiles);
 for k=1:iNumConfigFiles
@@ -185,7 +189,7 @@ set(handles.axes3,'visible','off')
 
 return;
 
-
+%
 function strctConfig =  fnLoadRegisterXML(strConfigurationFile)
 tree = xmltree(strConfigurationFile);
 q=1;
@@ -236,7 +240,7 @@ end
 % --- Executes on button press in hStartKofiko.
 function hStartKofiko_Callback(hObject, eventdata, handles)
 global g_strLogFileName
-
+rehash;
 astrctRigConfigFiles = getappdata(handles.figure1,'astrctConfigFiles');
 iSelectedRig = get(handles.hRigConfiguration,'value');
 iSelectedMonkey = getappdata(handles.figure1,'iSelectedMonkey');
@@ -257,6 +261,8 @@ catch
     fprintf('Cannot write to RegisterGUICache\n');
 end
 
+
+%get rig config file, turn into string, pass to fnloadconfigxml and turn into struct. 
 try
     strRigConfigFile = ['.\Config\KofikoConfigForDifferentRigs\',astrctRigConfigFiles(iSelectedRig).name];
 strctRigConfig = fnLoadConfigXML(strRigConfigFile);
@@ -265,15 +271,22 @@ catch
     return;
 end
 
+%create log file name with format yymmdd_hhmmss_monkeyname. 2 digit year, month, day, 2 digit hour, minute, second, monkeyname
 strLogFileName = [strctRigConfig.m_strctDirectories.m_strLogFolder,strDate,'_',strTime,'_',strctConfig.m_astrctMonkey(iSelectedMonkey).m_strName,'.txt'];
 [strPath,strFile]=fileparts(strLogFileName);
-
+clipboard('copy', [strFile,'.pl2']);
+% Prompt user to create Plexon recording file with the same name as Kofiko's log file.
 set(handles.hStartKofiko,'enable','off');
 h=msgbox({'Please start a plexon recording file with the following name:',strFile});
 uiwait(h);
 drawnow
 set(handles.hStartKofiko,'enable','on');
+
+% By Josh, for saving variables mid-experiment
 strctRegisterConfig.m_strctMonkeyInfo.m_strName = strctConfig.m_astrctMonkey(iSelectedMonkey).m_strName;
+strctRegisterConfig.m_strctMonkeyInfo.m_strLogFileName = strLogFileName;
+strctRegisterConfig.m_strctMonkeyInfo.m_strExperimentName = [strDate,'_',strTime,'_',strctConfig.m_astrctMonkey(iSelectedMonkey).m_strName];
+%strctRegisterConfig.m_strctMonkeyInfo.m_strName = strctConfig.m_astrctMonkey(iSelectedMonkey).m_strName;
 strctRegisterConfig.m_strLogFileName = strLogFileName;
 Kofiko(strRigConfigFile,strctRegisterConfig);
 

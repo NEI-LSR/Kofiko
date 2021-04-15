@@ -1,13 +1,14 @@
 function StatServer
-global g_bAppIsRunning g_strctConfig  g_strctCycle g_DebugDataLog g_counter g_strctNeuralServer g_strctWindows
+global g_bAppIsRunning g_strctConfig  g_strctCycle g_DebugDataLog g_counter g_strctNeuralServer g_strctWindows g_strctStatistics strctColorValues
 dbstop if error
 addpath('.\MEX\win32;.\PublicLib\Plexon\Realtime;.\PublicLib\Msocket;');
 % addpath(genpath('.\StatServer'));
 
-g_strctConfig.m_strctDirectories.m_strDataFolder = 'C:\Shay\Data\Logs';
+g_strctConfig.m_strctDirectories.m_strDataFolder = 'C:\Data\Kofiko Statserver logs';
 if ~exist(g_strctConfig.m_strctDirectories.m_strDataFolder,'dir')
     mkdir(g_strctConfig.m_strctDirectories.m_strDataFolder);
 end;
+
 
 %%
 fNow = now;
@@ -33,6 +34,9 @@ g_strctConfig.m_strctConsistencyChecks.m_fDeclareUnitThresSec = 20;
 g_strctConfig.m_strctGUIParams.m_fBarGraphFrom = 50;
 g_strctConfig.m_strctGUIParams.m_fBarGraphTo = 200;
 
+% initialize hand mapper task by default
+g_strctConfig.m_bRingAFCTaskInitialized = false;
+g_strctConfig.m_bHandMapperTaskInitialized = true;
 
 g_strctConfig.m_strctGUIParams.m_iChannelDisplayStart = 1;
 g_strctConfig.m_strctGUIParams.m_fRefreshHz = 1;
@@ -43,17 +47,27 @@ g_strctConfig.m_strctGUIParams.m_bSmoothPSTH = true;
 g_strctConfig.m_strctGUIParams.m_iMaxChannelsOnScreen = 4;
 g_strctConfig.m_strctNeuralServer.m_strType = 'PLEXON';
 
+
+
+
 fndllMiceHook('Init');
 g_strctCycle.m_iNumAdvancers = fndllMiceHook('GetNumMice');
+%dbstop if warning
+%warning('stop');
+ g_strctCycle.m_iNumAdvancers = 1;
+%{
 if g_strctCycle.m_iNumAdvancers <= 0 || isempty(g_strctCycle.m_iNumAdvancers);
     % Try again ?
-    fndllMiceHook('Init');
+   % fndllMiceHook('Init');
     g_strctCycle.m_iNumAdvancers = fndllMiceHook('GetNumMice');
     if g_strctCycle.m_iNumAdvancers <= 0 || isempty(g_strctCycle.m_iNumAdvancers);
         fprintf('***Critical Error connecting to advancers!\n');
         return;
     end
 end
+%}
+
+
 
 
 g_strctCycle.m_strSafeCallback = [];
@@ -82,7 +96,7 @@ g_strctCycle.m_bConditionInfoAvail = false;
 g_strctCycle.m_bPlexonIsRecording = false;
 g_strctCycle.m_iTrialCounter = 0;
 g_strctCycle.m_iGlobalUnitCounter = 0;
-
+%{
 hWarning = msgbox('Please make sure PlexNet is running and connected to the server!','Important Message');
 waitfor(hWarning);
 drawnow
@@ -90,8 +104,10 @@ drawnow
 if (~fnSetWindowAndButtons())
     return;
 end;
+%}
 
 bSuccess = fnConnectToNeuralServer();
+
 if  ~bSuccess
        fprintf('***Critical Error connecting to Plexnet!\n');
        fnCloseStatServerFig([],[]);
@@ -102,10 +118,12 @@ if g_strctNeuralServer.m_bConnected == false
        fprintf('***Critical Error connecting to Plexnet!\n');
        return;
 end
+fnSetupListeningPort();
+%{
 fnSetActiveChannelsTable();
 
 fnSetAxesForPlotting();
-fnSetupListeningPort();
+
 
 % Register channels to electrodes
 g_strctNeuralServer.m_acGrids = [];
@@ -130,12 +148,37 @@ for k=1:g_strctCycle.m_iNumAdvancers
         fnStatServerCallbacks('UpdateAdvancer',iAdvancerIndex,g_strctNeuralServer.m_afAdvancerOffsetMM(iAdvancerIndex));
     end
 end
+%}
+% Stats
+
+
 
 %
 g_counter=0;
-set(g_strctWindows.m_hFigure,'Visible','on');
+%set(g_strctWindows.m_hFigure,'Visible','on');
+%set(g_strctWindows.m_hFigure,'Visible','off');
 drawnow
 g_bAppIsRunning = true;
+g_strctCycle.m_bDynamicTrialMode = 1;
+g_strctNeuralServer.m_bTrialCircularBufferInitialized = 0;
+g_strctNeuralServer.m_bSpikeCircularBufferInitialized = 0;
+g_strctNeuralServer.m_iExperimentBackupIter = 1;
+g_strctCycle.m_iLastStatServerUpdateTS = GetSecs();
+
+g_strctNeuralServer.m_iTrialsToKeepInBuffer = 5000;
+g_strctCycle.m_iStatServerUpdateInterval = 1;
+g_strctNeuralServer.m_afRollingSpikeBuffer.Buf = zeros(20000,1) % 20000 spikes for online seems enough
+g_strctNeuralServer.m_afRollingSpikeBuffer.BufID = 1;
+g_strctNeuralServer.m_afCurrentServerTime = zeros(1,2);
+g_strctNeuralServer.m_aiSpikeWindow = [-50,400];
+g_strctNeuralServer.m_fSyncTimer = [];
+g_strctNeuralServer.m_iTrialCircularBufferID = 1;
+g_strctNeuralServer.m_iSyncStrobeCode = 32757;
+
+g_strctWindows.m_hFigureHandle = figure();
+figure(g_strctWindows.m_hFigureHandle);
+%g_strctStatistics.m_hOrientationPSTHFigureHandle = figure();
+g_strctTrial = cell(1,g_strctNeuralServer.m_iTrialsToKeepInBuffer);
 while (g_bAppIsRunning)
     fnStatServerCycle();
 end;
@@ -217,8 +260,8 @@ aiWindowSize = get(g_strctWindows.m_hFigure,'Position');
 %%
 
 iOffset = 2;
-iHeight = aiWindowSize(4);
 iFigureWidth = aiWindowSize(3);
+iHeight = aiWindowSize(4);
 
 iRightPanelWidth = 400;
 

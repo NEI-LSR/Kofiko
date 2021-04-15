@@ -60,9 +60,8 @@ switch Command
                         BufferIDs = ...
                             [1:g_strctPlexon.(subStruct).m_aiCircularBufferIndices(conditionIndex(i)),fliplr((g_strctPlexon.(subStruct).m_aiCircularBufferIndices(conditionIndex(i)) - varargin{1}+1 +...
                             size(g_strctPlexon.(subStruct).m_aiCircularBuffer,2)):size(g_strctPlexon.(subStruct).m_aiCircularBuffer,2))];
-                        varargout{1}(conditionIndex(i),1) = BufferIDs;
-                        %varargout{1}(conditionIndex(i),1:varargin{1},:,:) = [conditionIndex(i),BufferIDs)
-                        %varargout{1}(conditionIndex(i),1:varargin{1},:,:) = g_strctPlexon.(subStruct).m_aiCircularBuffer(conditionIndex(i),BufferIDs,:,:);
+                        
+                        varargout{1}(conditionIndex(i),1:varargin{1},:,:) = g_strctPlexon.(subStruct).m_aiCircularBuffer(conditionIndex(i),BufferIDs,:,:);
                         
                     else
                         varargout{1}(i,1:numElementsToExtract,:,:) = g_strctPlexon.(subStruct).m_aiCircularBuffer(i,...

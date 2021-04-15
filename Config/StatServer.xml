@@ -4,7 +4,7 @@
 <Config>
 
 <Directories
-   LogFolder = "C:\Shay\Data\Logs\"
+   LogFolder = "C:\matlogs\"
 > </Directories>
 
 <NeuralServer

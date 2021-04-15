@@ -15,22 +15,22 @@ strctControllers.m_iPanelWidth = iPanelWidth;
 
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 40+30*0, ...
-     'Juice Time (ms):', 'JuiceTimeMS',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'JuiceTimeMS'));
+     'Juice Time (ms):', 'JuiceTimeMS',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','JuiceTimeMS'));
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*1, ...
-     'Max Num Trials:', 'MaxNumTrials',  0, 5000, [1 10], fnTsGetVar(g_strctParadigm,'MaxNumTrials'));
+     'Max Num Trials:', 'MaxNumTrials',  0, 5000, [1 10], fnTsGetVar('g_strctParadigm','MaxNumTrials'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*2, ...
-     'ITI minimum (sec):', 'InterTrialIntervalMinSec',  0, 60, [1 5], fnTsGetVar(g_strctParadigm,'InterTrialIntervalMinSec'));
+     'ITI minimum (sec):', 'InterTrialIntervalMinSec',  0, 60, [1 5], fnTsGetVar('g_strctParadigm','InterTrialIntervalMinSec'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*3, ...
-     'ITI maximum (sec):', 'InterTrialIntervalMaxSec',  0, 60, [1 5], fnTsGetVar(g_strctParadigm,'InterTrialIntervalMaxSec'));
+     'ITI maximum (sec):', 'InterTrialIntervalMaxSec',  0, 60, [1 5], fnTsGetVar('g_strctParadigm','InterTrialIntervalMaxSec'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*4, ...
-     'Trial timeout (sec):', 'TrialTimeOutSec',  0, 10, [1 5], fnTsGetVar(g_strctParadigm,'TrialTimeOutSec'));
+     'Trial timeout (sec):', 'TrialTimeOutSec',  0, 10, [1 5], fnTsGetVar('g_strctParadigm','TrialTimeOutSec'));
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*5, ...
-     'Correct Distance (pix):', 'CorrectDistancePix',  0, 300, [1 5], fnTsGetVar(g_strctParadigm,'CorrectDistancePix'));
+     'Correct Distance (pix):', 'CorrectDistancePix',  0, 300, [1 5], fnTsGetVar('g_strctParadigm','CorrectDistancePix'));
 
  strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*6, ...
-     'Spot Radius (pix):', 'SpotRadius',  0, 300, [1 5], fnTsGetVar(g_strctParadigm,'SpotRadius'));
+     'Spot Radius (pix):', 'SpotRadius',  0, 300, [1 5], fnTsGetVar('g_strctParadigm','SpotRadius'));
  
 strctControllers.m_hTrialOnsetAudio = uicontrol('Style','pushbutton','String','Reset Statistics',...
     'Position',[10 100 140 25],'HorizontalAlignment','Left','Parent',...

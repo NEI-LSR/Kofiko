@@ -5,7 +5,7 @@
 
 <Directories
    LogFolder = "C:\Shay\Data\Logs\"
-   PTB_Folder = "D:\Code\Doris\PublicLib\PTB3\"
+   PTB_Folder = "Z:\PublicLib\PTB\"
 > </Directories>
 
 <StimulusServer

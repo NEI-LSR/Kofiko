@@ -27,29 +27,29 @@ strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*2, ...
 
 
 strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*3, ...
-    'Eye Gain X:', 'EyeXGain', -3, 3,  [0.1 0.5], fnTsGetVar(g_strctEyeCalib,'GainX'));
+    'Eye Gain X:', 'EyeXGain', -3, 3,  [0.1 0.5], fnTsGetVar('g_strctEyeCalib','GainX'));
 strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*4, ...
-    'Eye Gain Y:', 'EyeYGain', -3, 3,  [0.1 0.5], fnTsGetVar(g_strctEyeCalib,'GainY'));
+    'Eye Gain Y:', 'EyeYGain', -3, 3,  [0.1 0.5], fnTsGetVar('g_strctEyeCalib','GainY'));
 
 
 
 
 strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*6, ...
-    'Gaze Time(ms):', 'Gaze', 30, 10000, [1, 50], fnTsGetVar(g_strctParadigm,'GazeTimeMS'));
+    'Gaze Time(ms):', 'Gaze', 30, 10000, [1, 50], fnTsGetVar('g_strctParadigm','GazeTimeMS'));
 strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*7, ...
-    'Gaze Time (Low):', 'GazeLow',30, 10000, [1, 50], fnTsGetVar(g_strctParadigm,'GazeTimeLowMS'));
+    'Gaze Time (Low):', 'GazeLow',30, 10000, [1, 50], fnTsGetVar('g_strctParadigm','GazeTimeLowMS'));
 
 strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*8, ...
     'Gaze area (pix):', 'GazeRect', 0, 300, [1, 50], fnTsGetVar(g_strctParadigm.m_strctStimulusParams,'GazeBoxPix'));
 strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*9, ...
-    'Juice Time (ms):', 'Juice',25, 100, [1, 5], fnTsGetVar(g_strctParadigm,'JuiceTimeMS'));
+    'Juice Time (ms):', 'Juice',25, 100, [1, 5], fnTsGetVar('g_strctParadigm','JuiceTimeMS'));
 strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*10, ...
-    'Juice Time (High):', 'JuiceHigh',25, 100, [1, 5], fnTsGetVar(g_strctParadigm,'JuiceTimeHighMS'));
+    'Juice Time (High):', 'JuiceHigh',25, 100, [1, 5], fnTsGetVar('g_strctParadigm','JuiceTimeHighMS'));
 
 strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*11, ...
-    'Blink Time (ms):', 'BlinkTime',0, 500, [1, 50], fnTsGetVar(g_strctParadigm,'BlinkTimeMS'));
+    'Blink Time (ms):', 'BlinkTime',0, 500, [1, 50], fnTsGetVar('g_strctParadigm','BlinkTimeMS'));
 strctControllers = fnAddTextSliderEditComboSmall(strctControllers, 40+30*12, ...
-    'Positive Increment (%):', 'PositiveInc',5, 100, [1, 5], fnTsGetVar(g_strctParadigm,'PositiveIncrement'));
+    'Positive Increment (%):', 'PositiveInc',5, 100, [1, 5], fnTsGetVar('g_strctParadigm','PositiveIncrement'));
 
 
 

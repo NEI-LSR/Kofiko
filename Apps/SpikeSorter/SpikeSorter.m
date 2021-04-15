@@ -85,13 +85,13 @@ setappdata(handles.figure1,'bShiftDown',false);
 
 if isempty(varargin)
     strRawFolder=uigetdir();
-%    aiInd = find(strRawFolder == filesep);
-    strSessionName = '';
+    strSessionName = [];
 else
-    %[strRawFolder,strSessionName] =fileparts( varargin{1});
-    strRawFolder = varargin{1};
-    strSessionName=varargin{2};
+    [strRawFolder,strSessionName] =fileparts( varargin{1});
 end
+if isempty(strSessionName)
+    return;
+end;
 set(handles.figure1,'Name', strSessionName);
 if strRawFolder(end) ~= filesep()
     strRawFolder(end+1) = filesep();
@@ -205,13 +205,10 @@ else
         end
     end
 end
-if ~isempty(aiNonZero)
+
 aiUnitVertical = fnGetIntervalVerticalValue(astrctIntervals,false);
 for k=1:length(aiNonZero)
     astrctIntervals(k).m_iVerticalStack = aiUnitVertical(k);
-end
-else
-    astrctIntervals = [];
 end
 return;
 
@@ -937,18 +934,12 @@ switch strctMouseDownOp.m_strWindow
                         afTime = 0:30;
                         afSpikeHist = histc(afSpikeTimeDiffMS,afTime);
                         hold(handles.hISI,'off');
-                        if isempty(afSpikeHist)
-                            cla(handles.hISI);
-                            set(handles.hPercentContamination,'string', '');
-                        else
-                            hold(handles.hISI,'on');
-                            abShortTime = afTime < 2;
-                            bar(afTime(abShortTime),afSpikeHist(abShortTime),'parent',handles.hISI,'edgecolor','none','facecolor','r');
-                            set(handles.hISI,'xlim',[0 afTime(end)]);
-                            bar(afTime,afSpikeHist,'parent',handles.hISI,'edgecolor','none','facecolor','b');
-                            set(handles.hPercentContamination,'string', sprintf('%.2f%% < 2ms, Total = %d',sum(afSpikeHist(abShortTime))/length(afSpikeTimeDiffMS)*1e2,1+length(afSpikeTimeDiffMS)));
-                        end
-                        
+                        bar(afTime,afSpikeHist,'parent',handles.hISI,'edgecolor','none','facecolor','b');
+                        hold(handles.hISI,'on');
+                        abShortTime = afTime < 2;
+                        bar(afTime(abShortTime),afSpikeHist(abShortTime),'parent',handles.hISI,'edgecolor','none','facecolor','r');
+                        set(handles.hISI,'xlim',[0 afTime(end)]);
+                        set(handles.hPercentContamination,'string', sprintf('%.2f%% < 2ms, Total = %d',sum(afSpikeHist(abShortTime))/length(afSpikeTimeDiffMS)*1e2,1+length(afSpikeTimeDiffMS)));
                      end
                     
                     setappdata(handles.figure1,'strctGUIParams',strctGUIParams);
@@ -1199,18 +1190,7 @@ switch eventdata.Key
         end
 
     strctGUIParams = getappdata(handles.figure1,'strctGUIParams');
-    
-    fCenter1=median(a2fPCA(:,1));
-fCenter2=median(a2fPCA(:,2));
-fStd1=mad(a2fPCA(:,1));
-fStd2=mad(a2fPCA(:,2));
-fMin1 = fCenter1-5*fStd1;
-fMin2 = fCenter2-5*fStd2;
-fMax1 = fCenter1+5*fStd1;
-fMax2 = fCenter2+5*fStd2;
-
-
-    strctGUIParams.m_afRangePCA = [fMin1, fMax1,fMin2,fMax2];%[min(a2fPCA(:,1)), max(a2fPCA(:,1)), min(a2fPCA(:,2)), max(a2fPCA(:,2))];
+    strctGUIParams.m_afRangePCA = [min(a2fPCA(:,1)), max(a2fPCA(:,1)), min(a2fPCA(:,2)), max(a2fPCA(:,2))];
     setappdata(handles.figure1,'strctGUIParams',strctGUIParams);
     
         setappdata(handles.figure1,'a2fPCA',a2fPCA);
@@ -1285,7 +1265,7 @@ abValidSpikes = afSortedAllTS >= fCurrentTime & afSortedAllTS <= fCurrentTime+fT
            aiUnitAssociation(aiUnitAssociation == astrctUnitIntervals( iIntervalIter).m_iUniqueID & afSortedAllTS > afViewingRange(1)) = 0;
        else
            astrctUnitIntervals( iIntervalIter).m_fStartTS_Plexon = afViewingRange(2);
-           aiUnitAssociation(aiUnitAssociation(:)' == astrctUnitIntervals( iIntervalIter).m_iUniqueID & afSortedAllTS(:)' < afViewingRange(2)) = 0;
+           aiUnitAssociation(aiUnitAssociation == astrctUnitIntervals( iIntervalIter).m_iUniqueID & afSortedAllTS < afViewingRange(2)) = 0;
        end
    end
  end
@@ -1420,20 +1400,12 @@ a3fSmoothDist = zeros(length(afRangeY),length(afRangeX),length(aiUnitsInRange));
 a2fMean = zeros(2,iNumUnitsInRange);
 a3fCov = zeros(2,2,iNumUnitsInRange);
 a3fWaves = zeros(iNumPtsY,iNumPtsX,iNumUnitsInRange);
-
-if isempty(a2fReducedWaves)
+bMicroVoltsWaveforms = max(a2fReducedWaves(:)) < 10;
+if bMicroVoltsWaveforms
     afRangeYwave = [-0.1 0.1];
 else
-    fCenter=median(a2fReducedWaves(:));
-    fStd=mad(a2fReducedWaves(:));
-    afRangeYwave=fCenter+8*[-fStd fStd];
+    afRangeYwave = [-2048 2048];
 end
-% bMicroVoltsWaveforms = max(a2fReducedWaves(:)) < 10;
-% if bMicroVoltsWaveforms
-%     afRangeYwave = [-0.1 0.1];
-% else
-%     afRangeYwave = [-2048 2048];
-% end
 
 aiIntervalsUniqueID = cat(1,astrctUnitIntervals.m_iUniqueID);
 
@@ -1517,11 +1489,11 @@ if isempty(hWaves)
 else
     set(hWaves,'cdata', a2fColorWavePlot);
 end
-% if bMicroVoltsWaveforms
-    set (handles.hWaves,'ylim',afRangeYwave);
-% else
-%      set (handles.hWaves,'ylim',[-2048 2048]);
-% end
+if bMicroVoltsWaveforms
+    set (handles.hWaves,'ylim',[-0.1 0.1]);
+else
+     set (handles.hWaves,'ylim',[-2048 2048]);
+end
 
 %%
 
@@ -1698,14 +1670,14 @@ abIntersect = LineIntersection(a2fReducedWaves, afLineSegment);
 
 if bInclude
     if bOnlyUnsorted
-        aiReducedSpikeAssociation(abVisibleSpike & abIntersect & aiReducedSpikeAssociation(:)' == 0) = astrctUnitIntervals(strctGUIParams.m_aiSelectedIntervals).m_iUniqueID;
+        aiReducedSpikeAssociation(abVisibleSpike & abIntersect & aiReducedSpikeAssociation' == 0) = astrctUnitIntervals(strctGUIParams.m_aiSelectedIntervals).m_iUniqueID;
     else
         aiReducedSpikeAssociation(abVisibleSpike & abIntersect) = astrctUnitIntervals(strctGUIParams.m_aiSelectedIntervals).m_iUniqueID;
     end
 else
     if ~bOnlyUnsorted
         if min(strctGUIParams.m_aiSelectedIntervals) <= length(astrctUnitIntervals)
-            aiReducedSpikeAssociation(abVisibleSpike & abIntersect & aiReducedSpikeAssociation(:)' ==astrctUnitIntervals(strctGUIParams.m_aiSelectedIntervals).m_iUniqueID ) = 0;
+            aiReducedSpikeAssociation(abVisibleSpike & abIntersect & aiReducedSpikeAssociation' ==astrctUnitIntervals(strctGUIParams.m_aiSelectedIntervals).m_iUniqueID ) = 0;
         end
     else
         aiReducedSpikeAssociation(abVisibleSpike & abIntersect ) = 0;
@@ -1966,13 +1938,11 @@ for iUnitIter=1:iNumIntervals
 end
 % Add all non-sorted spikes as a dummy interval
 afUnsortedTS = afSortedAllTS(aiSpikeToUniqueID == 0);
-if ~isempty(afUnsortedTS)
-    
-    astrctSpikes(iNumIntervals+1).m_iUnitIndex = 0;
-    astrctSpikes(iNumIntervals+1).m_afInterval = [min(afUnsortedTS), max(afUnsortedTS)];
-    astrctSpikes(iNumIntervals+1).m_afTimestamps = afUnsortedTS;
-    astrctSpikes(iNumIntervals+1).m_a2fWaveforms = a2fSortedAllWaveForms(aiSpikeToUniqueID == 0,:);
-end
+
+astrctSpikes(iNumIntervals+1).m_iUnitIndex = 0;
+astrctSpikes(iNumIntervals+1).m_afInterval = [min(afUnsortedTS), max(afUnsortedTS)];
+astrctSpikes(iNumIntervals+1).m_afTimestamps = afUnsortedTS;
+astrctSpikes(iNumIntervals+1).m_a2fWaveforms = a2fSortedAllWaveForms(aiSpikeToUniqueID == 0,:);
 if exist(strOutFileName,'file')
     [strF,strP]=uiputfile(strOutFileName);
     if strF(1) ~= 0
@@ -2025,7 +1995,7 @@ end;
 if ~isempty(strSessionName)
     astrctRawFiles = dir([strRawFolder,strSessionName,'*-spikes_ch*.raw']);
 else
-    astrctRawFiles = dir([strRawFolder,strSessionName,'*_Spikes.raw']);
+    astrctRawFiles = dir([strRawFolder,'*-spikes_ch*.raw']);
 end
 bNoFiles = false;
 if isempty(astrctRawFiles)
@@ -2202,17 +2172,7 @@ end
         
 strctGUIParams.m_afTimeRange = [afSortedAllTS(1),max(fMaxIntervalTS,afSortedAllTS(end))];
 strctGUIParams.m_strMouseMode = 'Browse';
-% Remove outliers?
-fCenter1=median(a2fPCA(:,1));
-fCenter2=median(a2fPCA(:,2));
-fStd1=mad(a2fPCA(:,1));
-fStd2=mad(a2fPCA(:,2));
-fMin1 = fCenter1-5*fStd1;
-fMin2 = fCenter2-5*fStd2;
-fMax1 = fCenter1+5*fStd1;
-fMax2 = fCenter2+5*fStd2;
-
-strctGUIParams.m_afRangePCA = [fMin1,fMax1,fMin2,fMax2];%[min(a2fPCA(:,1)),max(a2fPCA(:,1)),min(a2fPCA(:,2)),max(a2fPCA(:,2))];
+strctGUIParams.m_afRangePCA = [min(a2fPCA(:,1)),max(a2fPCA(:,1)),min(a2fPCA(:,2)),max(a2fPCA(:,2))];
 strctGUIParams.m_aiSelectedIntervals = 1;
                
 setappdata(handles.figure1,'strctGUIParams',strctGUIParams);
@@ -2228,16 +2188,11 @@ setappdata(handles.figure1,'iMaxUniqueID',iMaxUniqueID);
 
 %%
 
-if min(diff(afSortedAllTS)) > 10
 
-    % Pick a unique (?) color for each unit
-    fTimwWindow = 120*30000;
-else
-    fTimwWindow = 120;
-end
+% Pick a unique (?) color for each unit
 
 strctNewInterval =  fnBuildNewInterval(...
-    afSortedAllTS(1), afSortedAllTS(1)+fTimwWindow,...
+    afSortedAllTS(1), afSortedAllTS(1)+120,...
     -1,[0.5 0.5 0.5]);
 
 if isempty(astrctIntervals)
@@ -2284,6 +2239,7 @@ return;
 function astrctIntervals = fnReadActiveUnits(handles,strRawFolder,strSession)
 strSyncFile = fullfile(strRawFolder, [strSession,'-sync.mat']);
 strActiveUnitsFile = fullfile(strRawFolder,[strSession,'-ActiveUnits.txt']);
+
 %% Read real-time unit annotation
 if exist(strSyncFile,'file')
     strctTmp =  load(strSyncFile);

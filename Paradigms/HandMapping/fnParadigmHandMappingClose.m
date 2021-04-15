@@ -1,4 +1,4 @@
-function [strctOutput] = fnParadigm16BitsClose()
+function [strctOutput] = fnParadigmHandMappingClose()
 
 % Copyright (c) 2008 Shay Ohayon, California Institute of Technology.
 % This file is a part of a free software. you can redistribute it and/or modify

@@ -17,11 +17,6 @@ else
     bMAPclockSync = false;
 end
 
-strStatServerFile = fullfile(strRawFolder,[strSession,'-StatServerInfo.mat']);
-strctTmp = load(strStatServerFile);
-aiMappingToRealChannelNumber = strctTmp.g_strctNeuralServer.m_aiActiveSpikeChannels;
-a2fActiveUnitsTable(:,1) = aiMappingToRealChannelNumber(a2fActiveUnitsTable(:,1));
-
 clear astrctUnitIntervals
 NumEntries = size(a2fActiveUnitsTable,1);
 iIntervalCounter = 0;

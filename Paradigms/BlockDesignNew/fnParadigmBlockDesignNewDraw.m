@@ -10,13 +10,13 @@ global g_strctPTB g_strctParadigm g_strctStimulusServer
 
 pt2iCenter = g_strctStimulusServer.m_aiScreenSize(3:4)/2;
 
-afBackgroundColor = fnTsGetVar(g_strctParadigm, 'BackgroundColor');
-afFixationSpotColor = fnTsGetVar(g_strctParadigm, 'FixationSpotColor');
+afBackgroundColor = fnTsGetVar('g_strctParadigm', 'BackgroundColor');
+afFixationSpotColor = fnTsGetVar('g_strctParadigm', 'FixationSpotColor');
 Screen('FillRect',g_strctPTB.m_hWindow, afBackgroundColor);
-fStimulusSizePix = fnTsGetVar(g_strctParadigm, 'StimulusSizePix');
+fStimulusSizePix = fnTsGetVar('g_strctParadigm', 'StimulusSizePix');
 
 if ~isempty(g_strctParadigm.m_iLastFlippedImageIndex)
-    fRotationAngle = fnTsGetVar(g_strctParadigm, 'RotationAngle');
+    fRotationAngle = fnTsGetVar('g_strctParadigm', 'RotationAngle');
 
     iSizeOnScreen = 2*fStimulusSizePix+1;
     aiTextureSize = g_strctParadigm.m_a2iTextureSize(:, g_strctParadigm.m_iLastFlippedImageIndex);
@@ -48,11 +48,11 @@ if ~isempty(g_strctParadigm.m_iLastFlippedImageIndex)
 end
 
 
-fGazeBoxPix = fnTsGetVar(g_strctParadigm, 'GazeBoxPix');
+fGazeBoxPix = fnTsGetVar('g_strctParadigm', 'GazeBoxPix');
 aiGazeRect = [pt2iCenter-fGazeBoxPix,pt2iCenter+fGazeBoxPix];
 Screen('FrameRect',g_strctPTB.m_hWindow,[255 0 0], g_strctPTB.m_fScale * aiGazeRect);
 
-fFixationSizePix = fnTsGetVar(g_strctParadigm, 'FixationSizePix');
+fFixationSizePix = fnTsGetVar('g_strctParadigm', 'FixationSizePix');
 
 aiFixationRect = [pt2iCenter-fFixationSizePix pt2iCenter+fFixationSizePix];
 Screen('FillArc',g_strctPTB.m_hWindow,afFixationSpotColor, g_strctPTB.m_fScale * aiFixationRect,0,360);

@@ -38,27 +38,7 @@ strctStatServer = load(strStatServerFile);
 %% Detect photodiode events
 [strctPhotodiode, afTime]= fnReadDumpAnalogFile(strPhotoDiodeFile);
 fPhotodiodeThreshold = (max(strctPhotodiode.m_afData)-min(strctPhotodiode.m_afData))/2;
-
-astrctPhotodiodeEventsWithJitter = fnGetIntervals(strctPhotodiode.m_afData > fPhotodiodeThreshold);
-% Photodiode amplifier sometimes jitters the signal and goes low when it shouldn't.
-% So we merge nearby intervals that are shroter than refresh rate (or
-% two..., since we usually don't display things that fast).
-iDistanceBetweenSamplesMS = 1e3*(afTime(2)-afTime(1));
-iMergeInterval = ceil(2*strctKofiko.g_strctStimulusServer.m_fRefreshRateMS / iDistanceBetweenSamplesMS);
-astrctPhotodiodeEvents = fnMergeIntervals(astrctPhotodiodeEventsWithJitter,iMergeInterval);
-
-% M = length(strctPhotodiode.m_afData);
-% 
-% abNotFixed = fnIntervalsToBinary(astrctPhotodiodeEventsWithJitter,M);
-% abFixed = fnIntervalsToBinary(astrctPhotodiodeEvents,M);
-
-% figure(11);
-% clf;
-% plot(abFixed*1,'r');
-% hold on;
-% plot(0.2+abNotFixed*0.6,'b');
-% set(gca,'xlim',[-5000 5000]+189955*ones(1,2));
-% set(gca,'ylim',[-0.2 1.3]);
+astrctPhotodiodeEvents = fnGetIntervals(strctPhotodiode.m_afData > fPhotodiodeThreshold);
 afActualFlipTime_PLX = sort(afTime([cat(1,astrctPhotodiodeEvents.m_iStart);cat(1,astrctPhotodiodeEvents.m_iEnd)]));
 
 fnWorkerLog('Detected %d photodiode switching events', length(afActualFlipTime_PLX));

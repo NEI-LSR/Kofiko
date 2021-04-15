@@ -5,7 +5,7 @@ function fnRecenterGaze()
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (see GPL.txt)
  
-global g_strctEyeCalib  g_strctSystemCodes g_strctDAQParams  g_strctStimulusServer g_strctCycle g_strctAppConfig g_strctAcquisitionServer
+global g_strctEyeCalib  g_strctSystemCodes g_strctDAQParams  g_strctStimulusServer g_strctCycle g_strctAppConfig
 
 if g_strctDAQParams.m_fUseMouseClickAsEyePosition
    return;
@@ -14,14 +14,10 @@ if strcmpi(g_strctAppConfig.m_strctDAQ.m_strAcqusitionCard,'arduino')
     LastEntry = g_strctEyeCalib.EyeRaw.BufferIdx;
     afRAWEyeSig = g_strctEyeCalib.EyeRaw.Buffer(1,:,LastEntry);
 else
-    [afRAWEyeSig] = fnDAQWrapper('GetAnalog',[g_strctDAQParams.m_fEyePortX,g_strctDAQParams.m_fEyePortY, g_strctDAQParams.m_fEyePortPupil]);
+   % [afRAWEyeSig] = fnDAQWrapper('GetAnalog',[g_strctDAQParams.m_fEyePortX,g_strctDAQParams.m_fEyePortY, g_strctDAQParams.m_fEyePortPupil]);
+    [afRAWEyeSig] = fnDAQWrapper('GetAnalog',[1:16]);
+	afRAWEyeSig = afRAWEyeSig([g_strctDAQParams.m_fEyePortX,g_strctDAQParams.m_fEyePortY, g_strctDAQParams.m_fEyePortPupil]+1);
 end
-if isfield(g_strctAppConfig,'m_strctAcquisitionServer') && g_strctAcquisitionServer.m_bConnected
-            fndllZeroMQ_Wrapper('Send',g_strctAcquisitionServer.m_iSocket,['CalibrateEyePosition ',...
-                num2str(g_strctCycle.m_pt2fCurrentFixationPosition(1)),' ',num2str(g_strctCycle.m_pt2fCurrentFixationPosition(2)),' ',...
-                num2str(g_strctStimulusServer.m_aiScreenSize(3)),' ',num2str(g_strctStimulusServer.m_aiScreenSize(4))]);
-end
-
 fnDAQWrapper('StrobeWord', g_strctSystemCodes.m_iRecenterGaze);
 
 % We can only recneter the gaze is the current paradigm is displaying a
@@ -40,11 +36,11 @@ fnDAQWrapper('StrobeWord', g_strctSystemCodes.m_iRecenterGaze);
 % 
 pt2iFixationPoint = g_strctCycle.m_pt2fCurrentFixationPosition;
 pt2iScreenCenter = g_strctStimulusServer.m_aiScreenSize(3:4)/2;
-afGain = [fnTsGetVar(g_strctEyeCalib,'GainX'),fnTsGetVar(g_strctEyeCalib,'GainY')];
+afGain = [fnTsGetVar('g_strctEyeCalib','GainX'),fnTsGetVar('g_strctEyeCalib','GainY')];
 
 afSingalOffset = afRAWEyeSig(1:2) - (pt2iFixationPoint-pt2iScreenCenter) ./ afGain;
 
-g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'CenterX',afSingalOffset(1));
-g_strctEyeCalib = fnTsSetVar(g_strctEyeCalib,'CenterY',afSingalOffset(2));
+fnTsSetVar('g_strctEyeCalib','CenterX',afSingalOffset(1));
+fnTsSetVar('g_strctEyeCalib','CenterY',afSingalOffset(2));
 fnLog('Recentered gaze. Values are [%d %d]',round(afSingalOffset(1)),round(afSingalOffset(2)));
 return;

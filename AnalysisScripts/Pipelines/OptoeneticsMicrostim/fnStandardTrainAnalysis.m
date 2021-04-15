@@ -409,7 +409,6 @@ if isfield(strctUnitInterval,'m_astrctTrain')
     strctUnitInterval = fnAddAttribute(strctUnitInterval,'Interval', num2str(strctUnitInterval.m_iUnitIndex));
     strctUnitInterval = fnAddAttribute(strctUnitInterval,'Opsin', strOpsin);
     strctUnitInterval = fnAddAttribute(strctUnitInterval,'Trigger',  strTrigger);
-    strctUnitInterval = fnAddAttribute(strctUnitInterval,'Depth',  mean(strctUnitInterval.m_astrctTrain(iGlobalIter).m_afIntervalDepthMM));
     
     strctUnitInterval = fnAddAttribute(strctUnitInterval,'Num Trains', length(astrctUniqueTrains));
     if bHasContPulse

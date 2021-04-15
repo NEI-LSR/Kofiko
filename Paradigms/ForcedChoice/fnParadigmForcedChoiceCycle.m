@@ -24,13 +24,13 @@ switch g_strctParadigm.m_iMachineState
         % Set values for new trial!
         fnParadigmToStimulusServer('ClearScreen');
         % Set ITI value
-        fMin = fnTsGetVar(g_strctParadigm,'InterTrialIntervalMinSec');
-        fMax = fnTsGetVar(g_strctParadigm,'InterTrialIntervalMaxSec');
+        fMin = fnTsGetVar('g_strctParadigm','InterTrialIntervalMinSec');
+        fMax = fnTsGetVar('g_strctParadigm','InterTrialIntervalMaxSec');
         g_strctParadigm.m_fWaitInterval = rand() * (fMax-fMin) + fMin;
-        g_strctParadigm.m_fHoldFixationToStartTrialMS = fnTsGetVar(g_strctParadigm,'HoldFixationToStartTrialMS');
-        g_strctParadigm.m_fShowObjectsAfterSaccadeSec = fnTsGetVar(g_strctParadigm,'ShowObjectsAfterSaccadeMS')/1e3;        
-        g_strctParadigm.m_fTrialTimeoutSec = fnTsGetVar(g_strctParadigm,'TimeoutMS')/1e3;        
-        g_strctParadigm.m_fHitRadiusPix = fnTsGetVar(g_strctParadigm,'HitRadius');        
+        g_strctParadigm.m_fHoldFixationToStartTrialMS = fnTsGetVar('g_strctParadigm','HoldFixationToStartTrialMS');
+        g_strctParadigm.m_fShowObjectsAfterSaccadeSec = fnTsGetVar('g_strctParadigm','ShowObjectsAfterSaccadeMS')/1e3;        
+        g_strctParadigm.m_fTrialTimeoutSec = fnTsGetVar('g_strctParadigm','TimeoutMS')/1e3;        
+        g_strctParadigm.m_fHitRadiusPix = fnTsGetVar('g_strctParadigm','HitRadius');        
         
         
         g_strctParadigm.m_strctCurrentTrial = [];
@@ -55,13 +55,13 @@ switch g_strctParadigm.m_iMachineState
             g_strctParadigm.m_iTrialRep = g_strctParadigm.m_iTrialRep + 1; 
         end
         
-        g_strctParadigm.m_strctCurrentTrial.m_fFixationTimeOutSec =  fnTsGetVar(g_strctParadigm,'FixationTimeOutMS')/1e3;
+        g_strctParadigm.m_strctCurrentTrial.m_fFixationTimeOutSec =  fnTsGetVar('g_strctParadigm','FixationTimeOutMS')/1e3;
         
         g_strctParadigm.m_strctCurrentTrial.m_iTrialDisplayed = iSelectedTrialAtRandom;
         g_strctParadigm.m_strctCurrentTrial.m_fStartChoiceTimer = [];
         g_strctParadigm.m_strctCurrentTrial.m_fTrialOnset_TS_StimulusServer = [];
-        g_strctParadigm.m_strctCurrentTrial.m_iNoiseIndex = fnTsGetVar(g_strctParadigm,'NoiseIndex');
-        g_strctParadigm.m_strctCurrentTrial.m_fNoiseLevel = fnTsGetVar(g_strctParadigm,'NoiseLevel');
+        g_strctParadigm.m_strctCurrentTrial.m_iNoiseIndex = fnTsGetVar('g_strctParadigm','NoiseIndex');
+        g_strctParadigm.m_strctCurrentTrial.m_fNoiseLevel = fnTsGetVar('g_strctParadigm','NoiseLevel');
         
         set(g_strctParadigm.m_strctControllers.m_hNoiseIndexEdit,'String',num2str(g_strctParadigm.m_strctCurrentTrial.m_iNoiseIndex));
         set(g_strctParadigm.m_strctControllers.m_hNoiseIndexSlider,'value',g_strctParadigm.m_strctCurrentTrial.m_iNoiseIndex);
@@ -95,11 +95,11 @@ switch g_strctParadigm.m_iMachineState
         end
         
         g_strctParadigm.m_strctTrialToStimulusServer.m_astrctRelevantChoices = g_strctParadigm.m_astrctChoices(g_strctParadigm.m_astrctTrials(iSelectedTrialAtRandom).m_aiChoices);
-        g_strctParadigm.m_strctTrialToStimulusServer.m_fImageHalfSizePix = fnTsGetVar(g_strctParadigm,'ImageHalfSizePix');
-        g_strctParadigm.m_strctTrialToStimulusServer.m_fChoicesHalfSizePix = fnTsGetVar(g_strctParadigm,'ChoicesHalfSizePix');
+        g_strctParadigm.m_strctTrialToStimulusServer.m_fImageHalfSizePix = fnTsGetVar('g_strctParadigm','ImageHalfSizePix');
+        g_strctParadigm.m_strctTrialToStimulusServer.m_fChoicesHalfSizePix = fnTsGetVar('g_strctParadigm','ChoicesHalfSizePix');
         g_strctParadigm.m_strctTrialToStimulusServer.m_strctFixation = strctFixationSpot;
-        g_strctParadigm.m_strctTrialToStimulusServer.m_fDelayBeforeChoicesMS = fnTsGetVar(g_strctParadigm,'DelayBeforeChoicesMS');
-        g_strctParadigm.m_strctTrialToStimulusServer.m_fMemoryIntervalMS = fnTsGetVar(g_strctParadigm,'MemoryIntervalMS');
+        g_strctParadigm.m_strctTrialToStimulusServer.m_fDelayBeforeChoicesMS = fnTsGetVar('g_strctParadigm','DelayBeforeChoicesMS');
+        g_strctParadigm.m_strctTrialToStimulusServer.m_fMemoryIntervalMS = fnTsGetVar('g_strctParadigm','MemoryIntervalMS');
         g_strctParadigm.m_strctTrialToStimulusServer.m_fNoiseLevel =  g_strctParadigm.m_strctCurrentTrial.m_fNoiseLevel;
         
         fnReleaseMemoryAndAllocatePTBTextures(g_strctParadigm.m_strctTrialToStimulusServer);
@@ -128,7 +128,7 @@ switch g_strctParadigm.m_iMachineState
         fnParadigmToStimulusServer('ShowFixationSpot', strctFixationSpot);
         fnParadigmToKofikoComm('SetParadigmState','Waiting for fixation spot to appear');
         
-        g_strctParadigm.m_fFixationRadiusPix = fnTsGetVar(g_strctParadigm,'FixationRadiusPix');
+        g_strctParadigm.m_fFixationRadiusPix = fnTsGetVar('g_strctParadigm','FixationRadiusPix');
         g_strctParadigm.m_iMachineState = 5;
         
         fnDAQWrapper('StrobeWord', g_strctParadigm.m_strctStatServerDesign.TrialStartCode);
@@ -266,7 +266,7 @@ switch g_strctParadigm.m_iMachineState
                     fnTsSetVarParadigm('acTrials', g_strctParadigm.m_strctCurrentTrial);
                     g_strctParadigm.m_strctStatistics.m_iNumCorrect = g_strctParadigm.m_strctStatistics.m_iNumCorrect + 1;
                     fnParadigmToKofikoComm('SetParadigmState','Correct Trial. Giving Reward.');
-                    fJuiceTimeMS = fnTsGetVar(g_strctParadigm,'JuiceTimeMS');
+                    fJuiceTimeMS = fnTsGetVar('g_strctParadigm','JuiceTimeMS');
                     fnParadigmToKofikoComm('Juice',fJuiceTimeMS );
                     
                     
@@ -277,9 +277,9 @@ switch g_strctParadigm.m_iMachineState
                     
                     % Staircase adjustment
                     
-                    iNumStepsDown = fnTsGetVar(g_strctParadigm, 'StairCaseDown');
+                    iNumStepsDown = fnTsGetVar('g_strctParadigm', 'StairCaseDown');
                     if iNumStepsDown > 0
-                        fPercDown = iNumStepsDown*fnTsGetVar(g_strctParadigm, 'StairCaseStepPerc');
+                        fPercDown = iNumStepsDown*fnTsGetVar('g_strctParadigm', 'StairCaseStepPerc');
                         fNewNoiseLevel = min(100, max(0, (1+fPercDown/100) * g_strctParadigm.m_strctCurrentTrial.m_fNoiseLevel));
                         fnTsSetVarParadigm('NoiseLevel',fNewNoiseLevel);
                         % Update GUI
@@ -296,9 +296,9 @@ switch g_strctParadigm.m_iMachineState
                     fnParadigmToKofikoComm('SetParadigmState','Incorrect Trial.');
                     
                     
-                    iNumStepsUp = fnTsGetVar(g_strctParadigm, 'StairCaseUp');
+                    iNumStepsUp = fnTsGetVar('g_strctParadigm', 'StairCaseUp');
                     if iNumStepsUp > 0
-                        fPercUp = iNumStepsUp*fnTsGetVar(g_strctParadigm, 'StairCaseStepPerc');
+                        fPercUp = iNumStepsUp*fnTsGetVar('g_strctParadigm', 'StairCaseStepPerc');
                         fNewNoiseLevel = min(100, max(0, (1-fPercUp/100) * g_strctParadigm.m_strctCurrentTrial.m_fNoiseLevel));
                         fnTsSetVarParadigm('NoiseLevel',fNewNoiseLevel);
                         % Update GUI
@@ -318,7 +318,7 @@ switch g_strctParadigm.m_iMachineState
          end
     case 11
  
-        g_strctParadigm.m_fShowObjectsAfterSaccadeSec = fnTsGetVar(g_strctParadigm,'ShowObjectsAfterSaccadeMS') / 1e3;
+        g_strctParadigm.m_fShowObjectsAfterSaccadeSec = fnTsGetVar('g_strctParadigm','ShowObjectsAfterSaccadeMS') / 1e3;
         if g_strctParadigm.m_fShowObjectsAfterSaccadeSec > 0
             g_strctParadigm.m_fShowAfterTimer = fCurrTime;
             g_strctParadigm.m_iMachineState = 12;
@@ -336,7 +336,7 @@ switch g_strctParadigm.m_iMachineState
         
     case 13
         % If this was incorrect trial. Add punishment delay
-        g_strctParadigm.m_fIncorrectTrialDelaySec = fnTsGetVar(g_strctParadigm,'IncorrectTrialDelayMS')/1e3;
+        g_strctParadigm.m_fIncorrectTrialDelaySec = fnTsGetVar('g_strctParadigm','IncorrectTrialDelayMS')/1e3;
         if ~strcmp(g_strctParadigm.m_strctCurrentTrial.m_strResult,'Correct') && g_strctParadigm.m_fIncorrectTrialDelaySec > 0
             fnParadigmToStimulusServer('ClearScreen');
             g_strctParadigm.m_fIncorrectDelayTimer = fCurrTime;

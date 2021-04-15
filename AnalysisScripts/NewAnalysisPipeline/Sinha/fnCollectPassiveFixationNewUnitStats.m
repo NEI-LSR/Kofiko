@@ -121,48 +121,24 @@ aiStimulusIndex = strctKofiko.g_astrctAllParadigms{iParadigmIndex}.Trials.Buffer
 
 afOnset_StimServer_TS = strctKofiko.g_astrctAllParadigms{iParadigmIndex}.Trials.Buffer(2,aiTrialIndices);
 afOffset_StimServer_TS = strctKofiko.g_astrctAllParadigms{iParadigmIndex}.Trials.Buffer(3,aiTrialIndices);
-afStimulusON_TS_Plexon = fnTimeZoneChange(afOnset_StimServer_TS, strctSync,'StimulusServer','Plexon');
-afStimulusOFF_TS_Plexon = fnTimeZoneChange(afOffset_StimServer_TS, strctSync,'StimulusServer','Plexon');
-
-afImageON =  strctKofiko.g_astrctAllParadigms{iParadigmIndex}.Trials.Buffer(8,aiTrialIndices);
-afImageOFF =  strctKofiko.g_astrctAllParadigms{iParadigmIndex}.Trials.Buffer(9,aiTrialIndices);
+afModifiedStimulusON_TS_Plexon = fnTimeZoneChange(afOnset_StimServer_TS, strctSync,'StimulusServer','Plexon');
+afModifiedStimulusOFF_TS_Plexon = fnTimeZoneChange(afOffset_StimServer_TS, strctSync,'StimulusServer','Plexon');
 
 if ~isempty(afActualFlipTime_PLX)
     fnWorkerLog('Adjusting image onset times using photodiode information!');
-    afScreenLag_ON_MS = nans(1,  length(afStimulusON_TS_Plexon));
-    afScreenLag_OFF_MS = nans(1,  length(afStimulusOFF_TS_Plexon));
-    afModifiedStimulusON_TS_Plexon = nans(1,  length(afStimulusON_TS_Plexon));
-    afModifiedStimulusOFF_TS_Plexon = nans(1,  length(afStimulusOFF_TS_Plexon));
-    for k=1:length(afStimulusON_TS_Plexon)
+    afScreenLag_ON_MS = nans(1,  length(afModifiedStimulusON_TS_Plexon));
+    afScreenLag_OFF_MS = nans(1,  length(afModifiedStimulusON_TS_Plexon));
+    for k=1:length(afModifiedStimulusON_TS_Plexon)
         % Find the closest actual flip that happened on monitor (should be
         % later than the expected flip...around 10-15 ms later ?)
-        [~,iIndex] = min( abs(afActualFlipTime_PLX - afStimulusON_TS_Plexon(k)));
-        
-        figure(11);
-        clf; hold on;
-        for a=iIndex-5:iIndex+5
-            plot(afActualFlipTime_PLX(a)*ones(1,2),[0 1],'b');
-        end
-        hold on;
-        plot(afStimulusON_TS_Plexon(k)*ones(1,2),[0 0.5],'r--','LineWidth',2);
-        plot(afStimulusON_TS_Plexon(k-1)*ones(1,2),[0 0.5],'c--','LineWidth',2);
-        plot(afStimulusON_TS_Plexon(k-2)*ones(1,2),[0 0.5],'m--','LineWidth',2);
-
-        plot(afStimulusOFF_TS_Plexon(k)*ones(1,2),[0 0.5],'r','LineWidth',2);
-        plot(afStimulusOFF_TS_Plexon(k-1)*ones(1,2),[0 0.5],'c','LineWidth',2);
-        plot(afStimulusOFF_TS_Plexon(k-2)*ones(1,2),[0 0.5],'m','LineWidth',2);
-        [afImageON(k-2:k);
-        afImageOFF(k-2:k)]
-                  
-        
+        iIndex = find(afActualFlipTime_PLX > afModifiedStimulusON_TS_Plexon(k),1,'first');
         if ~isempty(iIndex)
-            afScreenLag_ON_MS(k) = (afActualFlipTime_PLX(iIndex) - afStimulusON_TS_Plexon(k))*1e3;
+            afScreenLag_ON_MS(k) = (afActualFlipTime_PLX(iIndex) - afModifiedStimulusON_TS_Plexon(k))*1e3;
             afModifiedStimulusON_TS_Plexon(k) = afActualFlipTime_PLX(iIndex);
         end
-        
-        iIndex = find(afActualFlipTime_PLX > afStimulusOFF_TS_Plexon(k),1,'first');
+        iIndex = find(afActualFlipTime_PLX > afModifiedStimulusOFF_TS_Plexon(k),1,'first');
         if ~isempty(iIndex)
-            afScreenLag_OFF_MS(k) = (afActualFlipTime_PLX(iIndex) - afStimulusOFF_TS_Plexon(k))*1e3;
+            afScreenLag_OFF_MS(k) = (afActualFlipTime_PLX(iIndex) - afModifiedStimulusOFF_TS_Plexon(k))*1e3;
             afModifiedStimulusOFF_TS_Plexon(k) = afActualFlipTime_PLX(iIndex);
         end
     end
@@ -170,9 +146,6 @@ if ~isempty(afActualFlipTime_PLX)
       
 end
 % Adjust 
-if ~isempty(find(abs(afScreenLag_ON_MS) > 50)) || ~isempty(find(abs(afScreenLag_OFF_MS) > 50))
-    dbg = 1;
-end;
 
 % Find valid trials, in which monkey fixated at the fixation point
 strctValidTrials = fnFindValidTrialsAux(strctKofiko,strctInterval, strctSync, iParadigmIndex,...

@@ -5,7 +5,7 @@ function fnResumeParadigm()
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (see GPL.txt)
 
-global g_strctParadigm g_strctSystemCodes g_handles g_strctCycle  g_strctAppConfig g_strctParadigm
+global g_strctParadigm g_strctSystemCodes g_handles g_strctCycle  g_strctAppConfig 
 if g_strctCycle.m_bParadigmPaused
     g_strctCycle.m_bParadigmPaused = false;
     % Machine is in pause mode. restore state
@@ -19,6 +19,5 @@ if g_strctCycle.m_bParadigmPaused
     feval(g_strctParadigm.m_strCallbacks,'Resuming');
     
     set(g_handles.hPauseButton,'String','Pause');
-    g_strctCycle.m_iMotionFSM_State = 0;
 end;
 return;

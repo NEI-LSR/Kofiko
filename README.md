@@ -1,3 +1,0 @@
-# Kofiko
-
-Stimulus presentation software

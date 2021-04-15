@@ -14,8 +14,6 @@ catch
     return;
 end
 
-    IOPort('Purge',hPort);
-
 WaitSecs(fInitTimeSec1); % allow time to load the sketch?
 
 % Start asynchronous background data collection and timestamping. Use
@@ -25,10 +23,7 @@ IOPort('ConfigureSerialPort', hPort, asyncSetup);
 
 WaitSecs(fInitTimeSec2); % allow time to load the sketch?
 
-IOPort('Purge',hPort);
 IOPort('Write',  hPort , [strInitCommand,10]);
-IOPort('Write',  hPort , [strInitCommand,10]);
-
 WaitSecs(fWaitTime);
 % Really empty? Hope so.
 NumBytesAvail =  IOPort('BytesAvailable', hPort);

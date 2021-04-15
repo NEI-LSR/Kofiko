@@ -5,7 +5,7 @@
 
 <Directories
    LogFolder = "C:\Shay\Data\Logs\"
-   PTB_Folder = "C:\Shay\Code\PublicLib\PTB\"
+   PTB_Folder = "C:\Toolboxes\Psychtoolbox\"
 > </Directories>
 
 <StimulusServer
@@ -32,8 +32,8 @@
 <EyeCalib
     CenterX = "2041"
     CenterY = "2018"
-    ScaleX = "-3.2"
-    ScaleY = "3.1"
+    ScaleX = "-3.8"
+    ScaleY = "3.8"
 > </EyeCalib>
 
 <VarSave
@@ -83,7 +83,6 @@
     EyePortY = "1"
     EyePortPupil = "2"
 
-    SyncPort = "20"
     MotionPort = "7"
     ExternalTriggers = "10"
     ExternalTriggersNames = "MRI"
@@ -158,28 +157,28 @@
         Initial_RescaleToPower2 = "0"
         Initial_PreloadTexturesVRAM = "1"
 
-        Initial_GazeBoxPix = "200"
+        Initial_GazeBoxPix = "110"
         Initial_JuiceTimeMS = "40"
-        Initial_JuiceTimeHighMS = "50"
+        Initial_JuiceTimeHighMS = "40"
         Initial_BlinkTimeMS = "300"
-        Initial_GazeTimeMS = "3000"
-        Initial_GazeTimeLowMS = "3000"
+        Initial_GazeTimeMS = "3800"
+        Initial_GazeTimeLowMS = "3500"
         Initial_PositiveIncrementPercent = "10"
 
         Initial_BackgroundColor = "128 128 128"
         Initial_FixationSizePix = "6"
-        Initial_StimulusSizePix = "150"
-        Initial_StimulusON_MS = "250"
+        Initial_StimulusSizePix = "200"
+        Initial_StimulusON_MS = "150"
         Initial_StimulusOFF_MS = "150"
         Initial_RandomStimuli = "1"
   
         Initial_DefaultImageFolder = "\\192.168.50.93\StimulusSet\"
-        Initial_DefaultImageList = "\\192.168.50.93\StimulusSet\LargeFaceLocalizer\LargeFaceLocalizer.xml"
+        Initial_DefaultImageList = "\\192.168.50.93\StimulusSet\Monkey_Bodyparts\imlist.txt"
         
         Initial_FavroiteList1 = "\\192.168.50.93\StimulusSet\Monkey_Bodyparts\imlist.txt"
-        Initial_FavroiteList2 = "\\192.168.50.93\StimulusSet\LargeFaceLocalizer\LargeFaceLocalizer.xml"              
-        Initial_FavroiteList3 = "\\192.168.50.93\StimulusSet\PassiveFixationMicrostim\Fixate_MicrostimCh2Only.xml"
-         
+        Initial_FavroiteList2 = "\\192.168.50.93\StimulusSet\Cartoon_And_Tuning\Cartoon_parts_and_tuning_im1.xml"
+        Initial_FavroiteList3 = "\\192.168.50.93\StimulusSet\Sinha_Exp\Sinha_v4_FOB_Blocks.xml"
+        
         
         Initial_FavroiteList4 = "\\192.168.50.93\StimulusSet\ReverseCorrelation\ReverseCorrelation.xml"
         Initial_FavroiteList5 = "\\192.168.50.93\StimulusSet\StandardFaceLocalizer\V6\StandardFOB_v6.xml"
@@ -284,7 +283,7 @@
         Initial_FixationRadiusPix = "100"
 
 
-        Initial_DesignFile = "\\192.168.50.93\StimulusSet\Delay Match To Sample\DMS_Houdini_Week1.xml"
+        Initial_DesignFile = "\\192.168.50.93\StimulusSet\SaccadeTask\SaccadeMemoryTaskBert_Exp13.xml"
 
         Initial_FavroiteList1 = "\\192.168.50.93\StimulusSet\SaccadeTask\SaccadeMemoryTaskBert_Exp13.xml"
 

@@ -8,19 +8,8 @@
     > </m_strctDirectories>
     
       <m_strctRAWPipelines>
-      <m_acPipeline
-            m_strName = "Passive Fixation (v4) (with photodiode, ignore stim server flips)"
-            m_strFunc = "fnPipelinePassiveFixation_v4"
-        > </m_acPipeline>  
-
-        
         <m_acPipeline
-            m_strName = "New Optogenetics Standard Analysis Pipeline"
-            m_strFunc = "fnPipelineOptogeneticsMicrostim_v2"
-        > </m_acPipeline>  
-
-        <m_acPipeline
-            m_strName = "Passive Fixation (v3) (with photodiode, use stim server flips)"
+            m_strName = "Passive Fixation (v3) (with photodiode)"
             m_strFunc = "fnPipelinePassiveFixation_v3"
         > </m_acPipeline>  
                  
@@ -77,12 +66,6 @@
             m_strFunc = "fnPipelineElectricalMicrostim_v4"
         > </m_acPipeline>  
            
-
-        <m_acPipeline
-            m_strName = "Invivo fluorescence measurement pipeline"
-            m_strFunc = "fnPipelineFiberscope_v1"
-        > </m_acPipeline>  
-        
        </m_strctRAWPipelines>
        
        

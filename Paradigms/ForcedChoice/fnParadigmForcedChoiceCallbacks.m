@@ -51,7 +51,7 @@ switch strCallback
         fnParadigmToKofikoComm('MouseEmulator',g_strctParadigm.m_bEmulatorON);
         
     case 'NoiseLevel'
-        g_strctParadigm.m_strctCurrentTrial.m_fNoiseLevel = fnTsGetVar(g_strctParadigm, 'NoiseLevel');
+        g_strctParadigm.m_strctCurrentTrial.m_fNoiseLevel = fnTsGetVar('g_strctParadigm', 'NoiseLevel');
     case 'StairCaseUp'
     case 'StairCaseDown'
     case 'StairCaseStepPerc'

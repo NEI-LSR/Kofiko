@@ -1,9 +1,8 @@
 function [newX, newY] = fnRotateAroundPoint(x ,y , centerX, centerY, angle_of_rotation)
 
 % Helper function. Rotates stuff for dynamic presentations
-% takes 11 microseconds
-s = sin(degtorad(angle_of_rotation));
-c = cos(degtorad(angle_of_rotation));
+s = sin(deg2rad(angle_of_rotation));
+c = cos(deg2rad(angle_of_rotation));
 x = x - centerX;
 y = y - centerY;
 

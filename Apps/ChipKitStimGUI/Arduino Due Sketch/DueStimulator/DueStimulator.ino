@@ -1,27 +1,9 @@
-#include <Wire.h>
-
-/********************************************************************************
-
-Nano stimulator sketch. Based on Arduino Due.
-
-Programmed by Shay Ohayon
-Caltech 
-
-
-Revisions:
-22/2/2014 - fixed an issue with stimulating with 1 Hz pulses and train lengths < 1 sec. 
-11/2/2014 - added support for photodiode triggering.
-1/1/2014 - added support for gating.
-?/?/2013 - added support for trigger inhibition (useful for antidromic evoked artifacts)
-********************************************************************************/
-
 #include <LiquidCrystal.h>
 #include <Wire.h>         // Para a EEPROM 24LC256, assim chamamos as bibliotecas i2c
 #include "AnyRom.h"
 #include <stdio.h>
 
 #define DEBUG_LCD 0
-#define KEEP_CHANGES_IN_ROM 0
 #define DEBUG_SERIAL 0
 #define SERIAL_SPEED 115200
 #define CLR(x,y) (x&=(~(1<<y)))
@@ -32,8 +14,6 @@ Revisions:
 #define PRESET_SIZE 128
 #define MAX_BUFFER 1024
 #define PRESET_NAME_LENGTH 17
-
-const int DEFAULT_PRESET = 0;
 
 const byte TCP_MODIFY_PULSE_FREQ = 1;
 const byte TCP_MODIFY_PULSE_WIDTH = 2;
@@ -55,12 +35,6 @@ const byte TCP_MODIFY_PRESET_NAME = 17;
 const byte TCP_PING = 18;
 const byte TCP_MODIFY_IP = 19;
 const byte TCP_MODIFY_PORT = 20;
-const byte TCP_GET_TRIGGER_COUNT = 21;
-const byte TCP_ABORT_STIMULATION = 22;
-const byte TCP_MODIFY_GATE_DELAY = 23;
-const byte TCP_MODIFY_GATE_LENGTH = 24;
-const byte TCP_MODIFY_PHOTODIODE_TRIGGER = 25;
-
 
 	const byte NUM_MENU_ITEMS = 26;
 	const byte NUM_MENU_ITEMS_PER_CHANNEL = 11;
@@ -144,6 +118,22 @@ String current_string;
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
           int ReadKey() {
            int v = analogRead(0); 
            int b = digitalRead(11);
@@ -152,6 +142,9 @@ String current_string;
             else
            return v; 
           }
+
+
+
 
 
 String Microns_To_String(long usec) {
@@ -166,7 +159,6 @@ String Microns_To_String(long usec) {
 		class stim_train {
 		public:
 			stim_train();
-                        void setState(int newState);
 
 			// train parameters
 			long TriggerDelay_Microns;
@@ -180,9 +172,6 @@ String Microns_To_String(long usec) {
 			long Second_Pulse_Delay_Microns;
 			float Amplitude;
 
-                        long GateDelay_Microns;
-                        long GateLength_Microns;
-
 			// internally used variables
 			byte Software_Trig;
 			byte Hardware_Trig;
@@ -190,32 +179,19 @@ String Microns_To_String(long usec) {
 			long  TurnOff_TS;
 			long NumTriggers;
 			int State;
-			int GateState;
 			long SecondPulse_TS;
 			long Pulse_Start_TS;
 			long Train_Start_TS;
 			int Active;
 
-                        long GateStartTS;
-                        unsigned long LastTriggerTime;
-                        double Minimum_Trigger_Time_Distance_Microns;
-                        bool triggerDetectedByInterrupt;
-                        bool photodiodeDetectedByInterrupt;
-                        bool ignoreTriggersDuringTrain;
-
 			long NumTrains;
 			byte OutputPin;
 			byte TriggerPin;
-                        byte GatePin;
 			int ID;  
-                        int PhotodiodePin;
-                        bool UsePhotodiodeSecondTrigger;
-                        bool Armed;
 
 			int curr_trig_value, prev_trig_value;
 			void  non_block_loop();
 
-                        unsigned long ExternallyTriggeredCount;
 		};
 
 		stim_train FSM[2];  
@@ -244,164 +220,68 @@ String Microns_To_String(long usec) {
 			NumTrains = 0;
 			curr_trig_value = 0;
 			prev_trig_value = 0;
-                        GateDelay_Microns = 0;
-                        GateLength_Microns = 0;
-                        GateState = 0;
-                        triggerDetectedByInterrupt = false;
-                        photodiodeDetectedByInterrupt = false;
-                        UsePhotodiodeSecondTrigger = false;
-                        Armed = false;
-                        ignoreTriggersDuringTrain = true;
-                        triggerDetectedByInterrupt = false;
-                        Minimum_Trigger_Time_Distance_Microns = 10000; // do not allow external triggers if they are separated by less than 10 ms. 
-                                                                       // this will prevent stimulation loops for antidromic spikes..
-                                                                       
-                        LastTriggerTime = micros();                                                                       
-                        ExternallyTriggeredCount = 0;
 
 		}
-
-                
-                void stim_train::setState(int newState) {
-                        //if (DEBUG_SERIAL)
-                        //   Serial.println("State "+String(State) +" => " + String(newState));
-                        
-                        State = newState;
-
-                }
 
 		void stim_train::non_block_loop() {
 			long t;
 			byte Continuous;
-                      t=micros();
 
-
-
-                         if (triggerDetectedByInterrupt) {
-                                triggerDetectedByInterrupt = false;
-                                   
-                                if (t - LastTriggerTime > Minimum_Trigger_Time_Distance_Microns) 
-                                {
-                                  if (ignoreTriggersDuringTrain && State != 0)
-                                  {
-                                    // do nothing. We ignore triggers while 
-                                  } else 
-                                  {
-                                    if (!UsePhotodiodeSecondTrigger)
-                                    {
-      				      Hardware_Trig = 1;
-                                    } else
-                                    {
-                                      Armed = true;                       
-                                    }
-    
-                                   
-                                    ExternallyTriggeredCount++;
-                                  }
-
-                                }
+			curr_trig_value = digitalRead(TriggerPin);
+			if (curr_trig_value == 1 && prev_trig_value == 0) {
+				Hardware_Trig = 1;
 			}
-    
-                        
-                        if (Armed && UsePhotodiodeSecondTrigger  && photodiodeDetectedByInterrupt)
-                        {
-                            photodiodeDetectedByInterrupt = false;
-                            Armed = false;
-                             Hardware_Trig = 1;
-                                             
-                        }
+			prev_trig_value = curr_trig_value;
 
 			if ( (State == 0) && (Software_Trig || Hardware_Trig)) {  
 				Software_Trig = 0;
 				Hardware_Trig = 0;
 
 				if (State == 0) {
-					 //State = 1;
-                                         setState(1);
-  
-                                        if (GateLength_Microns > 0)
-                                        {
-                                          GateState = 1;
-                                          GateStartTS = micros();
-                                        }
+					State = 1;
 					//Serial.println(String("Trigged ")+String(ID));                    
 				}  
 			}
 
-                        if (GateState == 1)
-                        {
-                          if (micros() - GateStartTS >= GateDelay_Microns)
-                          {
-                            digitalWrite(GatePin,HIGH);
-                            GateState = 2;
-                          }
-                        }
-                        
-                        if (GateState == 2)
-                        {
-                          if (micros() - GateStartTS >= GateDelay_Microns + GateLength_Microns)
-                          {
-                            digitalWrite(GatePin,LOW);
-                            GateState = 0;
-                          }
-                        }
-  
+			t=micros();
 
 			if (State == 1) {
-                                 LastTriggerTime = t;   
 				NumTriggers++;
 				NumTrains = NumTrains_Per_Trigger;
 				Train_Start_TS = micros();
 				if (TriggerDelay_Microns == 0)
-                                {
-                                           setState(4); 
-                                           //State = 4;
-                              }
+					State = 4;
 				else
-                                  {
-					//State = 2;
-                                        setState(2);
-
-                                   }
+					State = 2;
 			}
 
 			if (State == 2) {
 				if (t-Train_Start_TS > TriggerDelay_Microns) {
 					Train_Start_TS = micros();        
-					//State = 4;
-                                        setState(4);
+					State = 4;
 				}
 			}
 
 			if (State == 4) { // Start pulse
-        			if (NumTrains_Per_Trigger == 0) {
+				if (NumTrains_Per_Trigger == 0) {
 					if (digitalRead(TriggerPin)) {
 
 						digitalWrite(OutputPin, HIGH);
 						Pulse_Start_TS = micros();
-						//State = 5;
-                                                setState(5);
+						State = 5;
 					} else {
 						State = 0;
-                                                setState(0);
 					}
 				} else  if (( (t-Train_Start_TS) < Train_Length_Microns)) {
 					digitalWrite(OutputPin, HIGH);
 					Pulse_Start_TS = micros();
-                                        setState(5);
-					//State = 5;
+					State = 5;
 				} else {
 					// wait inter-train interval
 					if (NumTrains > 1)
-                                        {
-						//State = 8;
-                                                setState(8);
-                                        }
+						State = 8;
 					else
-                                        {
-						//State = 0;
-                                                setState(0);
-                                        }
+						State = 0;
 				}
 
 			}
@@ -409,8 +289,7 @@ String Microns_To_String(long usec) {
 			if (State == 5) { // wait for pulse to finish
 				if (t-Pulse_Start_TS > Pulse_Width_Microns) {
 					digitalWrite(OutputPin, LOW);
-					//State = 6;
-                                        setState(6);
+					State = 6;
 				}
 			}
 
@@ -418,84 +297,46 @@ String Microns_To_String(long usec) {
 				// do we have bi-polar pulses?
 				if (SecondPulse > 0) {
 					SecondPulse_TS=micros();
-					//State = 9;
-                                        setState(9);
-
+					State = 9;
 				} else {
-					//State = 7;
-                                        setState(7);
-
+					State = 7;
 				}
 			}       
 
 			if (State == 7) {
-				// wait inter-pulse interval - trigger gate delay time.
-				if ( (t-Pulse_Start_TS > 1.0/Pulse_Freq_Hz*1000000-GateDelay_Microns) || (1.0/Pulse_Freq_Hz*1000000 > 1.0/Train_Freq_Hz*1000000-GateDelay_Microns) || (t-Train_Start_TS) > Train_Length_Microns-GateDelay_Microns) {
-                                     // go and wait the remaining time ( GateDelay_Microns)
-                                      setState(71);
-                                      // activate gate again...
-                                      if ((t-Pulse_Start_TS > 1.0/Pulse_Freq_Hz*1000000-GateDelay_Microns))
-                                      {
-                                       GateState = 1;
-                                       GateStartTS = micros()-GateDelay_Microns;
-                                      }
-    				        
+				// wait inter-pulse interval
+				if ( (t-Pulse_Start_TS > 1.0/Pulse_Freq_Hz*1000000) || (1.0/Pulse_Freq_Hz*1000000 > 1.0/Train_Freq_Hz*1000000)) {
+					State = 4; 
 				} 
-      		        }   
-   
-			if (State == 71) {
-                              // wait the remaining (GateDelay_Microns)
-  				if ( (t-Pulse_Start_TS > 1.0/Pulse_Freq_Hz*1000000) || (1.0/Pulse_Freq_Hz*1000000 > 1.0/Train_Freq_Hz*1000000) || (t-Train_Start_TS) > Train_Length_Microns) {
-					//State = 4; 
-                                        setState(4);
-				} 
-                        }
-      
+			}      
 
 			if (State == 8) {        // wait inter-train interval
-				if (t-Train_Start_TS > 1.0/Train_Freq_Hz*1000000-GateDelay_Microns) {
+				if (t-Train_Start_TS > 1.0/Train_Freq_Hz*1000000) {
 					if (NumTrains == -1) {
-                                           GateState = 1;
-                                           GateStartTS = micros()-GateDelay_Microns;
-                                          setState(81);
-						
+						State = 4;
+						Train_Start_TS = micros();
 					} else if (NumTrains == 1) {
-						//State = 0;
-                                                setState(0);  
-
+						State = 0;
 					} else {
-                                               GateState = 1;
-                                               GateStartTS = micros()-GateDelay_Microns;
-  
-                                                setState(81);
+						State = 4;
+						Train_Start_TS = micros();
 						NumTrains--;
 					}
 				}
 			}
-                        if (State == 81) {        // 
-                                if (t-Train_Start_TS > 1.0/Train_Freq_Hz*1000000) {
-                                  setState(4);
-  				  Train_Start_TS = micros();
-                                }
-  
-                        }
-		
+
 			if (State == 9) { 
 				if (t-SecondPulse_TS > Second_Pulse_Delay_Microns) {
 					digitalWrite(OutputPin, HIGH);          
 					SecondPulse_TS = micros();
-                                         setState(10);
-
-//					State = 10;
+					State = 10;
 				}
 			}
 
 			if (State == 10) { // wait until second pulse is done.
 				if (t-SecondPulse_TS > Second_Pulse_Width_Microns) {
 					digitalWrite(OutputPin, LOW);          
-                                                setState(7);
-
-//					State = 7;
+					State = 7;
 				}
 
 			}
@@ -779,10 +620,6 @@ String Microns_To_String(long usec) {
 				loc+=EEPROM_writeAnything(base+loc, FSM[k].Second_Pulse_Delay_Microns);    
 				loc+=EEPROM_writeAnything(base+loc, FSM[k].Amplitude);            
 				loc+=EEPROM_writeAnything(base+loc, FSM[k].Active);                
-                                loc+=EEPROM_writeAnything(base+loc, FSM[k].GateDelay_Microns);
-                                loc+=EEPROM_writeAnything(base+loc, FSM[k].GateLength_Microns);
-                                loc+=EEPROM_writeAnything(base+loc, FSM[k].UsePhotodiodeSecondTrigger);
-                                
 
 				
 				//Serial.println(String("TriggerDelay_Microns:")+String(FSM[k].TriggerDelay_Microns));
@@ -809,6 +646,7 @@ String Microns_To_String(long usec) {
 
 		void  read_preset_from_rom(int preset){
   
+  
 			int offset = 12; // for keeping IP & port
 			int base = offset+(preset)*PRESET_SIZE;
 			int loc=0;
@@ -826,10 +664,7 @@ String Microns_To_String(long usec) {
 				loc+=EEPROM_readAnything(base+loc, FSM[k].Amplitude);        
 				loc+=EEPROM_readAnything(base+loc, FSM[k].Active);
 
-				loc+=EEPROM_readAnything(base+loc, FSM[k].GateDelay_Microns);
-				loc+=EEPROM_readAnything(base+loc, FSM[k].GateLength_Microns);
-
-                                loc+=EEPROM_readAnything(base+loc, FSM[k].UsePhotodiodeSecondTrigger);
+				
 				//Serial.println(String("TriggerDelay_Microns:")+String(FSM[k].TriggerDelay_Microns));
 //				Serial.println(String("SecondPulse:")+String(FSM[k].SecondPulse));
 //				Serial.println(String("Pulse_Freq_Hz:")+String(FSM[k].Pulse_Freq_Hz));
@@ -842,6 +677,7 @@ String Microns_To_String(long usec) {
 //				Serial.println(String("Amplitude:")+String(FSM[k].Amplitude));        
 				
 			}
+
 			//  Serial.print("Preset Name:");
 			for (int k=0;k<PRESET_NAME_LENGTH;k++) {
 				loc+=EEPROM_readAnything(base+loc, PRESET_NAMES[preset][k]);
@@ -1009,12 +845,6 @@ String Microns_To_String(long usec) {
 				FSM[1].Software_Trig = 1;
 				break;          
 			}  
-                        if (KEEP_CHANGES_IN_ROM) {
-                             write_preset_to_rom(DEFAULT_PRESET);
-                        }
-                          
-
-
 		}
 
 		void TriggerFS0() {
@@ -1047,10 +877,6 @@ String Microns_To_String(long usec) {
 				SendStringToUser(String(FSM[ch].TriggerDelay_Microns));
 				SendStringToUser(String(FSM[ch].Amplitude));
 				SendStringToUser(String(FSM[ch].Active));
-                                SendStringToUser(String(FSM[ch].GateDelay_Microns));
-                                SendStringToUser(String(FSM[ch].GateLength_Microns));                                
-                                SendStringToUser(String(FSM[ch].UsePhotodiodeSecondTrigger));                                
-
 			}
 		}
 
@@ -1077,10 +903,6 @@ String Microns_To_String(long usec) {
 				frequency = atof(packetBuffer+4);
 				if (channel >= 0 && channel < NUM_CHANNELS) {
 					FSM[channel].Pulse_Freq_Hz = frequency;
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;
 					if (DEBUG_SERIAL) {
 						Serial.print("Set pulse frequency: ");
@@ -1100,10 +922,6 @@ String Microns_To_String(long usec) {
 				sscanf (packetBuffer,"%d %d %ld",&command, &channel, &value);
 				if (channel >= 0 && channel < NUM_CHANNELS && value > 0) {
 					FSM[channel].Pulse_Width_Microns = value;
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;      
 					if (DEBUG_SERIAL) {      
 						Serial.print("Set pulse width: ");
@@ -1125,10 +943,6 @@ String Microns_To_String(long usec) {
 				sscanf (packetBuffer,"%d %d %ld",&command, &channel, &f1);
 				if (channel >= 0 && channel < NUM_CHANNELS ) {
 					FSM[channel].SecondPulse = f1;
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;     
 					if (DEBUG_SERIAL) { 
 						Serial.print("Set second pulse pulse : ");
@@ -1150,10 +964,6 @@ String Microns_To_String(long usec) {
 				sscanf (packetBuffer,"%d %d %ld",&command, &channel, &value);
 				if (channel >= 0 && channel < NUM_CHANNELS) {
 					FSM[channel].Train_Length_Microns = value;
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;    
 					if (DEBUG_SERIAL) {
 						Serial.print("Set train length: ");
@@ -1175,10 +985,6 @@ String Microns_To_String(long usec) {
 				frequency = atof(packetBuffer+4);
 				if (channel >= 0 && channel < NUM_CHANNELS) {
 					FSM[channel].Train_Freq_Hz = frequency;
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;   
 					if (DEBUG_SERIAL) {
 						Serial.print("Set train frequency: ");
@@ -1199,10 +1005,6 @@ String Microns_To_String(long usec) {
 				sscanf (packetBuffer,"%d %d %ld",&command, &channel, &value);
 				if (channel >= 0 && channel < NUM_CHANNELS) {
 					FSM[channel].NumTrains_Per_Trigger = value;
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;   
 					if (DEBUG_SERIAL) {
 						Serial.print("Set number of trains: ");
@@ -1223,10 +1025,6 @@ String Microns_To_String(long usec) {
 				sscanf (packetBuffer,"%d %d %ld",&command, &channel, &value);
 				if (channel >= 0 && channel < NUM_CHANNELS) {
 					FSM[channel].TriggerDelay_Microns = value;   
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;    
 					if (DEBUG_SERIAL) {
 						Serial.print("Set trigger delay: ");
@@ -1243,84 +1041,10 @@ String Microns_To_String(long usec) {
 
 				}
 				break; 
-                        case TCP_MODIFY_GATE_DELAY:
-	                        sscanf (packetBuffer,"%d %d %ld",&command, &channel, &value);
-				if (channel >= 0 && channel < NUM_CHANNELS) {
-					FSM[channel].GateDelay_Microns = value;   
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
-					successful = true;    
-					if (DEBUG_SERIAL) {
-						Serial.print("Set gate trigger delay: ");
-						Serial.print("Channel :");
-						Serial.println(channel);
-						Serial.print("Delay (usec)  :");
-						Serial.println(value);
-					}
-                                  }
-	                          break;
-                               case TCP_MODIFY_GATE_LENGTH:
-	                        sscanf (packetBuffer,"%d %d %ld",&command, &channel, &value);
-				if (channel >= 0 && channel < NUM_CHANNELS) {
-					FSM[channel].GateLength_Microns = value;   
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
-					successful = true;    
-					if (DEBUG_SERIAL) {
-						Serial.print("Set gate trigger delay: ");
-						Serial.print("Channel :");
-						Serial.println(channel);
-						Serial.print("Delay (usec)  :");
-						Serial.println(value);
-					}
-                                  }
-	                          break;
-
-case TCP_MODIFY_PHOTODIODE_TRIGGER:
-	                        sscanf (packetBuffer,"%d %d %ld",&command, &channel, &value);
-				if (channel >= 0 && channel < NUM_CHANNELS) {
-					FSM[channel].UsePhotodiodeSecondTrigger = value;   
-
-
-    	                      lcd.setCursor(0, 1);
-                              if (FSM[channel].UsePhotodiodeSecondTrigger)
-                                lcd.print("Photodiode Active");  
-                                else
-                                lcd.print("Photodiode Inactive");  
-
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
-					successful = true;    
-					if (DEBUG_SERIAL) {
-						Serial.print("Set photodiode trigger: ");
-						Serial.print("Channel :");
-						Serial.println(channel);
-						Serial.print("Delay (usec)  :");
-						Serial.println(value);
-					}
-                                  }
-	                          break;
-
-
-
-
-
-
-
 			case TCP_MODIFY_SECOND_PULSE_WIDTH: // modify second pulse width
 				sscanf (packetBuffer,"%d %d %ld",&command, &channel, &value);
 				if (channel >= 0 && channel < NUM_CHANNELS) {
 					FSM[channel].Second_Pulse_Width_Microns = value;   
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;    
 					if (DEBUG_SERIAL) {
 						Serial.print("Set second pulse width: ");
@@ -1340,10 +1064,6 @@ case TCP_MODIFY_PHOTODIODE_TRIGGER:
 				sscanf (packetBuffer,"%d %d %ld",&command, &channel, &value);
 				if (channel >= 0 && channel < NUM_CHANNELS) {
 					FSM[channel].Second_Pulse_Delay_Microns = value;   
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;    
 					if (DEBUG_SERIAL) {      
 						Serial.print("Set second pulse delay: ");
@@ -1365,16 +1085,7 @@ case TCP_MODIFY_PHOTODIODE_TRIGGER:
 				sscanf (packetBuffer,"%d %d",&command, &channel);
 				frequency = atof(packetBuffer+4);
 				if (channel >= 0 && channel < NUM_CHANNELS) {
-                                  if (channel == 0)
-                                      analogWrite(DAC0,frequency);     
-                                    else
-                                      analogWrite(DAC1,frequency);                    
-  
 					FSM[channel].Amplitude = frequency;   
-                                        if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 					successful = true;    
 					if (DEBUG_SERIAL) {
 						Serial.print("Set Amplitude: ");
@@ -1395,7 +1106,6 @@ case TCP_MODIFY_PHOTODIODE_TRIGGER:
 				sscanf (packetBuffer,"%d %d",&command, &channel);
 				if (channel >= 0 && channel < NUM_CHANNELS) {
 					FSM[channel].Software_Trig = true;   
-            
 					successful = true;    
 					if (DEBUG_SERIAL) {
 						Serial.print("Soft rigger: ");
@@ -1438,10 +1148,6 @@ case TCP_MODIFY_PHOTODIODE_TRIGGER:
 				if (channel >= 0 && channel < NUM_CHANNELS) {
 					successful = true;    
 					FSM[channel].Active = f1;      
-                            if (KEEP_CHANGES_IN_ROM) {
-                                             write_preset_to_rom(DEFAULT_PRESET);
-                                        }
-
 
 					if (DEBUG_SERIAL) {        
 						if (f1 == 0)
@@ -1452,18 +1158,6 @@ case TCP_MODIFY_PHOTODIODE_TRIGGER:
 					}
 				}
 				break;      
-                        case TCP_GET_TRIGGER_COUNT:
-                              Serial.println(String("TriggerCount ")+String(FSM[0].ExternallyTriggeredCount) + String(" ") + String(FSM[1].ExternallyTriggeredCount));
-                              successful=true;      
-                                break;
-                        case TCP_ABORT_STIMULATION:
-                              digitalWrite(FSM[0].OutputPin, LOW);
-                              digitalWrite(FSM[1].OutputPin, LOW);
-                              FSM[0].State = 0;                              
-                              FSM[1].State = 0;                              
-                              successful=true;      
-                                break;
-                                
 			case TCP_GET_CURRENT_SETTINGS:
 				SendCurrentSettingsOverTCP();    
 				successful=true;      
@@ -1595,60 +1289,27 @@ case TCP_MODIFY_PHOTODIODE_TRIGGER:
 			}
 		}
 
-                void TrigFSM0()
-                {
-                  FSM[0].triggerDetectedByInterrupt = true;
-                }
-               void TrigFSM1()
-                {
-                  FSM[1].triggerDetectedByInterrupt = true;                  
-                }                
-                
-                void TrigPhotodiode()
-                {
-                  if (FSM[0].Armed)
-                    FSM[0].photodiodeDetectedByInterrupt = true;
-                    
-                  if (FSM[1].Armed)                    
-                    FSM[1].photodiodeDetectedByInterrupt = true;
-                    
 
-                }
-                
+
+
 		void setupPins() {
 			// All on PORTB!
 			FSM[0].TriggerPin = 2;
 			FSM[0].OutputPin = 22;  
 			FSM[0].ID = 0;
-                        FSM[0].GatePin = 26;
-                        FSM[0].PhotodiodePin = 32;
-                        
-                        
-                        
 			FSM[1].TriggerPin = 3; 
 			FSM[1].OutputPin = 24;  
 			FSM[1].ID = 1;   
-                        FSM[1].GatePin = 28;
-                        FSM[1].PhotodiodePin = 32;                        
-                        
-                              
+
                       pinMode(11,INPUT);
                       
 			for (int k=0;k<NUM_CHANNELS;k++) {
 				pinMode(FSM[k].OutputPin, OUTPUT);
-				pinMode(FSM[k].GatePin, OUTPUT);
 				digitalWrite(FSM[k].OutputPin,LOW);
 				pinMode(FSM[k].TriggerPin, INPUT);
-                                pinMode(FSM[k].PhotodiodePin, INPUT);
 				digitalWrite(FSM[k].TriggerPin, LOW); // Pin 
 			}
 
-                     attachInterrupt(FSM[0].TriggerPin, TrigFSM0,RISING);
-                        attachInterrupt(FSM[1].TriggerPin, TrigFSM1,RISING);
-                        
-                        attachInterrupt(FSM[0].PhotodiodePin, TrigPhotodiode,CHANGE); // both share this line...
-                        //attachInterrupt(FSM[1].PhotodiodePin, TrigPhotodiode1,CHANGE);
-     
 		}
 
 void SetupDefaultValues()
@@ -1669,8 +1330,6 @@ void SetupDefaultValues()
 				 FSM[0].Second_Pulse_Delay_Microns = 100;
 				 FSM[0].Amplitude = 1;
 				 FSM[0].Active = 1;
-                                 FSM[0].GateDelay_Microns = 0;
-                                 FSM[0].GateLength_Microns = 0;                                 
   
 
 
@@ -1685,8 +1344,6 @@ void SetupDefaultValues()
 				 FSM[1].Second_Pulse_Delay_Microns = 0;
 				 FSM[1].Amplitude = 1;
 				 FSM[1].Active = 1;
-                                 FSM[1].GateDelay_Microns = 0;
-                                 FSM[1].GateLength_Microns = 0;                                 
   
    
 }
@@ -1697,10 +1354,7 @@ void SetupDefaultValues()
 			lcd.print("Nano Stimulator");
 
 			lcd.setCursor(0, 1);
-                        if (!DEBUG_LCD)
-                          lcd.print("keys disabled.");  
-                        else
-  			  lcd.print("v1.0");
+			lcd.print("v1.0");
 
 
 			lcd.setCursor(0, 1);
@@ -1717,8 +1371,7 @@ void setup() {
 
 
   Wire.begin();  
-  // Do this only if you changed EEPROM settings
-/*
+  /*
   SetupDefaultValues();
   	for (int pres=NUM_MAX_PRESETS-1;pres>=0;pres--) {
           write_preset_to_rom(pres);		
@@ -1726,7 +1379,6 @@ void setup() {
 */
 			setupLCD();
 			setupPins();  
-
 	
 			// This will read all preset names, and keep preset 0 as the active one...
 			for (int pres=NUM_MAX_PRESETS-1;pres>=0;pres--) {
@@ -1735,20 +1387,11 @@ void setup() {
 			menu_item = 0;
 			//print_menu();  
 
-                       digitalWrite(FSM[0].GatePin,LOW);
-                       digitalWrite(FSM[1].GatePin,LOW);
-
-                       digitalWrite(FSM[0].OutputPin,LOW);
-                       digitalWrite(FSM[1].OutputPin,LOW);
-
 			Serial.println("Initialization Done!");
-                    analogWriteResolution( 12);
-                       analogWrite(DAC0,0);     
-                    analogWrite(DAC1,0);                    
-}
+		}
 
- int prev_v=0;
-void loop() {
+		 int prev_v=0;
+		void loop() {
 /*
 			int value= ReadKey();
 if (value != prev_v) {
@@ -1756,21 +1399,20 @@ prev_v = value;
 Serial.println(value);
 }
 return; */
-	if (FSM[0].Active > 0) 
-		FSM[0].non_block_loop();
-	if (FSM[1].Active > 0) 
-		FSM[1].non_block_loop();  
+			if (FSM[0].Active > 0) 
+				FSM[0].non_block_loop();
+			if (FSM[1].Active > 0) 
+				FSM[1].non_block_loop();  
 
-  fnHandleSerialCommunication();
+		fnHandleSerialCommunication();
 
-              if (DEBUG_LCD) {
 			t_ms = millis();
-  			if (t_ms-t_noncritical >= 100) {
+
+			if (t_ms-t_noncritical >= 100) {
 				check_key_press();
 				t_noncritical=t_ms;
 				
 			}
-                  }
-}
+		}
 
 

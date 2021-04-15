@@ -24,7 +24,7 @@ aiInd = find(strSession=='_');
 strSubject = strSession(aiInd(2)+1:end);
 strTimeDate = strSession(1:aiInd(2)-1);
 
-strTrainFile = fullfile(strRawFolder,[strSession,'-Grass_Train2.raw']);
+strTrainFile = fullfile(strRawFolder,[strSession,'-Grass_Train.raw']);
 strTrainFile2 = fullfile(strRawFolder,[strSession,'-Grass_Train2.raw']);
 
 if ~exist(strTrainFile,'file')
@@ -316,7 +316,7 @@ for k=1:length(astrctChannelsGridInfo)
                       (astrctChannelsGridInfo(k).m_fCenterOffsetX == 3) && (astrctChannelsGridInfo(k).m_fCenterOffsetY == 6)
                   strOpsin  = 'CamKII_hChR2(E123A)';
               else
-                 strOpsin  = 'hSyn_hChR2(E123A)';
+                  assert(false);
               end
               break;
             case 'Julien'

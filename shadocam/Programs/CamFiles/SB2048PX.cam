@@ -1,0 +1,59 @@
+       1,    //config_version
+" Shad-o-Box 2048",    //camera_name
+" Rad-icon Imaging Corp.",    //description
+      16,    //pix_type
+1.7e-007,    //clock_period
+       1,    //clocks_per_sample
+       1,    //samples_per_pixel
+       1,    //clk_out
+       0,    //hdrive_out
+       1,    //HD_flags
+       0,    //vdrive_out
+       1,    //VD_flags
+       7,    //cam_io
+      10,    //EXP_flags
+       2,    //timing_flags
+       0,    //exposure_time
+       0,    //exposure_start
+       0,    //exposure_min
+       0,    //exposure_max
+     0.5,    //frame_period
+     0.1,    //frame_min_period
+       0,    //delay0_flags
+       0,    //delay0
+       1,    //strobe0_flags
+    0.01,    //strobe0
+       0,    //delay1_flags
+       0,    //delay1
+       0,    //strobe1_flags
+       0,    //strobe1
+      16,    //pix_bits
+       0,    //pad_bits
+    2052,    //width: actual width + 4
+    1024,    //height
+       1,    //n_planes
+       1,    //n_fields
+       1,    //n_channels
+       0     //field_flags
+
+//////// FIELD 0 ////////
+       2,    //VSync_flags
+       0,    //Vlead_lines
+       0,    //Vlead_clocks
+      -1,    //Vtrail_lines
+    2052,    //first_pixel_count: actual width + 4
+    1024     //line_count
+
+//////// CHANNEL 0 ////////
+       0,    //plane_number
+       0,    //start_pixel_x
+       0,    //start_pixel_y
+       1,    //pixel_pitch_x
+       0,    //pixel_pitch_y
+       0,    //line_pitch_x
+       1,    //line_pitch_y
+    2052,    //pixel_count: actual width + 4
+       2,    //CLK_flags
+       2,    //HSync_flags
+      14,    //Hlead_clocks: actual clocks - 2
+      -1     //Htrail_clocks

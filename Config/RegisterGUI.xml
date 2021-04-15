@@ -2,62 +2,41 @@
 <!-- Register GUI Configuration -->
 <Config>
 <Monkeys>
-
+	<Monkey
+ 	Name = "Buster"
+        Image = "Buster.jpg"
+    > </Monkey>
+		 <Monkey
+ 	Name = "Castor"
+        Image = "Castor.jpg"
+    > </Monkey>
     <Monkey
  	Name = "Debug"
         Image = "Debug.jpg"
     > </Monkey>
-
-    <Monkey
-     Name = "Rocco"
-     Image = "Rocco.jpg"
+		<Monkey
+ 	Name = "Gob"
+        Image = "Gob.jpg"
     > </Monkey>
-
-    <Monkey
-     Name = "Houdini"
-     Image = "Houdini.jpg"
+	<Monkey
+ 	Name = "Jacomo"
+        Image = "Jacomo.jpg"
     > </Monkey>
-
-    <Monkey
-     Name = "Julien"
-     Image = "Julien.jpg"
+			<Monkey
+ 	Name = "Jeeves"
+        Image = "Jeeves.jpg"
     > </Monkey>
-
-    <Monkey
-     Name = "Anakin"
-     Image = "Anakin.jpg"
+		 <Monkey
+ 	Name = "Pollux"
+        Image = "Pollux.jpg"
     > </Monkey>
+	
 
-    <Monkey
-     Name = "Tyson"
-     Image = "Tyson.jpg"
+
+		<Monkey
+ 	Name = "Wooster"
+        Image = "Wooster.jpg"
     > </Monkey>
-
-    <Monkey
-     Name = "Benjamin"
-     Image = "Benjamin.jpg"
-    > </Monkey>
-
-    <Monkey
-     Name = "Spiderman"
-     Image = "Spiderman.jpg"
-    > </Monkey>
-
-    <Monkey
-     Name = "Mowgli"
-     Image = "mowgli.jpg"
-    > </Monkey>
-
- <Monkey
-     Name = "Ozomatli"
-     Image = "ozomatli.jpg"
-    > </Monkey>
-
- <Monkey
-     Name = "Fez"
-     Image = "Fez.jpg"
-    > </Monkey>
-
 
  > </Monkeys>
 

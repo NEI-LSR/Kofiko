@@ -1,4 +1,4 @@
-function [astrctTrainInfo,astrctPulseIntervals] = fnIdentifyStimulationTrains(strctTrigger,afTrainTime)
+function [astrctTrainInfo,astrctPulseIntervals] = fnIdentifyStimulationTrains(strctTrigger,afTrainTime, bMerge)
 fThreshold = max(strctTrigger.m_afData(:))/5;
 if isempty(strctTrigger.m_afData) || fThreshold < 100 
     % Threshold of analog signal should be above 100.
@@ -51,25 +51,37 @@ iNumTrains = iTrainCounter;
 aiStartInd = cat(1,astrctPulseIntervals(a2iTrains(:,1)).m_iStart);
 aiEndInd = cat(1,astrctPulseIntervals(a2iTrains(:,2)).m_iEnd);
 afTrainLengthMS = (aiEndInd-aiStartInd+1)/ fSamplingFreq * 1e3;
-% round to the nearest MS. Round to closest number of pulses
 aiNumPulsesPerTrain = a2iTrains(:,2)-a2iTrains(:,1)+1;
 
-[UniqueTrains,~,aiMapTrainToUnique] = unique([round(afTrainLengthMS),aiNumPulsesPerTrain],'rows');
-iNumTrainTypes = size(UniqueTrains,1);
-fprintf('Detected %d trains and %d unique train types:\n',iNumTrains,iNumTrainTypes );
+% Sort by number of pulses per train
+%%
+aiTrainsUniqueNumPulses = unique(aiNumPulsesPerTrain);
+if bMerge
+    iNumTrainTypes = length(aiTrainsUniqueNumPulses);
+    fprintf('Detected %d trains and %d unique train types:\n',iNumTrains,iNumTrainTypes );
+else
+    iNumTrainTypes = length(aiNumPulsesPerTrain);
+    fprintf('Detected %d trains\n',iNumTrains);
+
+end
 
 abActive = zeros(1,iNumTrainTypes) > 0;
 for iUniqueTrainIter=1:iNumTrainTypes
-    NumPulsesForThisTrainType = UniqueTrains(iUniqueTrainIter,2);
-    aiRelevantTrains = find(aiMapTrainToUnique == iUniqueTrainIter);
     
-    if length(aiRelevantTrains) < 5 
+    if bMerge
+        aiRelevantTrains = find(aiNumPulsesPerTrain == aiTrainsUniqueNumPulses(iUniqueTrainIter));
+    else
+        aiRelevantTrains = iUniqueTrainIter;
+    end
+    
+    
+    if length(aiRelevantTrains) < 5 && bMerge
         % Not enough trains to run statistics
         continue;
     end;
     
     abActive(iUniqueTrainIter) = true;
-    aiRelevantPulses = aiPulseToTrain(aiRelevantTrains);
+    aiRelevantPulses = find(ismember(aiPulseToTrain,aiRelevantTrains));
     
     afPulseLengthMS = cat(1,astrctPulseIntervals(aiRelevantPulses).m_iLength) / fSamplingFreq * 1e3;
     afInterPulseMS = afInterPulseIntervalMS(aiRelevantPulses);
@@ -81,13 +93,22 @@ for iUniqueTrainIter=1:iNumTrainTypes
         fTrainLengthMS = median(afTrainLengthMS(aiRelevantTrains));      
     end
 
-       fPulseFreq = round(NumPulsesForThisTrainType/ fTrainLengthMS * 1000);
+    if bMerge
+        
+       fPulseFreq = round(aiTrainsUniqueNumPulses(iUniqueTrainIter)/ fTrainLengthMS * 1000);
         
     fprintf('%d Trains found with %d pulses per train (%d Hz). Pulse Length : %.2f +- %.2f ms, IPI = %.2f +- %.2f ms, Train length = %.2f Sec\n',...
-        length(aiRelevantTrains) ,NumPulsesForThisTrainType, fPulseFreq,mean(afPulseLengthMS), std(afPulseLengthMS),  mean(afInterPulseMS), std(afInterPulseMS), fTrainLengthMS/1e3);
+        length(aiRelevantTrains) ,aiTrainsUniqueNumPulses(iUniqueTrainIter), fPulseFreq,mean(afPulseLengthMS), std(afPulseLengthMS),  mean(afInterPulseMS), std(afInterPulseMS), fTrainLengthMS/1e3);
 
+    end
+    
     astrctTrainInfo(iUniqueTrainIter).m_iNumTrains = length(aiRelevantTrains);
-    astrctTrainInfo(iUniqueTrainIter).m_iPulsesPerTrain = NumPulsesForThisTrainType;
+    if bMerge
+        astrctTrainInfo(iUniqueTrainIter).m_iPulsesPerTrain = aiTrainsUniqueNumPulses(iUniqueTrainIter);
+    else
+        astrctTrainInfo(iUniqueTrainIter).m_iPulsesPerTrain = aiNumPulsesPerTrain(iUniqueTrainIter);
+    end
+    
     astrctTrainInfo(iUniqueTrainIter).m_afPulseLengthMS = afPulseLengthMS;
     astrctTrainInfo(iUniqueTrainIter).m_afInterPulseMS = afInterPulseMS;
     astrctTrainInfo(iUniqueTrainIter).m_fTrainLengthMS = fTrainLengthMS;

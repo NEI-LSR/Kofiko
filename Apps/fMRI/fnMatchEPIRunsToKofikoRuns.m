@@ -40,7 +40,7 @@ while (1)
     
     Hm = H(i-1,j-1) + fnWeight(aiNumTRinEPI(i-1), aiNumTRinKofiko(j-1));
     Hd = H(i-1,j) + fnWeight(aiNumTRinEPI(i-1), []);
-    Hi = H(i,j-1) + fnWeight([], aiNumTRinKofiko(j-1));
+    Hi = H(i,j-1) + fnWeight([], astrctKofikoRuns(j-1));
     
     [Hmax, iMaxInd] = max([0,Hm,Hd,Hi]);
     H(i,j) = Hmax;

@@ -16,11 +16,13 @@ function varargout = ChipKitStimGUI_Serial(varargin)
 %      stop.  All inputs are passed to ChipKitStimGUI_Serial_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      
+%      instance to run (singleton)".
+%
+% See also: GUIDE, GUIDATA, GUIHANDLES
 
 % Edit the above text to modify the response to help ChipKitStimGUI_Serial
 
-% Last Modified by GUIDE v2.5 01-Jan-2014 13:59:17
+% Last Modified by GUIDE v2.5 20-Nov-2012 15:12:57
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -44,7 +46,6 @@ end
 
 % --- Executes just before ChipKitStimGUI_Serial is made visible.
 function ChipKitStimGUI_Serial_OpeningFcn(hObject, eventdata, handles, varargin)
-global g_hNanoStimulatorPort
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -54,20 +55,9 @@ global g_hNanoStimulatorPort
 % Choose default command line output for ChipKitStimGUI_Serial
 handles.output = hObject;
 dbstop if error
-if length(varargin) == 1 && strcmpi(varargin{1},'Shutdown')
-    hKillApp_Callback(hObject, eventdata, handles);
-    return
-end
-
 strctParams=getappdata(handles.figure1,'strctParams');
 if isempty(strctParams) 
-    try
-        acPortsAvailable=FindSerialPort([],1,1);
-    catch
-        % PTB is not on path?
-        fnAddPTBFolders('C:\Shay\Code\PublicLib\PTB\');
-        acPortsAvailable=FindSerialPort([],1,1);
-    end
+    acPortsAvailable=FindSerialPort([],1,1);
     if isempty(acPortsAvailable)
         delete(handles.figure1);
         return;
@@ -94,9 +84,8 @@ if isempty(strctParams)
     end    
     fprintf('Initializing Serial port...This may take a while...\n');
     strctParams.m_strPort = acPortsAvailable{iSelectedPort};
-    %strctParams.m_hSocket = fnInitCOMPort(strctParams.m_strPort, '18', 'OK!', 115200, 100000, 3,3,0.1);
-    strctParams.m_hSocket = fnInitCOMPort(strctParams.m_strPort, '18', 'OK!', 115200, 100000, 0,0,0.1);
-    g_hNanoStimulatorPort = strctParams.m_hSocket;
+    strctParams.m_hSocket = fnInitCOMPort(strctParams.m_strPort, '18', 'OK!', 115200, 100000, 3,3,0.1);
+    
   
     if (strctParams.m_hSocket < 0)
            delete(handles.figure1);
@@ -168,15 +157,9 @@ if ~isempty(strctParams.m_astrctChannels)
         a2cData{9,iChannel} = fnMicronsToString(strctParams.m_astrctChannels(iChannel).m_iTriggerDelay_Microns);
         a2cData{10,iChannel} = sprintf('%.2f',strctParams.m_astrctChannels(iChannel).m_fAmplitude);
         a2cData{11,iChannel} = sprintf('%d',strctParams.m_astrctChannels(iChannel).m_bActive);
-
-        a2cData{12,iChannel} = sprintf('%d',strctParams.m_astrctChannels(iChannel).m_iGateDelay_Microns);
-        a2cData{13,iChannel} = sprintf('%d',strctParams.m_astrctChannels(iChannel).m_iGateLength_Microns);
-        a2cData{14,iChannel} = sprintf('%d',strctParams.m_astrctChannels(iChannel).m_bUsePhotodiodeTrigger);
-        
-        
     end
 end
-acRowNames = {'Pulse Frequency','Pulse Width','Train Length','Train Frequency','Num Trains per pulse','Second Pulse','2nd Pulse Delay','2nd Pulse Width','Trigger Delay','Amplitude','Active','Gate Delay','Gate Length','Photodiode Trigger'};
+acRowNames = {'Pulse Frequency','Pulse Width','Train Length','Train Frequency','Num Trains per pulse','Second Pulse','2nd Pulse Delay','2nd Pulse Width','Trigger Delay','Amplitude','Active'};
 set(handles.hTable,'RowName',acRowNames,'Data',a2cData,'ColumnEditable',[true true],'CellEditCallback',{@fnCellEditCallback, handles});
 set(handles.hPresetList,'String',strctParams.m_acPresetNames);
 
@@ -229,7 +212,6 @@ return;
 
 
 function fnCellEditCallback(o, strctEvent,handles)
-global g_strctDAQParams
 strctParams = getappdata(handles.figure1,'strctParams');
 
 UDP_MODIFY_PULSE_FREQ = 1;
@@ -243,10 +225,6 @@ UDP_MODIFY_SECOND_PULSE_WIDTH = 8;
 UDP_MODIFY_SECOND_PULSE_DELAY = 9;
 UDP_MODIFY_AMPLITUDE = 10;
 UDP_TOGGLE_CHANNEL_ACTIVE = 14;
-
-UDP_MODIFY_GATE_DELAY= 23;
-UDP_MODIFY_GATE_LENGTH = 24;
-UDP_MODIFY_PHOTODIODE_TRIGGER = 25;
 
 % UDP_SOFT_TRIGGER = 11;
 % UDP_SAVE_PRESET = 12;
@@ -291,28 +269,11 @@ switch iField
     case 11
         strctParams.m_astrctChannels(iChannel).m_bActive=fnParseStringToMicrons(strctEvent.NewData);
         IOPort('Write',strctParams.m_hSocket,uint8([sprintf('%02d %d %f',UDP_TOGGLE_CHANNEL_ACTIVE,iChannel-1,strctParams.m_astrctChannels(iChannel).m_bActive),10]));
-    case 12
-        strctParams.m_astrctChannels(iChannel).m_iGateDelay_Microns=fnParseStringToMicrons(strctEvent.NewData);
-        IOPort('Write',strctParams.m_hSocket,uint8([sprintf('%02d %d %d',UDP_MODIFY_GATE_DELAY,iChannel-1,strctParams.m_astrctChannels(iChannel).m_iGateDelay_Microns),10]));
-    case 13
-        strctParams.m_astrctChannels(iChannel).m_iGateLength_Microns=fnParseStringToMicrons(strctEvent.NewData);
-        IOPort('Write',strctParams.m_hSocket,uint8([sprintf('%02d %d %d',UDP_MODIFY_GATE_LENGTH,iChannel-1,strctParams.m_astrctChannels(iChannel).m_iGateLength_Microns),10]));
-    case 14
-        strctParams.m_astrctChannels(iChannel).m_bUsePhotodiodeTrigger=fnParseStringToMicrons(strctEvent.NewData);
-        IOPort('Write',strctParams.m_hSocket,uint8([sprintf('%02d %d %d',UDP_MODIFY_PHOTODIODE_TRIGGER,iChannel-1,strctParams.m_astrctChannels(iChannel).m_bUsePhotodiodeTrigger),10]));
-        
-        
 end
 catch
         fnLostConnection(handles);
     return;
 end
-
-if ~isempty(g_strctDAQParams)
-    g_strctDAQParams = fnTsSetVar(g_strctDAQParams,'NanoStimulatorParams', strctParams);
-end
-
-WaitSecs(0.1);
 S=fnRecvString(strctParams.m_hSocket, 0.5);
 bSuccessful = strncmpi(S,'OK!',3);
 if bSuccessful
@@ -340,7 +301,57 @@ bConnected = strncmpi(S,'OK!',3);
 return;
 
 
+function S=fnRecvString(hSocket, iTimeOut)
+S=char();
+tic
+while 1
+    NumBytesAvail =  IOPort('BytesAvailable', hSocket);
+    if NumBytesAvail > 0
+      cChar=IOPort('Read',hSocket,0,1);
+      if (cChar == 10)
+          break;
+      else
+          if (cChar ~= 13)
+                S=[S,cChar];
+          end
+      end
+    end
+    if toc > iTimeOut 
+        break;
+    end
+end
+return;
 
+function [astrctChannel,acPresetNames] = fnReadParametersFromStimulator(hSocket)
+fnClearMessageQueue(hSocket);
+
+NUM_CHANNELS = 2;
+NUM_PRESETS = 4;
+UDP_GET_CURRENT_SETTINGS = 15;
+UDP_GET_PRESET_NAMES = 16;
+
+IOPort('Write',  hSocket , uint8([sprintf('%02d',UDP_GET_CURRENT_SETTINGS),10]));
+for iChannel=1:NUM_CHANNELS
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_fPulseFrequencyHz = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_iPulse_Width_Microns = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_iTrain_Length_Microns = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_fTrain_Freq_Hz = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_iNumTrains_Per_Trigger = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_bSecondPulse = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_iSecond_Pulse_Delay_Microns = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_iSecond_Pulse_Width_Microns = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_iTriggerDelay_Microns = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_fAmplitude = str2num(S);
+    S=fnRecvString(hSocket, 1);astrctChannel(iChannel).m_bActive = str2num(S);
+end
+S=fnRecvString(hSocket, 1);
+fnClearMessageQueue(hSocket);
+IOPort('Write',  hSocket , uint8([sprintf('%02d',UDP_GET_PRESET_NAMES),10]));
+acPresetNames = cell(1,NUM_PRESETS);
+for k=1:NUM_PRESETS
+    acPresetNames{k} = fnRecvString(hSocket, 1);
+end
+return;
 
 
 % --- Outputs from this function are returned to the command line.
@@ -363,17 +374,12 @@ function hTrigCh1_Callback(hObject, eventdata, handles)
 strctParams = getappdata(handles.figure1,'strctParams');
 UDP_SOFT_TRIGGER = 11;
 fnClearMessageQueue(strctParams.m_hSocket);
-Res = 0;
 try
-    Res=IOPort('Write',  strctParams.m_hSocket , uint8([sprintf('%02d 0',UDP_SOFT_TRIGGER),10]));
+    IOPort('Write',  strctParams.m_hSocket , uint8([sprintf('%02d 0',UDP_SOFT_TRIGGER),10]));
 catch
         fnLostConnection(handles);
         return;
 end
-if Res < 0
-    fnLostConnection(handles);
-end
-
 S=fnRecvString(strctParams.m_hSocket, 1);
 if isempty(S)
     fnLostConnection(handles);
@@ -512,7 +518,6 @@ end
 
 % --- Executes on button press in hConnect.
 function hConnect_Callback(hObject, eventdata, handles)
-global g_hNanoStimulatorPort
 strctParams= getappdata(handles.figure1,'strctParams');
     try
         IOPort('ConfigureSerialPort', strctParams.m_hSocket, 'StopBackgroundRead');
@@ -523,8 +528,7 @@ strctParams= getappdata(handles.figure1,'strctParams');
     
     fprintf('Initializing Serial port...This may take a while...\n');
     try
-        strctParams.m_hSocket = fnInitCOMPort(strctParams.m_strPort, '18', 'OK!', 115200, 100000, 0,0,0.01);
-        g_hNanoStimulatorPort = strctParams.m_hSocket;
+        strctParams.m_hSocket = fnInitCOMPort(strctParams.m_strPort, '18', 'OK!', 115200, 100000, 3,3,0.1);
     catch
             fnLostConnection(handles);
             return;
@@ -701,20 +705,3 @@ for k=1:NUM_PRESETS
     acPresetNames{k} = fnRecvString(strctParams.m_hSocket, 1);
 end
 fnClearMessageQueue(strctParams.m_hSocket);
-
-
-% --- Executes on button press in hRefreshButton.
-function hRefreshButton_Callback(hObject, eventdata, handles)
-strctParams = getappdata(handles.figure1,'strctParams');
-
-fnClearMessageQueue(strctParams.m_hSocket);
-[strctParams.m_astrctChannels,strctParams.m_acPresetNames]=fnReadParametersFromStimulator(strctParams.m_hSocket);
-setappdata(handles.figure1,'strctParams',strctParams);
-fnInvalidate(handles);
-
-
-% --- Executes on button press in hKillApp.
-function hKillApp_Callback(hObject, eventdata, handles)
-strctParams = getappdata(handles.figure1,'strctParams');
-IOPort('CloseAll');
-delete(handles.figure1);

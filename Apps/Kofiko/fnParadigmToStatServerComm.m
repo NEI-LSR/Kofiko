@@ -1,12 +1,33 @@
 function varargout = fnParadigmToStatServerComm(strCommand, varargin)
 global g_strctRealTimeStatServer g_strctAcquisitionServer
  
+ %holds code for sending paradigm data to stat server
 switch lower(strCommand) 
+%{
     case 'send'
+       if g_strctRealTimeStatServer.m_bConnected
+			%sends argument passed to function to the stat server
+            strStringToSend = varargin{1};
+            fndllZeroMQ_Wrapper('Send',g_strctRealTimeStatServer.m_iSocket,strStringToSend);
+       end 
+	   %}
+	   
+	   
+	   case 'send'
        if g_strctAcquisitionServer.m_bConnected
+			%sends argument passed to function to the stat server
             strStringToSend = varargin{1};
             fndllZeroMQ_Wrapper('Send',g_strctAcquisitionServer.m_iSocket,strStringToSend);
-       end       
+       end 
+	   
+	   
+	case 'WaitOnTrialInfo'
+       if g_strctAcquisitionServer.m_bConnected
+			
+            strStringToSend = varargin{1};
+            fndllZeroMQ_Wrapper('Send',g_strctAcquisitionServer.m_iSocket,strStringToSend);
+       end 
+	   
     case 'isconnected'
         varargout{1} = g_strctRealTimeStatServer.m_bConnected || g_strctAcquisitionServer.m_bConnected;
     case 'cleardesign'
@@ -26,18 +47,6 @@ switch lower(strCommand)
       if g_strctAcquisitionServer.m_bConnected
           fndllZeroMQ_Wrapper('Send',g_strctAcquisitionServer.m_iSocket,'ClearDesign');
           
-          aiDropOutcomes = setdiff(strctDesign.TrialOutcomesCodes,strctDesign.KeepTrialOutcomeCodes);
-          if ~isempty(aiDropOutcomes)
-              s = 'DropOutcomes ';
-              for k=1:length(aiDropOutcomes)
-                   if (k ~= length(aiDropOutcomes))
-                       s = [s, num2str(aiDropOutcomes(k)),' '];
-                   else
-                       s = [s, num2str(aiDropOutcomes(k))];
-                   end
-              end
-            fndllZeroMQ_Wrapper('Send',g_strctAcquisitionServer.m_iSocket,s);
-          end
           if ~isempty(strctDesign.TrialTypeToConditionMatrix)
               iNumConditions = length(strctDesign.ConditionNames);
               for Iter=1:iNumConditions

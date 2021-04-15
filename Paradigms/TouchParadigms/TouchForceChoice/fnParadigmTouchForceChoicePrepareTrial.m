@@ -1,1052 +1,31 @@
 function [strctCurrentTrial,strWhatHappened] =  fnParadigmTouchForceChoicePrepareTrial()
 global g_strctParadigm g_strctPTB
 %[g_strctParadigm.m_strctDesign,g_strctParadigm.m_acImages] = fnLoadForceChoiceNewDesignFile('NewForceChoiceDesign.xml');
-          
+g_strctParadigm.m_bParadigmActive = 1;
 g_strctParadigm.m_bGuiOverrideParamters = false;
 
 strWhatHappened = [];
-
-%%   Decide on trial type
-strctCurrentTrial = struct;
-[strctCurrentTrial.m_iTrialType,strctCurrentTrial.m_iBlockIndex] = fnSelectTrialType();
-if isnan(strctCurrentTrial.m_iTrialType)
-    strWhatHappened = 'TR_Mode_FinishedAllBlocks';
-    strctCurrentTrial = [];
+if g_strctParadigm.m_bDynamicStimuli || strcmpi(g_strctParadigm.m_strctDesign.m_strctOrder.m_strTrialOrderType,'Dynamic')
+    strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial = 1;
+    g_strctParadigm.m_bUpdatePolar = 1;
+    strctCurrentTrial = fnPrepareDynamicTrial(strctCurrentTrial);
+    %fnBackupDynamicTrial(strctCurrentTrial);
+    g_strctParadigm.m_strctTrainingVars.m_bFirstTrial = 0;
     return;
-end
-
-strctCurrentTrial.m_bLoadOnTheFly = g_strctParadigm.m_strctDesign.m_bLoadOnTheFly;
-
-%% Prepare Cue image(s) (if needed)
-strctCurrentTrial= fnAddMultipleCuesInfoToTrial(strctCurrentTrial);
-if isempty(strctCurrentTrial)
-    % Trial requirement could not be fulfiled during run time due to random
-    % selection...
-    return;
-end
-%% Add Precue fixation information
-strctCurrentTrial = fnAddPreCueInfo(strctCurrentTrial);
-%% Add memory period information
-strctCurrentTrial = fnAddMemoryPeriodInfoToTrial(strctCurrentTrial);
-
-%% Add Choices information
-strctCurrentTrial = fnAddChoicesInformation(strctCurrentTrial);
-
-%% Add Post Trial Info
-strctCurrentTrial = fnAddPostTrialInfoToCue(strctCurrentTrial);
-
-if ~fnParadigmToKofikoComm('IsTouchMode')
-    % Load Images locally to show them on the console screen...
-    if g_strctParadigm.m_strctDesign.m_bLoadOnTheFly
-        % First, release media, then load new media....
-        if ~isempty(g_strctParadigm.m_acMedia)
-            fnReleaseMedia( g_strctParadigm.m_acMedia );
-        end
-          g_strctParadigm.m_acMedia = fnLoadMedia(g_strctPTB.m_hWindow, strctCurrentTrial.m_astrctMedia);
-    end
-    
-end
-
-
-return;
-
-        
-function [iTrialType,iActiveBlock] = fnSelectTrialType()
-global g_strctParadigm
-
-if ~isfield(g_strctParadigm,'m_strctTrialTypeCounter')
-    g_strctParadigm.m_strctTrialTypeCounter.m_iTrialCounter = 0;
-end
-
-if strcmpi(g_strctParadigm.m_strctDesign.m_strctOrder.m_strTrialOrderType,'random')
-    % Randomly select a trial, but take into account weights....
-    iNumTrialTypes = length(g_strctParadigm.m_strctDesign.m_acTrialTypes);
-    afWeights = zeros(1,iNumTrialTypes);
-    for iTrialTypeIter=1:iNumTrialTypes
-         afWeights(iTrialTypeIter) = fnParseVariable(g_strctParadigm.m_strctDesign.m_acTrialTypes{iTrialTypeIter}.TrialParams, 'ProbWeight', 1);
-    end
-    afWeightsNormalized = afWeights / sum(afWeights);
-    afCumWeights = cumsum(afWeightsNormalized);
-    
-    fRand = rand();
-   iTrialType =find(afCumWeights >= fRand,1,'first');
-   iActiveBlock = 1;
-elseif  strcmpi(g_strctParadigm.m_strctDesign.m_strctOrder.m_strTrialOrderType,'blocks')
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_strctOrder,'m_acNumTRsPerBlock')
-        % Special operation using Number of TRs per block....
-        
-        iNumBlocks = length(g_strctParadigm.m_strctDesign.m_strctOrder.m_acNumTRsPerBlock);
-        % Parse the number of TRs....
-        aiNumTRs = zeros(1,iNumBlocks);
-        for k=1:iNumBlocks
-            aiNumTRs(k) = fnParseVariable(g_strctParadigm.m_strctDesign.m_strctOrder,'m_acNumTRsPerBlock',0,k);
-        end
-        fTS_Sec = fnTsGetVar(g_strctParadigm, 'TR') / 1e3;
-        aiCumulativeTRs = cumsum(aiNumTRs);
-        
-        g_strctParadigm.m_fRunLengthSec_fMRI = sum(aiNumTRs) * fTS_Sec;
-         g_strctParadigm.m_aiCumulativeTRs = aiCumulativeTRs;
-        % We need to know how much time passed since the first TR was
-        % detected (if any...)
-        if g_strctParadigm.m_iTriggerCounter == 0
-            % First block....
-            iActiveBlock= 1;
-        elseif g_strctParadigm.m_iTriggerCounter > 0
-            % How long passed since first trigger?
-            fTimeElapsedSec = GetSecs()-g_strctParadigm.m_fFirstTriggerTS;
-             fNumTRsPassed = fTimeElapsedSec / fTS_Sec;
-            iActiveBlock = find(aiCumulativeTRs >= fNumTRsPassed ,1,'first');
-            if isempty(iActiveBlock)
-               % Finished going over all blocks. 
-               % Go back to waiting mode until next first TR arrives....
-               iTrialType = NaN;
-               return;
-            end
-        end
-        
-    else
-        % Normal operation using Number of Trials per block
-        
-        aiNumTrials = cumsum(g_strctParadigm.m_strctDesign.m_strctOrder.m_aiNumTrialsPerBlock);
-        iCurrentBlock = find(aiNumTrials >= g_strctParadigm.m_strctTrialTypeCounter.m_iTrialCounter,1,'first');
-        if isempty(iCurrentBlock)
-            iCurrentBlock = length(aiNumTrials);
-        end;
-        
-        
-        bIncreaseTrialCounter = true;
-        if g_strctParadigm.m_strctDesign.m_strctOrder.m_abCountOnlyCorrectTrials(iCurrentBlock) && ...
-                ~isempty(g_strctParadigm.m_strctCurrentTrial) && isfield(g_strctParadigm.m_strctCurrentTrial,'m_strctTrialOutcome') && ...
-                isfield(g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome,'m_strResult') && ~strcmpi(g_strctParadigm.m_strctCurrentTrial.m_strctTrialOutcome.m_strResult,'Correct')
-            bIncreaseTrialCounter = false;
-        end
-        
-        if bIncreaseTrialCounter
-            g_strctParadigm.m_strctTrialTypeCounter.m_iTrialCounter = g_strctParadigm.m_strctTrialTypeCounter.m_iTrialCounter+1;
-            if g_strctParadigm.m_strctTrialTypeCounter.m_iTrialCounter > aiNumTrials(end)
-                g_strctParadigm.m_strctTrialTypeCounter.m_iTrialCounter = 1;
-            end
-        end
-        iActiveBlock= find(aiNumTrials >= g_strctParadigm.m_strctTrialTypeCounter.m_iTrialCounter,1,'first');
-        
-        
-    end
-    
-    if isfield(g_strctParadigm,'m_strctCurrentTrial') && isfield(g_strctParadigm.m_strctCurrentTrial,'m_iTrialType') && ...
-            isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{g_strctParadigm.m_strctCurrentTrial.m_iTrialType},'PostChoice') && ...
-            isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{g_strctParadigm.m_strctCurrentTrial.m_iTrialType}.PostChoice,'m_aiConstrainNextTrialTypes') && ...
-            ~isempty(g_strctParadigm.m_strctDesign.m_acTrialTypes{g_strctParadigm.m_strctCurrentTrial.m_iTrialType}.PostChoice.m_aiConstrainNextTrialTypes)
-        aiTrialTypes = intersect(g_strctParadigm.m_strctDesign.m_strctOrder.m_acTrialTypeIndex{iActiveBlock},  g_strctParadigm.m_strctDesign.m_acTrialTypes{g_strctParadigm.m_strctCurrentTrial.m_iTrialType}.PostChoice.m_aiConstrainNextTrialTypes);
-        if isempty(aiTrialTypes)
-            % problem in design....
-                    aiTrialTypes = g_strctParadigm.m_strctDesign.m_strctOrder.m_acTrialTypeIndex{iActiveBlock};
-
-        end
-    else
-        aiTrialTypes = g_strctParadigm.m_strctDesign.m_strctOrder.m_acTrialTypeIndex{iActiveBlock};
-    end
-    
-    iNumTrialTypesInThisRandomBlock = length(aiTrialTypes);
-    if iNumTrialTypesInThisRandomBlock == 1
-        %East case,  this is the only option...
-        iTrialType = aiTrialTypes;
-    else
-        
-        afWeights = zeros(1,iNumTrialTypesInThisRandomBlock);
-        for iTrialTypeIter=1:iNumTrialTypesInThisRandomBlock
-            afWeights(iTrialTypeIter) = fnParseVariable(g_strctParadigm.m_strctDesign.m_acTrialTypes{aiTrialTypes(iTrialTypeIter)}.TrialParams,'ProbWeight',1);
-        end
-        afWeightsNormalized = afWeights / sum(afWeights);
-        afCumWeights = cumsum(afWeightsNormalized);
-        
-        fRand = rand();
-        iTrialType =aiTrialTypes( find(afCumWeights >= fRand,1,'first'));
-    end
-end
-
-return;
-
-function strctCurrentTrial = fnAddMemoryPeriodInfoToTrial(strctCurrentTrial)
-global g_strctParadigm
-
-if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType},'MemoryPeriod')
-    
-    strctCurrentTrial.m_strctMemoryPeriod.m_fMemoryPeriodMS = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod,'MemoryPeriodMS',...
-        fnTsGetVar(g_strctParadigm, 'MemoryPeriodMS'));
-      
-    strctCurrentTrial.m_strctMemoryPeriod.m_bShowFixationSpot = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod,'ShowFixationSpot',true);
- 
-    strctCurrentTrial.m_strctMemoryPeriod.m_fFixationSpotSize = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod,'FixationSpotSize',20);
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod,'FixationPosition')
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            if strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod.FixationPosition,'center')
-                strctCurrentTrial.m_strctMemoryPeriod.m_pt2fFixationPosition = aiScreenSize(3:4)/2;
-            elseif strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod.FixationPosition,'random')
-                iXPos = 2*strctCurrentTrial.m_strctMemoryPeriod.m_fFixationSpotSize  + rand() * (aiScreenSize(3)-strctCurrentTrial.m_strctMemoryPeriod.m_fFixationSpotSize*2 );
-                iYPos = 2*strctCurrentTrial.m_strctMemoryPeriod.m_fFixationSpotSize  + rand() * (aiScreenSize(4)-strctCurrentTrial.m_strctMemoryPeriod.m_fFixationSpotSize*2 );
-                strctCurrentTrial.m_strctMemoryPeriod.m_pt2fFixationPosition = [iXPos;iYPos];
-            else
-                % assume exact position....
-               aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-                X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod.FixationPosition,'%f %f');
-                strctCurrentTrial.m_strctMemoryPeriod.m_pt2fFixationPosition = X(:)' + aiScreenSize(3:4)/2;
-            end
-    else
-            % Default position is center of screen
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            strctCurrentTrial.m_strctMemoryPeriod.m_pt2fFixationPosition = aiScreenSize(3:4)/2;
-    end
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod,'BackgroundColor')   
-            X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod.BackgroundColor,'%f %f %f');
-            strctCurrentTrial.m_strctMemoryPeriod.m_afBackgroundColor= X(:)';
-    else
-        strctCurrentTrial.m_strctMemoryPeriod.m_afBackgroundColor= [0 0 0];
-    end
-    
-        if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod,'FixationColor')   
-            X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod.FixationColor,'%f %f %f');
-            strctCurrentTrial.m_strctMemoryPeriod.m_afFixationColor= X(:)';
-    else
-        strctCurrentTrial.m_strctMemoryPeriod.m_afFixationColor= [255 255 255];
-    end
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod,'FixationSpotType')
-            strctCurrentTrial.m_strctMemoryPeriod.m_strFixationSpotType = g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod.FixationSpotType;
-    else
-            strctCurrentTrial.m_strctMemoryPeriod.m_strFixationSpotType = 'disc';
-    end
-      
-    strctCurrentTrial.m_strctMemoryPeriod.m_fFixationRegionPix =fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.MemoryPeriod,'FixationRegion',100);
-    
-%%
 else
-    strctCurrentTrial.m_strctMemoryPeriod = []; % No memory period
-end
-
-
-function strctCurrentTrial = fnAddPreCueInfo(strctCurrentTrial)
-global g_strctParadigm
-if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType},'PreCueFixation')
-    
-    strctCurrentTrial.m_strctPreCueFixation.m_fPreCueFixationPeriodMS = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'PreCueFixationPeriodMS',...
-        fnTsGetVar(g_strctParadigm,'PreCueFixationPeriodMS'));
-    
-    
-    strctCurrentTrial.m_strctPreCueFixation.m_fFixationSpotSize = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'FixationSpotSize',...
-            fnTsGetVar(g_strctParadigm,'PreCueFixationSpotSize'));
-
-        
-    strctCurrentTrial.m_strctPreCueFixation.m_fPostTouchDelayMS = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'PostTouchDelayMS',...
-            0);
-        
-        
-        
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'FixationPosition')
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            if strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation.FixationPosition,'center')
-                strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition = aiScreenSize(3:4)/2;
-            elseif strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation.FixationPosition,'random')
-                iXPos = 2*strctCurrentTrial.m_strctPreCueFixation.m_fFixationSpotSize  + rand() * (aiScreenSize(3)-strctCurrentTrial.m_strctPreCueFixation.m_fFixationSpotSize*2 );
-                iYPos = 2*strctCurrentTrial.m_strctPreCueFixation.m_fFixationSpotSize  + rand() * (aiScreenSize(4)-strctCurrentTrial.m_strctPreCueFixation.m_fFixationSpotSize*2 );
-                strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition = [iXPos;iYPos];
-            else
-                % assume exact position....
-               aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-                X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation.FixationPosition,'%f %f');
-                strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition = X(:)' + aiScreenSize(3:4)/2;
-            end
-    else
-            % Default position is center of screen
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            strctCurrentTrial.m_strctPreCueFixation.m_pt2fFixationPosition = aiScreenSize(3:4)/2;
-    end
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'BackgroundColor')   
-            X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation.BackgroundColor,'%f %f %f');
-            strctCurrentTrial.m_strctPreCueFixation.m_afBackgroundColor= X(:)';
-    else
-        strctCurrentTrial.m_strctPreCueFixation.m_afBackgroundColor= [0 0 0];
-    end
-    
-        if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'FixationColor')   
-            X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation.FixationColor,'%f %f %f');
-            strctCurrentTrial.m_strctPreCueFixation.m_afFixationColor= X(:)';
-    else
-        strctCurrentTrial.m_strctPreCueFixation.m_afFixationColor= [255 255 255];
-    end
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'FixationSpotType')
-            strctCurrentTrial.m_strctPreCueFixation.m_strFixationSpotType = g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation.FixationSpotType;
-    else
-            strctCurrentTrial.m_strctPreCueFixation.m_strFixationSpotType = fnTsGetVar(g_strctParadigm,'PreCueFixationSpotType');
-    end
-      
-   strctCurrentTrial.m_strctPreCueFixation.m_fFixationRegionPix = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'FixationRegion',...
-         60);
-
-    strctCurrentTrial.m_strctPreCueFixation.m_bAbortTrialUponTouchOutsideFixation = fnParseVariable( ...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation, 'AbortTrialIfTouchOutsideCue', false);
-    
-    strctCurrentTrial.m_strctPreCueFixation.m_bRewardTouchFixation = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'RewardTouchCue', false);
-   
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'RewardSound')
-        strctCurrentTrial.m_strctPreCueFixation.m_strRewardSound= g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation.RewardSound;
-    else
-        strctCurrentTrial.m_strctPreCueFixation.m_strRewardSound = [];
-   end
-   
-    % Assume that if stimulation is applied on pre-fixation, its only when
-    % moneky saccades OUT of the fixation region after the required
-    % fixation time. This is typically useful for stimulation-mid-saccade
-    % type of experiments....
-        
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'Stimulation')
-        % Default to no stimulation (just to be on the safe side)
-         bStimulation = fnParseVariable(...
-             g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation,'Stimulation', false);
-        if bStimulation
-            strctCurrentTrial.m_strctPreCueFixation.m_astrctMicroStim = ...
-                fnExtractMicroStimParams(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PreCueFixation);
-        else
-            strctCurrentTrial.m_strctPreCueFixation.m_astrctMicroStim = []; % No stimulation during this cue.
-        end
-    end
-      
-    
-else
-    strctCurrentTrial.m_strctPreCueFixation = []; % no pre cue fixation period
-end
-
-function strctCurrentTrial = fnAddChoicesInformation(strctCurrentTrial)
-global g_strctParadigm
-strctCurrentTrial.m_strctChoices.m_fStimulated =false;
-switch lower(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.TrialParams.ChoicesType)
-    case 'nochoices'
-        strctCurrentTrial.m_astrctChoicesMedia = []; % No cue used in this trial
-    case 'fixed'
-        iNumChoices = length(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice);
-        if isfield(strctCurrentTrial,'m_astrctMedia')
-            iOffset = length(strctCurrentTrial.m_astrctMedia);
-        else
-            iOffset= 0;
-        end;
-
-        if iNumChoices == 1 && isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices,'Choice') && ~iscell(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice)
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice = {g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice};
-        end
-        
-        for iChoiceIter=1:iNumChoices
-            
-            iMediaIndex = find(ismember(g_strctParadigm.m_strctDesign.m_acMediaName, g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice{iChoiceIter}.Media));
-            strctCurrentTrial.m_astrctMedia(iOffset+iChoiceIter) = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex);
-            
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_strName = g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice{iChoiceIter}.Media;
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_strFileName =g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_strFileName;
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_iMediaIndex = iMediaIndex;
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bMovie = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_bMovie;
-    
-            % position
-            X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice{iChoiceIter}.Position,'%f %f');
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition = X(:)' + aiScreenSize(3:4)/2;
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bMovie = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_bMovie;
-            
-             strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bJuiceReward = fnParseVariable( ...
-                g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice{iChoiceIter},'JuiceReward', false);
-       
-            if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice{iChoiceIter},'RewardSound')
-                strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_strRewardSound = g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice{iChoiceIter}.RewardSound;
-            else
-                strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_strRewardSound = [];
-            end
-            
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_fSizePix = fnParseVariable( ...
-                    g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice{iChoiceIter},'SizePix', 100);
-        end
-    case 'random'
-        
-        if isfield(strctCurrentTrial,'m_astrctMedia')
-            iOffset = 1;
-        else
-            iOffset= 0;
-        end;
-        
-         iNumChoices = str2num(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.NumChoices);
-        if iNumChoices == 1 && isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices,'Choice') && ~iscell(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice)
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice = {g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.Choice};
-        end
-         
-         bCueIsChoice = str2num(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.IncludeCueAsChoice) > 0;
-         
-        acRequiredAttributes = fnSplitString(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.ValidAttributes);
-        acNotAllowedAttributes = fnSplitString(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.InvalidAttributes);
-        
-        abValidAttributes = ismember(g_strctParadigm.m_strctDesign.m_acAttributes,acRequiredAttributes);
-       abInvalidAttributes = ismember(g_strctParadigm.m_strctDesign.m_acAttributes,acNotAllowedAttributes);
-
-       if isempty(acRequiredAttributes)
-           abMediaWithValidAttributes = ones( size(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes,1),1) > 0; % all images are OK
-       else
-           abMediaWithValidAttributes = sum(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(:, abValidAttributes),2) == length(acRequiredAttributes);
-       end
-       
-       if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'NumChoicesWithSimilarAttributesToCue')
-           iNumChoicesWithSimilarAttrToCue = str2num(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.NumChoicesWithSimilarAttributesToCue);
-       else
-           iNumChoicesWithSimilarAttrToCue = 0;
-       end
-                
-       
-       % First, find all media that has the valid & invalid required
-       % attributes.
-       
-        abMediaWithoutInvalidAttributes = sum(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(:, abInvalidAttributes),2) == 0;
-         if bCueIsChoice
-            abValidMediaChoices = abMediaWithValidAttributes & abMediaWithoutInvalidAttributes;
-            abValidMediaChoices(strctCurrentTrial.m_astrctCueMedia.m_iMediaIndex) = false;
-         else
-            abValidMediaChoices = abMediaWithValidAttributes & abMediaWithoutInvalidAttributes; 
-         end
-         
-         % Now, from the subset of the valid media choices, we need to
-         % check whether there are additional constraints, like a certain
-         % number of choices with similar attributes  to the cue...
-        if iNumChoicesWithSimilarAttrToCue > 0
-            % Assume cue is not in this set....
-            abValidMediaChoices(strctCurrentTrial.m_astrctCueMedia.m_iMediaIndex) = false;
-            
-            abCueAttributes = g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(strctCurrentTrial.m_astrctCueMedia.m_iMediaIndex,:);
-            
-            
-            
-            if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'IgnoreCueAttributes')
-                
-                acIgnoreAttributes = fnSplitString(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.IgnoreCueAttributes);
-                abCueIgnoreAttributes = ismember(lower(g_strctParadigm.m_strctDesign.m_acAttributes), lower(acIgnoreAttributes)) > 0 ;
-                abCueAttributes(abCueIgnoreAttributes) = false;
-            end
-            
-            
-            
-            iNumMedia = size(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes,1);
-            abOtherImagesWithSimilarAttributes = sum(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(:,find(abCueAttributes)),2) == sum(abCueAttributes);
-            abOtherImagesWithSimilarAttributesANDvalid = abOtherImagesWithSimilarAttributes;
-            abOtherImagesWithSimilarAttributesANDvalid(strctCurrentTrial.m_astrctCueMedia(1).m_iMediaIndex) = false;
-            %abOtherImagesWithSimilarAttributes = all(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes == repmat(abCueAttributes,iNumMedia,1),2);
-            %abOtherImagesWithSimilarAttributesANDvalid = abOtherImagesWithSimilarAttributes & abValidMediaChoices;
-            
-            % Pick iNumChoicesWithSimilarAttrToCue from abOtherImagesWithSimilarAttributesANDvalid 
-             iNumValidWithSimilarAttributes = sum(abOtherImagesWithSimilarAttributesANDvalid);
-            aiOtherImagesWithSimilarAttributesANDvalid = find(abOtherImagesWithSimilarAttributesANDvalid);
-            
-             aiSubsetMediaSelected = aiOtherImagesWithSimilarAttributesANDvalid(randi(iNumValidWithSimilarAttributes,[1,iNumChoicesWithSimilarAttrToCue]));
-             
-             % Remaining media - choose from valid attributes that do not
-             % share attributes with cue...
-             iRemainingChoicesToPick = iNumChoices - iNumChoicesWithSimilarAttrToCue;
-              abValidMediaChoices(abOtherImagesWithSimilarAttributes) = false;
-              iNumRemainingValid = sum(abValidMediaChoices);
-              aiRemainingValid = find(abValidMediaChoices);
-               aiRand = randi(iNumRemainingValid, [1,iRemainingChoicesToPick]);
-            aiMediaIndices = [aiSubsetMediaSelected;aiRemainingValid(aiRand)];
-        else
-            aiValidMediaChoices = find(abValidMediaChoices);
-            iNumValidChoices =  sum(abValidMediaChoices);
-            aiRand = randi(iNumValidChoices, [1,iNumChoices]);
-            % Select choices
-            if bCueIsChoice
-                % It is a choice, but only once!
-                aiMediaIndices = [strctCurrentTrial.m_astrctCueMedia.m_iMediaIndex,aiValidMediaChoices(aiRand(1:end-1))'];
-            else
-                aiMediaIndices=aiValidMediaChoices(aiRand);
-            end
-       
-        end
-         
-         acValidAttributesForReward = fnSplitString(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.ValidAttributesForJuiceReward);
-         
-         pt2fChoicesPosition = fnSelectChoicePosition(...
-             g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.Arrangement, iNumChoices,...
-             str2num(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.SizePix));
-         
-         
-                fChoiceSizePix = fnParseVariable(...
-                g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'SizePix', 100);
-                
-                if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'RewardSound')
-                    strRewardSound = g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.RewardSound;
-                else
-                    strRewardSound = [];
-                end
-                
-       abCueAttributes = g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(strctCurrentTrial.m_astrctCueMedia.m_iMediaIndex,:);
-       if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'IgnoreCueAttributes')
-           acIgnoreAttributes = fnSplitString(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.IgnoreCueAttributes);
-           abCueIgnoreAttributes = ismember(lower(g_strctParadigm.m_strctDesign.m_acAttributes), lower(acIgnoreAttributes)) > 0 ;
-           abCueAttributes(abCueIgnoreAttributes) = false;
-       end
-
-                
-        for iChoiceIter=1:iNumChoices
-            % Pick choices at random!
-            iMediaIndex = aiMediaIndices(iChoiceIter);
-            
-           strctCurrentTrial.m_astrctMedia(iOffset+iChoiceIter) = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex);
-                 
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_strName = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_strName;
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_strFileName =g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_strFileName;
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_iMediaIndex = iMediaIndex;
-            
-             strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_pt2fPosition =pt2fChoicesPosition(:,iChoiceIter);
-                
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bMovie = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_bMovie;
-            strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_fSizePix = fChoiceSizePix;
-               strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_strRewardSound = strRewardSound;
-  
-            if isempty(acValidAttributesForReward)
-                strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bJuiceReward = false;
-            elseif ismember('cue',lower(acValidAttributesForReward)) && iMediaIndex == strctCurrentTrial.m_astrctCueMedia.m_iMediaIndex
-                % Only cue gets reward
-                strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bJuiceReward = true;
-            elseif ismember('notcue',lower(acValidAttributesForReward)) && iMediaIndex ~= strctCurrentTrial.m_astrctCueMedia.m_iMediaIndex
-                % Only cue gets reward
-                strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bJuiceReward = true;
-            elseif ismember('all',lower(acValidAttributesForReward))
-                % All choices get reward
-                strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bJuiceReward = true;
-            elseif ismember('cueattributes',lower(acValidAttributesForReward)) 
-                
-                %strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bJuiceReward = ...
-                %    all(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(iMediaIndex,:) == abCueAttributes );
-
-                strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bJuiceReward = ...
-                    sum(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(iMediaIndex,find(abCueAttributes)),2) == sum(abCueAttributes);
-                
-                
-            elseif ismember('notcueattributes',lower(acValidAttributesForReward)) 
-                strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bJuiceReward = ...
-                    ~all(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(iMediaIndex,:) == abCueAttributes );
-            else 
-                % Match attributes
-                strctCurrentTrial.m_astrctChoicesMedia(iChoiceIter).m_bJuiceReward = ~isempty(...
-                    intersect(g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_acAttributes, acValidAttributesForReward));
-            end
-            
-
-        end        
-        
-end
-
-if ~isempty( strctCurrentTrial.m_astrctChoicesMedia)
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices,'ChoicesParam')
-      
-        strctCurrentTrial.m_strctChoices.m_bShowChoicesOnScreen = fnParseVariable(...
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'ShowChoicesOnScreen', true);
-        
-        strctCurrentTrial.m_strctChoices.m_bMultipleAttemptsUntilJuice  = fnParseVariable(...
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'MultipleAttemptsUntilJuice', false);
-
-        strctCurrentTrial.m_strctChoices.m_bKeepCueOnScreen  = fnParseVariable(...
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'KeepCueOnScreen', false);
-
-        
-        if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'InsideChoiceRegionType')
-            strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType  =g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.InsideChoiceRegionType;
-        else
-            strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType  = 'Rect';
-        end
-
-         strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize  =fnParseVariable(...
-           g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'InsideChoiceRegionSize', strctCurrentTrial.m_astrctChoicesMedia(1).m_fSizePix);
-        
-       strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS  = fnParseVariable(...
-               g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'HoldToSelectChoiceMS',0);
-        
-        if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'BackgroundColor')
-            X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.BackgroundColor,'%f %f %f');
-            strctCurrentTrial.m_strctChoices.m_afBackgroundColor= X(:)';
-        else
-            strctCurrentTrial.m_strctChoices.m_afBackgroundColor = [0 0 0];
-        end
-        
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'Stimulation')
-        % Default to no stimulation (just to be on the safe side)
-         bStimulation = fnParseVariable(...
-             g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'Stimulation', false);
-        if bStimulation
-            strctCurrentTrial.m_strctChoices.m_astrctMicroStim = ...
-                fnExtractMicroStimParams(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam);
-        else
-            strctCurrentTrial.m_strctChoices.m_astrctMicroStim = []; % No stimulation during this cue.
-        end
-    else
-       % No stimulation during this cue.
-    end        
-        
-       
-    strctCurrentTrial.m_strctChoices.m_bShowFixationSpot = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'ShowFixationSpot',false);
- 
-    strctCurrentTrial.m_strctChoices.m_fFixationSpotSize = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'FixationSpotSize',0);
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'FixationPosition')
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            if strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.FixationPosition,'center')
-                strctCurrentTrial.m_strctChoices.m_pt2fFixationPosition = aiScreenSize(3:4)/2;
-            elseif strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.FixationPosition,'random')
-                iXPos = 2*strctCurrentTrial.m_strctChoices.m_fFixationSpotSize  + rand() * (aiScreenSize(3)-strctCurrentTrial.m_strctMemoryPeriod.m_fFixationSpotSize*2 );
-                iYPos = 2*strctCurrentTrial.m_strctChoices.m_fFixationSpotSize  + rand() * (aiScreenSize(4)-strctCurrentTrial.m_strctMemoryPeriod.m_fFixationSpotSize*2 );
-                strctCurrentTrial.m_strctChoices.m_pt2fFixationPosition = [iXPos;iYPos];
-            else
-                % assume exact position....
-               aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-                X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.FixationPosition,'%f %f');
-                strctCurrentTrial.m_strctChoices.m_pt2fFixationPosition = X(:)'+ aiScreenSize(3:4)/2;
-            end
-    else
-            % Default position is center of screen
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            strctCurrentTrial.m_strctChoices.m_pt2fFixationPosition = aiScreenSize(3:4)/2;
-    end
-    
-    
-        if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'FixationColor')   
-            X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.FixationColor,'%f %f %f');
-            strctCurrentTrial.m_strctChoices.m_afFixationColor= X(:)';
-    else
-        strctCurrentTrial.m_strctChoices.m_afFixationColor= [255 255 255];
-    end
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam,'FixationSpotType')
-            strctCurrentTrial.m_strctChoices.m_strFixationSpotType = g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Choices.ChoicesParam.FixationSpotType;
-    else
-            strctCurrentTrial.m_strctChoices.m_strFixationSpotType = 'disc';
-    end         
-         
-    else
-        strctCurrentTrial.m_strctChoices.m_bShowChoicesOnScreen = true;
-        strctCurrentTrial.m_strctChoices.m_bMultipleAttemptsUntilJuice  = false;
-        strctCurrentTrial.m_strctChoices.m_strInsideChoiceRegionType  = 'Rect';
-        strctCurrentTrial.m_strctChoices.m_fInsideChoiceRegionSize  = strctCurrentTrial.m_astrctChoicesMedia(1).m_fSizePix;
-        strctCurrentTrial.m_strctChoices.m_fHoldToSelectChoiceMS = 0;
-        strctCurrentTrial.m_strctChoices.m_bKeepCueOnScreen  = false;
-        strctCurrentTrial.m_strctChoices.m_afBackgroundColor = [0 0 0];        
-         strctCurrentTrial.m_strctChoices.m_astrctMicroStim = []; 
-           
-         strctCurrentTrial.m_strctChoices.m_bShowFixationSpot = false;
-         strctCurrentTrial.m_strctChoices.m_fFixationSpotSize = NaN;
-         strctCurrentTrial.m_strctChoices.m_pt2fFixationPosition = [NaN NaN];
-         strctCurrentTrial.m_strctChoices.m_afFixationColor = [NaN,NaN,NaN];
-         strctCurrentTrial.m_strctChoices.m_strFixationSpotType = '';
-         
-    end
-    
+    strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial = 0;
 end
 
 return;
-
-
-function strctCurrentTrial = fnAddPostTrialInfoToCue(strctCurrentTrial)
-global g_strctParadigm
-if ~isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType},'PostChoice')
-    strctCurrentTrial.m_strctPostTrial.m_fRetainSelectedChoicePeriodMS = 0;
-    strctCurrentTrial.m_strctPostTrial.m_bExtinguishNonSelectedChoicesAfterChoice = false;
-    strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec = 0;
-    strctCurrentTrial.m_strctPostTrial.m_fIncorrectTrialPunishmentDelayMS = 0;
-    strctCurrentTrial.m_strctPostTrial.m_fAbortedTrialPunishmentDelayMS = 0;
-    
-else
-    
-    fMin = fnParseVariable(...
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PostChoice,'InterTrialIntervalMinSec', ...
-         fnTsGetVar(g_strctParadigm,'InterTrialIntervalMinSec'));
-    
-         fMax = fnParseVariable(...
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PostChoice,'InterTrialIntervalMaxSec',...
-            fnTsGetVar(g_strctParadigm,'InterTrialIntervalMaxSec'));
-    
-    strctCurrentTrial.m_strctPostTrial.m_fInterTrialInterfalSec = rand() * (fMax-fMin) + fMin;
-    
-   strctCurrentTrial.m_strctPostTrial.m_fIncorrectTrialPunishmentDelayMS = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PostChoice,'IncorrectTrialPunishmentDelayMS',0);
-    
-    
-    strctCurrentTrial.m_strctPostTrial.m_fAbortedTrialPunishmentDelayMS = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PostChoice,'AbortedTrialPunishmentDelayMS',0);
-    
-    strctCurrentTrial.m_strctPostTrial.m_bExtinguishNonSelectedChoicesAfterChoice = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PostChoice,'ExtinguishNonSelectedChoicesAfterChoice', false);
-    
-    
-    strctCurrentTrial.m_strctPostTrial.m_fRetainSelectedChoicePeriodMS= fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PostChoice,'RetainSelectedChoicePeriodMS',0);
-end
-
- strctCurrentTrial.m_strctPostTrial.m_fTrialTimeoutMS = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.TrialParams,...
-        'TrialTimeoutMS', fnTsGetVar(g_strctParadigm,'TimeoutMS'));
-        
-        
-strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS = fnParseVariable(...
-    g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.PostChoice, ...
-    'DefaultJuiceRewardMS', 50);
-
-strctCurrentTrial.m_strctTrialOutcome.m_iSelectCounter = 0;
-return;
-
-
-
-
-
-
-function strctCurrentTrial = fnAddMultipleCuesInfoToTrial(strctCurrentTrial)
-global g_strctParadigm
-
-if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType},'Cue') && ~iscell(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue)
-   g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue = {g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue};
-end
-
-if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType},'Cue')
-    iNumCues = length(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue);
-else
-     strctCurrentTrial.m_astrctCueMedia = []; % No cue used in this trial
-     return;
-end
-
-for iCueIter = 1:iNumCues
-    strctCurrentTrial = fnAddCueInformationToTrial(strctCurrentTrial, iCueIter);
-    if isempty(strctCurrentTrial)
-        return;
-    end;
-end
-return;
-
-function strctCurrentTrial = fnAddCueInformationToTrial(strctCurrentTrial,iCueIter)
-global g_strctParadigm
-if isfield(strctCurrentTrial,'m_astrctMedia')
-    iOffset = length(strctCurrentTrial.m_astrctMedia);
-else
-    iOffset = 0;
-end
-
-switch lower(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.TrialParams.CueType)
-    case 'fixed'
-        iMediaIndex = find(ismember(g_strctParadigm.m_strctDesign.m_acMediaName,   g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.CueMedia));
-        
-        strctCurrentTrial.m_astrctMedia(1+iOffset) = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex);
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strName = g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.CueMedia;
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strFileName =g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_strFileName;
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_iMediaIndex = iMediaIndex;
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bMovie = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_bMovie;
-        
-    case 'random'
-        % Random cue. Select by attributes!
-        strctTrialType = g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType};
-        
-        % Determine which cue media is valid.
-        % The logic circuit is :
-        % (ALL(A \ E) & OR(D)) AND  NOT [ (B) \ (C) ] 
-        % Where A is "Required" Attributes (all must be present)
-        % D is "at least one attribute" must be present
-        % B is "Invalid Attributes"
-        % C is "Ignore Attributes"
-        % E is "Ignore Valid Attributes"
-        
-        if isfield(strctTrialType.Cue{iCueIter},'CueValidAttributesOR') && ~isempty(strctTrialType.Cue{iCueIter}.CueValidAttributesOR)
-            acRequiredAttributesOR = fnSplitString(strctTrialType.Cue{iCueIter}.CueValidAttributesOR);
-            [acParsedRequiredAttributesOR, bFailed] = fnParseRequiredAttributesUsingExistingInformation(acRequiredAttributesOR,strctCurrentTrial);
-           if bFailed
-                strctCurrentTrial = [];
-                return;
-            end;   
-        else
-            acParsedRequiredAttributesOR = g_strctParadigm.m_strctDesign.m_acAttributes;
-        end
-        
-        aiSpecificValidCues = [];
-        aiSpecificInvalidCues = [];
-        if isfield(strctTrialType.Cue{iCueIter},'CueValidAttributes')
-            acRequiredAttributes = fnSplitString(strctTrialType.Cue{iCueIter}.CueValidAttributes);
-            [acParsedRequiredAttributes, bFailed,aiSpecificValidCues] = fnParseRequiredAttributesUsingExistingInformation(acRequiredAttributes,strctCurrentTrial);
-            if bFailed
-                strctCurrentTrial = [];
-                return;
-            end;
-        else
-            acParsedRequiredAttributes = cell(0);
-        end
-        
-        if isfield(strctTrialType.Cue{iCueIter},'CueInvalidAttributes')
-            acNotAllowedAttributes = fnSplitString(strctTrialType.Cue{iCueIter}.CueInvalidAttributes);
-            [acParsedNotAllowedAttributes, bFailed,aiSpecificInvalidCues] = fnParseRequiredAttributesUsingExistingInformation(acNotAllowedAttributes,strctCurrentTrial);
-            if bFailed
-                strctCurrentTrial = [];
-                return;
-            end;
-            
-        else
-            acParsedNotAllowedAttributes = cell(0);
-        end
-        
-        if isfield(strctTrialType.Cue{iCueIter},'CueIgnoreAttributes')
-            acIgnoreAttributes = fnSplitString(strctTrialType.Cue{iCueIter}.CueIgnoreAttributes);
-            [acParsedIgnoreAttributes bFailed] = fnParseRequiredAttributesUsingExistingInformation(acIgnoreAttributes,strctCurrentTrial);
-            if bFailed
-                strctCurrentTrial = [];
-                return;
-            end;
-            
-        else
-            acParsedIgnoreAttributes = cell(0);
-		end
-		
-		
-		if isfield(strctTrialType.Cue{iCueIter},'CueValidIgnoreAttributes')
-            acValidIgnoreAttributes = fnSplitString(strctTrialType.Cue{iCueIter}.CueValidIgnoreAttributes);
-            [acParsedValidIgnoreAttributes bFailed] = fnParseRequiredAttributesUsingExistingInformation(acValidIgnoreAttributes,strctCurrentTrial);
-            if bFailed
-                strctCurrentTrial = [];
-                return;
-            end;
-            
-        else
-            acParsedValidIgnoreAttributes = cell(0);
-        end		
-		
-        
-         A = ismember( g_strctParadigm.m_strctDesign.m_acAttributes, acParsedRequiredAttributes);
-         D = ismember( g_strctParadigm.m_strctDesign.m_acAttributes,acParsedRequiredAttributesOR);
-		 E = ismember( g_strctParadigm.m_strctDesign.m_acAttributes, acParsedValidIgnoreAttributes);
-		 
-        if isempty(acParsedNotAllowedAttributes)
-            B = ones(size(g_strctParadigm.m_strctDesign.m_acAttributes))>0;
-        else
-            B = ismember( g_strctParadigm.m_strctDesign.m_acAttributes, acParsedNotAllowedAttributes);
-        end
-        C=  ismember( g_strctParadigm.m_strctDesign.m_acAttributes, acParsedIgnoreAttributes);
-        B(C)=0;
-		A(E) = 0;
-        
-        if isempty(aiSpecificValidCues)
-            abHasA =  all(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(:, A),2) & sum(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(:, D),2) > 0;
-        else 
-            abHasA = zeros(size(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes,1),1)>0;
-            abHasA(aiSpecificValidCues) = true;
-        end
-        
-        abDoesNotHaveB = ~all(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(:, B),2);
-        if ~isempty(aiSpecificInvalidCues)
-            abDoesNotHaveB(aiSpecificInvalidCues) = false;
-        end
-        abAudio = cat(1,g_strctParadigm.m_strctDesign.m_astrctMedia.m_bAudio);
-        abValidMediaCues = abHasA & abDoesNotHaveB & ~abAudio;
-       
-        aiValidMediaCues = find(abValidMediaCues);
-        % Select one cue at random!
-        aiRandPerm = randperm(sum(abValidMediaCues));
-
-       iMediaIndex =aiValidMediaCues(aiRandPerm(1));
-        strctCurrentTrial.m_astrctMedia(iOffset+1) = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex);
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strName = g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.CueMedia;
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strFileName =g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_strFileName;
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_iMediaIndex = iMediaIndex;
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bMovie = g_strctParadigm.m_strctDesign.m_astrctMedia(iMediaIndex).m_bMovie;
-  
-end
-
-if ~isempty(strctCurrentTrial.m_astrctCueMedia)
-    % Additional parameters available? If not, take deafult from GUI
-    
-    
-     strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bDisplayCue=  fnParseVariable(...
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'DisplayCue', true);
-    
-    % How long will the cue be presented on the screen?
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fCuePeriodMS =fnParseVariable(...
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'CuePeriodMS', fnTsGetVar(g_strctParadigm, 'CuePeriodMS'));
-    
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bCueHighlight =fnParseVariable(...        
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'CueHighlight', false);
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'CueHighlightColor')
-        X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.CueHighlightColor,'%f %f %f');
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_afCueHighlightColor = X;
-    else
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_afCueHighlightColor = [255 0 0];
-    end    
-    
-    % Is there noise on the cue image?
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fCueNoiseLevel = fnParseVariable(...        
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'CueNoiseLevel', fnTsGetVar(g_strctParadigm, 'CueNoiseLevel'));
-    
-    % Cue size 
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fCueSizePix =  fnParseVariable(...        
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'CueSizePix', fnTsGetVar(g_strctParadigm, 'CueSizePix'));
-    
-    % Cue Position
-    
-   if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'CuePosition')
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            if strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.CuePosition,'center')
-                strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fCuePosition = aiScreenSize(3:4)/2;
-            elseif strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.CuePosition,'random')
-                iXPos =strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fCueSizePix   + rand() * (aiScreenSize(3)-strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fCueSizePix);
-                iYPos = strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fCueSizePix + rand() * (aiScreenSize(4)-strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fCueSizePix );
-                strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fCuePosition = [iXPos;iYPos];
-            else
-                % assume exact position....
-               aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-                
-                X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.CuePosition,'%f %f');
-               strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fCuePosition = X(:)' + aiScreenSize(3:4)/2;
-            end
-    else
-            % Default position is center of screen
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fCuePosition = aiScreenSize(3:4)/2;
-    end    
-    
-    
-    
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bAbortTrialIfBreakFixationDuringCue = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'AbortTrialIfBreakFixationDuringCue', true);
-    
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bAbortTrialIfBreakFixationOnCue = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'AbortTrialIfBreakFixationOnCue', false);
-  
-    
-   % Cue fixation region
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'CueFixationRegion')
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strCueFixationRegion= g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.CueFixationRegion;
-    else
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strCueFixationRegion = 'EntireCue';
-    end    
-    
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bOverlayPreCueFixation = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'OverlayFixation', true);
-    
-   % Cue fixation spot
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'FixationSpotType')
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strFixationSpotType= g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.FixationSpotType;
-    else
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strFixationSpotType = 'Disc';
-    end    
-    
-   % Cue fixation spot
-   strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fFixationSpotSize = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'FixationSpotSize', 20);
-
-       % Cue fixation spot threshold
-       strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fFixationRegionPix=  fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'FixationRegion', 60);
-
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'FixationPosition')
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            if strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.FixationPosition,'center')
-                strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fFixationPosition = aiScreenSize(3:4)/2;
-            elseif strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.FixationPosition,'cuecenter')
-                strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fFixationPosition = strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fCuePosition;
-            elseif strcmpi(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.FixationPosition,'random')
-                iXPos = strctCurrentTrial.m_strctPreCueFixation.m_fFixationSpotSize  + rand() * (aiScreenSize(3)-strctCurrentTrial.m_strctPreCueFixation.m_fFixationSpotSize );
-                iYPos = strctCurrentTrial.m_strctPreCueFixation.m_fFixationSpotSize  + rand() * (aiScreenSize(4)-strctCurrentTrial.m_strctPreCueFixation.m_fFixationSpotSize );
-                strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fFixationPosition = [iXPos;iYPos];
-            else
-                % assume exact position....
-               aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-                X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.FixationPosition,'%f %f');
-                strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fFixationPosition = X + aiScreenSize(3:4)/2;
-            end
-    else
-            % Default position is center of screen
-            aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
-            strctCurrentTrial.m_astrctCueMedia(iCueIter).m_pt2fFixationPosition = aiScreenSize(3:4)/2;
-    end    
-       
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'FixationColor')   
-            X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.FixationColor,'%f %f %f');
-            strctCurrentTrial.m_astrctCueMedia(iCueIter).m_afFixationColor= X(:)';
-    else
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_afFixationColor= [255 255 255];
-    end
-    
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'BackgroundColor')   
-            X=sscanf(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.BackgroundColor,'%f %f %f');
-            strctCurrentTrial.m_astrctCueMedia(iCueIter).m_afBackgroundColor= X(:)';
-    else
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_afBackgroundColor= [0 0 0];
-    end
-    
-    % Post cue memory period?
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_fCueMemoryPeriodMS= fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'MemoryPeriodMS',0 );
-
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bCueMemoryPeriodShowFixation = fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'ShowFixationSpot', false);
-
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bCueMemoryPeriodAbortTrialIfBreakFixation= fnParseVariable(...
-    g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'AbortTrialIfBreakFixation', false);
-    
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bClearBefore =  fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'ClearBefore', true);
-      
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bClearAfter =  fnParseVariable(...
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'ClearAfter', true);
-    
-    strctCurrentTrial.m_astrctCueMedia(iCueIter).m_bDontFlip =fnParseVariable(...   
-        g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'DontFlip', false);
-    
-    % Micro stim parameters.....
-    if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'Stimulation')
-        % Default to no stimulation (just to be on the safe side)
-         bStimulation = fnParseVariable(...
-             g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'Stimulation', false);
-        if bStimulation
-            strctCurrentTrial.m_astrctCueMedia(iCueIter).m_astrctMicroStim = ...
-                fnExtractMicroStimParams(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter});
-        else
-            strctCurrentTrial.m_astrctCueMedia(iCueIter).m_astrctMicroStim = []; % No stimulation during this cue.
-        end
-    else
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_astrctMicroStim = []; % No stimulation during this cue.
-    end
-    
-     if isfield(g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter},'AudioMedia')
-        % Find the relevant audio file...
-        iAudioMediaIndex = find(ismember({g_strctParadigm.m_strctDesign.m_astrctMedia.m_strName}, ...
-            g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.AudioMedia));
-        if isempty(iAudioMediaIndex)
-            fprintf('ERROR. Failed to find audio media called : %s\n',g_strctParadigm.m_strctDesign.m_acTrialTypes{strctCurrentTrial.m_iTrialType}.Cue{iCueIter}.AudioMedia);
-            strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strctAudio = [];
-        else
-            strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strctAudio.m_iMediaIndex = iAudioMediaIndex;
-        end
-        
-     else
-        strctCurrentTrial.m_astrctCueMedia(iCueIter).m_strctAudio = [];
-    end
-    
-end
-return;
-
-
 
 function astrctMicroStim = fnExtractMicroStimParams(strctRoot)
 global g_strctParadigm g_strctDAQParams
+% Check if user has microstim active
+if ~g_strctParadigm.MicroStimActive.Buffer(g_strctParadigm.MicroStimActive.BufferIdx)
+    astrctMicroStim = [];
+    return;
+end
+
 % how many channels are we stimulating?
 if isfield(strctRoot,'StimulationPreset')
     % Find the corresponding entry....
@@ -1068,8 +47,8 @@ if isfield(strctRoot,'StimulationPreset')
     
     acChannels = fnSplitString(strctStimPreset.Channels,' ');
     iNumChannels = length(acChannels);
-    afAmplitudes = fnTsGetVar(g_strctDAQParams,'MicroStimAmplitude');
-    acMicroStimSource = fnTsGetVar(g_strctDAQParams,'MicroStimSource');
+    afAmplitudes = fnTsGetVar('g_strctDAQParams','MicroStimAmplitude');
+    acMicroStimSource = fnTsGetVar('g_strctDAQParams','MicroStimSource');
     for iStimIter=1:iNumChannels
         astrctMicroStim(iStimIter).m_iChannel = str2num(acChannels{iStimIter});
         
@@ -1087,91 +66,1377 @@ if isfield(strctRoot,'StimulationPreset')
         astrctMicroStim(iStimIter).m_strWhenToStimulate =  fnParseVariable(strctStimPreset,'WhenToStimulate', 'OnChoice',iStimIter);
         
     end
-
+    
     
 else
-    % No preset, information is in the trial 
+    % No preset, information is in the trial
     acChannels = fnSplitString(strctRoot.StimChannels,' ');
     iNumChannels = length(acChannels);
     for iStimIter=1:iNumChannels
         astrctMicroStim(iStimIter).m_iChannel = str2num(acChannels{iStimIter});
         % Amplitude
         astrctMicroStim(iStimIter).m_fAmplitude =  fnParseVariable(...
-            strctRoot,'MicroStimAmplitude', fnTsGetVar(g_strctParadigm,'MicroStimAmplitude'),iStimIter);
+            strctRoot,'MicroStimAmplitude', fnTsGetVar('g_strctParadigm','MicroStimAmplitude'),iStimIter);
         % Delay to trigger
         astrctMicroStim(iStimIter).m_fDelayToTrigMS =  fnParseVariable(...
-            strctRoot,'MicroStimDelayMS', fnTsGetVar(g_strctParadigm,'MicroStimDelayMS'),iStimIter);
+            strctRoot,'MicroStimDelayMS', fnTsGetVar('g_strctParadigm','MicroStimDelayMS'),iStimIter);
         % Delay to trigger
         astrctMicroStim(iStimIter).m_fPulseWidthMS =  fnParseVariable(...
-            strctRoot,'MicroStimPulseWidthMS', fnTsGetVar(g_strctParadigm,'MicroStimPulseWidthMS'),iStimIter);
+            strctRoot,'MicroStimPulseWidthMS', fnTsGetVar('g_strctParadigm','MicroStimPulseWidthMS'),iStimIter)*1e-6;
         astrctMicroStim(iStimIter).m_bBiPolar =  fnParseVariable(...
-            strctRoot,'MicroStimBiPolar', fnTsGetVar(g_strctParadigm,'MicroStimBiPolar'),iStimIter);
+            strctRoot,'MicroStimBiPolar', fnTsGetVar('g_strctParadigm','MicroStimBiPolar'),iStimIter);
         astrctMicroStim(iStimIter).m_fSecondPulseWidthMS =  fnParseVariable(...
-            strctRoot,'MicroStimSecondPulseWidthMS', fnTsGetVar(g_strctParadigm,'MicroStimSecondPulseWidthMS'),iStimIter);
+            strctRoot,'MicroStimSecondPulseWidthMS', fnTsGetVar('g_strctParadigm','MicroStimSecondPulseWidthMS'),iStimIter)*1e-6;
         astrctMicroStim(iStimIter).m_fBiPolarDelayMS =  fnParseVariable(...
-            strctRoot,'MicroStimBipolarDelayMS', fnTsGetVar(g_strctParadigm,'MicroStimBipolarDelayMS'),iStimIter);
+            strctRoot,'MicroStimBipolarDelayMS', fnTsGetVar('g_strctParadigm','MicroStimBipolarDelayMS'),iStimIter)*1e-6;
         astrctMicroStim(iStimIter).m_fPulseRateHz =  fnParseVariable(...
-            strctRoot,'MicroStimPulseRateHz', fnTsGetVar(g_strctParadigm,'MicroStimPulseRateHz'),iStimIter);
+            strctRoot,'MicroStimPulseRateHz', fnTsGetVar('g_strctParadigm','MicroStimPulseRateHz'),iStimIter);
         astrctMicroStim(iStimIter).m_fTrainRateHz =  fnParseVariable(...
-            strctRoot,'MicroStimTrainRateHz', fnTsGetVar(g_strctParadigm,'MicroStimTrainRateHz'),iStimIter);
+            strctRoot,'MicroStimTrainRateHz', fnTsGetVar('g_strctParadigm','MicroStimTrainRateHz'),iStimIter);
         astrctMicroStim(iStimIter).m_fTrainDurationMS =  fnParseVariable(...
-            strctRoot,'MicroStimTrainDurationMS', fnTsGetVar(g_strctParadigm,'MicroStimTrainDurationMS'),iStimIter);
+            strctRoot,'MicroStimTrainDurationMS', fnTsGetVar('g_strctParadigm','MicroStimTrainDurationMS'),iStimIter);
+        astrctMicroStim(iStimIter).m_bActive = 0;
+        % Plan the spike train; in progress
+        switch g_strctParadigm.m_strMicroStimType
+            % Store the stimulation times from time zero, and check against them from the start of the stimulation request
+            case 'FixedRate'
+                
+                astrctMicroStim(iStimIter).m_afSpikeTrain = linspace(astrctMicroStim(iStimIter).m_fDelayToTrigMS,...
+                    astrctMicroStim(iStimIter).m_fDelayToTrigMS + astrctMicroStim(iStimIter).m_fTrainDurationMS,...
+                    round(astrctMicroStim(iStimIter).m_fTrainDurationMS/(1000/astrctMicroStim(iStimIter).m_fPulseRateHz)));
+                
+                % for storing the stimulation times in the trial structure
+                astrctMicroStim(iStimIter).m_afStimTimes = zeros(1,round(astrctMicroStim(iStimIter).m_fTrainDurationMS/...
+                    (1000/astrctMicroStim(iStimIter).m_fPulseRateHz)));
+            case 'Poisson'
+                % Get the parameters for generating the spike train
+                times = [0:.001:astrctMicroStim(iStimIter).m_fTrainDurationMS]; %Plot for every ms
+                astrctMicroStim(iStimIter).m_afSpikeTrain = zeros(numTrains, length(times));
+                ClockRandSeed;
+                vt = rand(size(times));
+                astrctMicroStim(iStimIter).m_afSpikeTrain = (astrctMicroStim(iStimIter).m_fPulseRateHz*.001) > vt;
+            case 'Pearson'
+                % In progress
+                %{
+				mu = 80;
+				sigma = 5;
+				skew = 2.5;
+				kurt = 10;
+				samplesM = 4000;
+				samplesN = 1;
+				astrctMicroStim(iStimIter).m_aSpikeTrain =
+                %}
+            otherwise
+                % assume fixed rate
+                astrctMicroStim(iStimIter).m_afSpikeTrain = linspace(0,astrctMicroStim(iStimIter).m_fTrainDurationMS,1/astrctMicroStim(iStimIter).m_fPulseRateHz);
+        end
+        %astrctMicroStim(iStimIter).m_aSpikeTrain =
+        
+        % Not functional as far as I can tell
+        %{
+		%switch g_strctParadigm.m_strctMicroStim.m_strMicroStimType
+         %   case 'FixedRate'
+          %      g_strctParadigm.m_strctMicroStim.m_fNextStimTS = g_strctParadigm.m_strctMicroStim.m_fNextStimTS + 1/g_strctParadigm.m_strctMicroStim.m_fMicroStimRateHz;
+           % case 'Poisson'
+                % I hope I got this right. This should generate a poisson
+                % train (actually, an exponential latency between events)
+				
+				
+				
+				
+				
+				
+                FiringRate = g_strctParadigm.m_strctMicroStim.m_fMicroStimRateHz;
+                NumSeconds = 1;
+                N=ceil(FiringRate* NumSeconds);
+                a2fUniformDist=rand(1, N);
+                a2fExpDist = -log(a2fUniformDist); % exponentially distributed random values.
+                fNextEventLatencySec =  a2fExpDist/FiringRate;
+                g_strctParadigm.m_strctMicroStim.m_fNextStimTS = g_strctParadigm.m_strctMicroStim.m_fNextStimTS  + fNextEventLatencySec;
+                
+        end
+        %}
     end
 end
 return;
 
-            
 
-function [acParsedRequiredAttributes, bFailed, aiSpecificMedia] = fnParseRequiredAttributesUsingExistingInformation(acAttributes,strctCurrentTrial)
-global g_strctParadigm          
-% Replace special attributes....
-acParsedRequiredAttributes = cell(0);
-bFailed = false;
-aiSpecificMedia = [];
-for k=1:length(acAttributes)
-    if ~isempty(strfind(acAttributes{k},'CueAttributes'))
-        iIndexStart = find(acAttributes{k} == '(',1,'first');
-        iIndexEnd = find(acAttributes{k} == ')',1,'first');
-        if isempty(iIndexStart) || isempty(iIndexEnd)
-            bFailed = true;
-            return;
-        end;
+
+% ----------------------------------------------------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------------------------------------------------
+
+
+
+function strctCurrentTrial = fnPrepareDynamicTrial(strctCurrentTrial)
+global g_strctStimulusServer g_strctParadigm
+g_strctParadigm.m_iDriftCorrectIteration = 1;
+g_strctParadigm.m_bParadigmActive = 1;
+% Pack any variables without direct relevance to one of the trial epochs into m_strctTrialParams
+% we do this so we can concatenate the trial record later, even if the number of variables is not the same
+
+% Trial ID for matching to Plexon file later
+strctCurrentTrial.m_strctTrialParams.m_aiTrialVec = round(rand(1,3)*1000);
+
+% Tell Kofiko to not stimulate during the first Epoch. If the previous trial doesn't finish for whatever reason this might
+% not get reset after the previous spike train.
+g_strctParadigm.m_bMicroStimThisEpoch = 0;
+
+% Override the normal operation and generate random stimulus from the selected saturations and colors
+% Some stuff since we're reusing code we might want to use all of later
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_bBlur = 0;
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumberOfBars = 1;
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_inumberBlurSteps = 0;
+
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames = round(squeeze(g_strctParadigm.CuePeriodMS.Buffer(1,:,g_strctParadigm.CuePeriodMS.BufferIdx))...
+    / g_strctParadigm.m_strctStimServerVars.m_fStimulusMonitorRefreshRate);
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iMoveDistance = 0;
+strctCurrentTrial.m_strctTrialParams.m_bAutoBalanceActive = 0;
+
+% holds a full copy of all the saturations considered for this trial, the bottom level index will refer to this cell
+strctCurrentTrial.m_strctTrialParams.m_acSaturations = 	g_strctParadigm.m_strctCurrentSaturations;
+
+% holds the top level index to the colors
+strctCurrentTrial.m_strctTrialParams.m_aiColors = g_strctParadigm.m_cAllColorsPerSat;
+
+strctCurrentTrial.m_strctTrialParams.m_afTrialWeighting = .5*ones(1,numel(strctCurrentTrial.m_strctTrialParams.m_aiColors));
+
+% keep track of all choices that are saccaded to over the course of the trial, even if they are not the final choice
+strctCurrentTrial.m_aiAllChoiceSelections = [];
+
+strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen = g_strctParadigm.m_strctStimServerVars.m_aiStimulusServerScreenSize; % fnParadigmToKofikoComm('GetStimulusServerScreenSize');
+strctCurrentTrial.m_strctTrialParams.m_aiStimulusServerScreenCenter = g_strctParadigm.m_strctStimServerVars.m_aiStimulusServerScreenCenter;
+strctCurrentTrial.m_strctTrialParams.m_acSaturationsLookup = g_strctParadigm.m_cCurrentSaturationsLookup; % saturation names
+strctCurrentTrial.m_strctTrialParams.m_aiSelectedSaturationsLookup =  g_strctParadigm.m_aiSelectedSaturationsLookup; % indices from the paradigm level struct holding the current saturations.
+% mostly so fnCallbacks doesnt crash if we change the number of saturations mid trial
+%{
+if ~g_strctParadigm.m_strctTrainingVars.m_bFirstTrial && g_strctParadigm.m_strctTrainingVars.m_bTrainingMode
+    if strctCurrentTrial.m_strctTrialParams.m_iColorIndex == g_strctParadigm.m_strctPrevTrial.m_strctTrialParams.m_iColorIndex
+        g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(1) = g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(1) + 1;
+    else
+        g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(1) = 0;
+    end
+    if strctCurrentTrial.m_strctTrialParams.m_iSaturationIndex == g_strctParadigm.m_strctPrevTrial.m_strctTrialParams.m_iSaturationIndex
+        g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(2) = g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(2) + 1;
+    else
+        g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(2) = 0;
+    end
+    if numel(strctCurrentTrial.m_strctTrialParams.m_aiColors) > 1 && g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(1) > g_strctParadigm.m_strctTrainingVars.m_iMaxConsecutiveTrials
+        g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(1) = 0;
+        strctCurrentTrial.m_strctTrialParams.m_iColorIndex = ...
+            datasample(strctCurrentTrial.m_strctTrialParams.m_aiColors(strctCurrentTrial.m_strctTrialParams.m_aiColors ~= g_strctParadigm.m_strctPrevTrial.m_strctTrialParams.m_iColorIndex),1);
         
-        iWhichPreviousCue = str2num(acAttributes{k}(iIndexStart+1:iIndexEnd-1));
-        if isfield(strctCurrentTrial,'m_astrctCueMedia')
-            iNumCues = length(strctCurrentTrial.m_astrctCueMedia);
-        else
-            iNumCues = 0;
-        end;
         
-        if iWhichPreviousCue > iNumCues || iWhichPreviousCue <= 0
-            bFailed = true;
-            return;
-        end;
-            acParsedRequiredAttributes = [acParsedRequiredAttributes, ...
-                g_strctParadigm.m_strctDesign.m_acAttributes(g_strctParadigm.m_strctDesign.m_a2bMediaAttributes(strctCurrentTrial.m_astrctCueMedia(iWhichPreviousCue).m_iMediaIndex,:) )];
-    elseif ~isempty(strfind(acAttributes{k},'Cue('))
-      iIndexStart = find(acAttributes{k} == '(');
-      iIndexEnd = find(acAttributes{k} == ')');
-      iCueNumber = str2num(acAttributes{k}(iIndexStart+1:iIndexEnd-1));
-      if (iCueNumber > length(strctCurrentTrial.m_astrctCueMedia))
-          bFailed = true;
-          return;
-      end;
-      aiSpecificMedia = strctCurrentTrial.m_astrctCueMedia(iCueNumber).m_iMediaIndex;
-      acParsedRequiredAttributes = cell(0);
-    elseif sum(acAttributes{k} == '*')
-        acAttributes{k}(acAttributes{k} == '*') = [];
-        acMatches = strfind(g_strctParadigm.m_strctDesign.m_acAttributes,acAttributes{k});
-        for j=1:length(acMatches)
-            if ~isempty(acMatches)
-                acParsedRequiredAttributes = [acParsedRequiredAttributes,g_strctParadigm.m_strctDesign.m_acAttributes{j}];
-            end
+    end
+    if numel(strctCurrentTrial.m_strctTrialParams.m_acSaturations) > 1 && g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(2) >...
+            g_strctParadigm.m_strctTrainingVars.m_iMaxConsecutiveTrials
+        g_strctParadigm.m_strctTrainingVars.m_aiConsecutiveTrialCounter(2) = 0;
+        
+        posSats = 1:numel(strctCurrentTrial.m_strctTrialParams.m_acSaturations);
+        strctCurrentTrial.m_strctTrialParams.m_iSaturationIndex = datasample(posSats(posSats ~= g_strctParadigm.m_strctPrevTrial.m_strctTrialParams.m_iSaturationIndex),1);
+        
+    end
+end
+%}
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates = fnTsGetVar('g_strctParadigm','StimulusPosition');
+
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iTheta = squeeze(g_strctParadigm.CueOrientation.Buffer(:,1,g_strctParadigm.CueOrientation.BufferIdx));
+
+[strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(1),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(2)] = fnTsGetVar('g_strctParadigm','CueLength','CueWidth');
+
+
+% Clut Stuff
+% Stimulus Colors
+
+strctCurrentTrial.m_strctTrialParams.m_aiClut = g_strctParadigm.m_afMasterClut;
+strctCurrentTrial.m_strctTrialParams.m_afRGBToXYZConversionMatrix = g_strctParadigm.m_strctConversionMatrices.RGBToXYZ;
+strctCurrentTrial.m_strctTrialParams.m_afXYZToRGBConversionMatrix = g_strctParadigm.m_strctConversionMatrices.XYZToRGB;
+%{
+if size(strctCurrentTrial.m_strctTrialParams.m_acSaturations{1,strctCurrentTrial.m_strctTrialParams.m_iSaturationIndex},1) == 1
+    strctCurrentTrial.m_strctTrialParams.m_bGrayTrial = 1;
+    strctCurrentTrial.m_strctTrialParams.m_aiClut(3,:) =...
+        strctCurrentTrial.m_strctTrialParams.m_acSaturations{strctCurrentTrial.m_strctTrialParams.m_iSaturationIndex}(1,:);% Gray saturation, only 1 color
+    
+else
+    strctCurrentTrial.m_strctTrialParams.m_aiClut(3,:) = strctCurrentTrial.m_strctTrialParams.m_acSaturations...
+        {strctCurrentTrial.m_strctTrialParams.m_iSaturationIndex}(strctCurrentTrial.m_strctTrialParams.m_iColorIndex,:);% stimulus server color
+    strctCurrentTrial.m_strctTrialParams.m_bGrayTrial = 0;
+end
+
+% Saturation name for this trial, to save some effort in analysis
+strctCurrentTrial.m_strctTrialParams.m_strThisTrialsSaturationName = strctCurrentTrial.m_strctTrialParams.m_acSaturationsLookup{strctCurrentTrial.m_strctTrialParams.m_iSaturationIndex};
+%}
+%strctCurrentTrial.m_strctTrialParams.m_aiLocalStimulusColors = round(strctCurrentTrial.m_strctTrialParams.m_aiClut(3,:)/255);% Local colors
+strctCurrentTrial.m_strctTrialParams.m_pt2fFixationPosition = strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(3:4)/2;
+
+%strctCurrentTrial.m_strctPreCuePeriod.m_afLocalBackgroundColor = round(g_strctParadigm.m_strctMasterColorTable.neutralGray.RGB/255); % Setup for local machine
+strctCurrentTrial.m_strctTrialParams.m_afLocalBackgroundColor = round(g_strctParadigm.m_aiBackgroundColor/255); % Setup for local machine
+
+if strcmp(g_strctParadigm.m_strCueType, 'bar')
+    strctCurrentTrial.m_strctTrialParams.m_strStimulusType = 'bar';
+    [strctCurrentTrial] = fnCalcBarCoordinates(strctCurrentTrial);
+elseif strcmp(g_strctParadigm.m_strCueType, 'disc')
+    strctCurrentTrial.m_strctTrialParams.m_strStimulusType = 'disc';
+    [strctCurrentTrial] = fnCalcDiscCoordinates(strctCurrentTrial);
+    
+end
+
+
+[strctCurrentTrial] = fnDynamicTrialPreCueSetup(strctCurrentTrial);
+
+[strctCurrentTrial] = fnDynamicTrialMemoryPeriodSetup(strctCurrentTrial);
+
+[strctCurrentTrial] = fnDynamicTrialCuePeriodSetup(strctCurrentTrial);
+
+[strctCurrentTrial] = fnDynamicTrialChoicesSetup(strctCurrentTrial);
+
+[strctCurrentTrial] = fnDynamicPostTrialSetup(strctCurrentTrial);
+
+% Is this a stim trial? This setting is off by default and must be set by the user.
+if g_strctParadigm.MicroStimActive.Buffer(g_strctParadigm.MicroStimActive.BufferIdx) && rand() <= g_strctParadigm.m_strctMicroStim.m_fMicroStimChance
+    g_strctParadigm.m_bMicroStimThisTrial  = 1;
+    switch lower(g_strctParadigm.m_strctMicroStim.m_cEpochs{1})
+        case 'precue'
+            strctCurrentTrial.m_strctPreCuePeriod.m_astrctMicroStim = fnExtractMicroStimParams(g_strctParadigm.m_strctMicroStim);
+        case 'cue'
+            strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim = fnExtractMicroStimParams(g_strctParadigm.m_strctMicroStim);
+        case 'memory'
+            strctCurrentTrial.m_strctMemoryPeriod.m_astrctMicroStim = fnExtractMicroStimParams(g_strctParadigm.m_strctMicroStim);
+        case 'choice'
+            strctCurrentTrial.m_strctChoicePeriod.m_astrctMicroStim = fnExtractMicroStimParams(g_strctParadigm.m_strctMicroStim);
+    end
+else
+    g_strctParadigm.m_bMicroStimThisTrial = 0;
+end
+
+strctCurrentTrial.m_strctTrialParams.m_iTrialType = strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID;
+return;
+% ----------------------------------------------------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------------------------------------------------
+
+function [strctCurrentTrial] = fnDynamicTrialPreCueSetup(strctCurrentTrial)
+global g_strctParadigm
+
+strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueFixationPeriodMS = squeeze(g_strctParadigm.PreCueFixationPeriodMS.Buffer(1,:,g_strctParadigm.PreCueFixationPeriodMS.BufferIdx));
+if strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueFixationPeriodMS > 0
+    % Background Colors
+    strctCurrentTrial.m_strctPreCuePeriod.m_afBackgroundColor= [1, 1, 1]; % Setup for bits ++
+    
+    strctCurrentTrial.m_strctPreCuePeriod.m_aiStimulusColors = [2, 2, 2]; % Setup for bits ++
+    strctCurrentTrial.m_strctPreCuePeriod.m_aiLocalStimulusColors = round(strctCurrentTrial.m_strctTrialParams.m_aiClut(3,:)/255); % Setup for bits ++
+    
+    strctCurrentTrial.m_strctPreCuePeriod.m_afFixationColor = [255, 255, 255]; % Setup for bits ++
+    strctCurrentTrial.m_strctPreCuePeriod.m_afLocalFixationColor = [255, 255, 255]; %round(strctCurrentTrial.m_strctPreCuePeriod.m_aiClut(3,:)/255);
+    % Default position is center of screen
+    
+    strctCurrentTrial.m_strctPreCuePeriod.m_pt2fFixationPosition = strctCurrentTrial.m_strctTrialParams.m_pt2fFixationPosition;
+    strctCurrentTrial.m_strctPreCuePeriod.m_fPostTouchDelayMS = 0;
+    %{
+	tic
+	[strctCurrentTrial.m_strctPreCuePeriod.m_fFixationSpotSize,...
+	strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix,...
+	strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueJuiceTimeMS] = fnTsGetVar('g_strctParadigm','PreCueFixationSpotPix','FixationRadiusPix','PreCueJuiceTimeMS');
+	toc
+    %}
+    
+    strctCurrentTrial.m_strctPreCuePeriod.m_fFixationSpotSize = squeeze(g_strctParadigm.PreCueFixationSpotPix.Buffer(1,:,g_strctParadigm.PreCueFixationSpotPix.BufferIdx)); % Size of the fixation spot
+    strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix = squeeze(g_strctParadigm.FixationRadiusPix.Buffer(1,:,g_strctParadigm.FixationRadiusPix.BufferIdx)); % Area of the fixation region
+    strctCurrentTrial.m_strctPreCuePeriod.m_fPreCueJuiceTimeMS = squeeze(g_strctParadigm.PreCueJuiceTimeMS.Buffer(1,:,g_strctParadigm.PreCueJuiceTimeMS.BufferIdx));
+    
+    % strctCurrentTrial.m_strctPreCuePeriod.m_strFixationSpotType = 'disc';
+    strctCurrentTrial.m_strctPreCuePeriod.m_strFixationSpotType = 'x.';
+    strctCurrentTrial.m_strctPreCuePeriod.m_bAbortTrialUponTouchOutsideFixation = false;
+    %strctCurrentTrial.m_strctPreCuePeriod.m_fFixationRegionPix = squeeze(g_strctParadigm.PreCueFixationRegion.Buffer(1,:,g_strctParadigm.PreCueFixationRegion.BufferIdx)); % Area of the fixation region
+    strctCurrentTrial.m_strctPreCuePeriod.m_bRewardTouchFixation = g_strctParadigm.m_bPreCueReward;
+    
+    
+    
+    strctCurrentTrial.m_strctPreCuePeriod.m_strRewardSound = [];
+    
+    
+    
+else
+    strctCurrentTrial.m_strctPreCuePeriod = []; % no pre cue fixation period
+end
+
+
+return;
+% ----------------------------------------------------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------------------------------------------------
+function [strctCurrentTrial] = fnDynamicTrialCuePeriodSetup(strctCurrentTrial)
+global g_strctParadigm
+if ~g_strctParadigm.m_bChoiceTexturesInitialized 
+	fnPauseParadigm();
+	fnParadigmToKofikoComm('DisplayMessageNow','Cue Textures Not Initialized! Create Textures Before Running Task');
+
+end
+
+
+strctCurrentTrial.m_strctTrialParams.FixationSpotSize = squeeze(g_strctParadigm.CueFixationSpotPix.Buffer(1,:,g_strctParadigm.CueFixationSpotPix.BufferIdx));
+strctCurrentTrial.m_strctCuePeriod.m_strctStimulusVariables.m_iTheta = squeeze(g_strctParadigm.CueOrientation.Buffer(:,1,g_strctParadigm.CueOrientation.BufferIdx));
+if g_strctParadigm.m_bDebugModeEnabled
+    dbstop if warning
+    ShowCursor();
+    warning('stop')
+end
+% Vars that Kofiko will process later and crash if they don't exist
+strctCurrentTrial.m_strctCuePeriod.m_strName = 'Dynamic';
+strctCurrentTrial.m_strctCuePeriod.m_strFileName = 'null';
+strctCurrentTrial.m_strctCuePeriod.m_iMediaIndex = 1;
+strctCurrentTrial.m_strctCuePeriod.m_bMovie = false;
+%strctCurrentTrial.m_strctCuePeriod.m_strFixationSpotType = 'disc';
+strctCurrentTrial.m_strctCuePeriod.m_strFixationSpotType = 'x.';
+strctCurrentTrial.m_strctCuePeriod.m_fFixationSpotSize = squeeze(g_strctParadigm.CueFixationSpotPix.Buffer(1,:,g_strctParadigm.CueFixationSpotPix.BufferIdx));
+%%
+% Are null trials possible (no cue displayed)
+%{
+% superceded by gray as its own saturation
+strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials = fnTsGetVar('g_strctParadigm','IncludeGrayTrials');
+%}
+
+
+% Choose what color this trial will be
+strctCurrentTrial.m_strctCuePeriod.m_acCurrentlyActiveColorStructures = g_strctParadigm.m_strctCurrentSaturations;
+
+iCurrentColorConversionID = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType,'value');
+strCurrentColorConversionName = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType,'string');
+strctCurrentTrial.m_strctCuePeriod.m_strSelectedConversionType = strCurrentColorConversionName{iCurrentColorConversionID,:};
+currentlySelectedSaturationvalue = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'value');
+currentlySelectedSaturationStrings = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'string');
+
+currentlySelectedColors = g_strctParadigm.m_cAllColorsPerSat;%get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'value');
+
+thisColorConversionStructs = g_strctParadigm.m_strctMasterColorTable{get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType,'value')};
+for iActiveSaturations = 1:numel(currentlySelectedSaturationvalue)
+    strctCurrentTrial.m_cCurrentlySelectedSaturations.(deblank(currentlySelectedSaturationStrings(currentlySelectedSaturationvalue(iActiveSaturations),:))) = ...
+        thisColorConversionStructs.(deblank(currentlySelectedSaturationStrings(currentlySelectedSaturationvalue(iActiveSaturations),:)));
+    
+end
+
+numSelectedSaturations = numel(currentlySelectedSaturationvalue);
+numSelectedColors = sum(cellfun(@numel, currentlySelectedColors)) + fnTsGetVar('g_strctParadigm','IncludeGrayTrials');
+strctCurrentTrial.m_strctCuePeriod.m_iNullConditionSaturationID = ...
+        find(ismember( fieldnames(strctCurrentTrial.m_cCurrentlySelectedSaturations),g_strctParadigm.m_strctChoiceVars.m_strNullConditionName));
+
+if g_strctParadigm.m_strctStimuliVars.m_bOverrideGrayProbability && any(strctCurrentTrial.m_strctCuePeriod.m_iNullConditionSaturationID)
+    strctCurrentTrial.m_strctCuePeriod.m_bGrayTrialProbability = fnTsGetVar('g_strctParadigm','GrayTrialProbability')/100;
+    if strctCurrentTrial.m_strctCuePeriod.m_bGrayTrialProbability > 0
+        strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials = true;
+    end
+else
+    % is the null condition in the list of selected saturations
+    if any(strctCurrentTrial.m_strctCuePeriod.m_iNullConditionSaturationID)
+        strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials = true;
+    else 
+        strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials =  false;
+    end
+end
+strctCurrentTrial.m_strctCuePeriod.m_bLuminanceMaskedCueStimuli = g_strctParadigm.m_strctStimuliVars.m_bLuminanceMaskedCueStimuli;
+
+if strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials && rand(1) < strctCurrentTrial.m_strctCuePeriod.m_bGrayTrialProbability
+    strctCurrentTrial.m_strctTrialParams.m_bGrayTrial = true;
+else
+    strctCurrentTrial.m_strctTrialParams.m_bGrayTrial = false;
+end
+
+strctCurrentTrial.m_strctCuePeriod.m_bDisplayCue = g_strctParadigm.m_strctStimuliVars.m_bDisplayCue;
+strctCurrentTrial.m_strctCuePeriod.m_fCuePeriodMS = squeeze(g_strctParadigm.CuePeriodMS.Buffer(1,:,g_strctParadigm.CuePeriodMS.BufferIdx));
+
+strctCurrentTrial.m_strctCuePeriod.m_pt2fFixationPosition = [strctCurrentTrial.m_strctTrialParams.m_aiStimulusServerScreenCenter(1), strctCurrentTrial.m_strctTrialParams.m_aiStimulusServerScreenCenter(2)]; %[1024/2,768/2];
+
+strctCurrentTrial.m_strctCuePeriod.m_fFixationRegionPix = squeeze(g_strctParadigm.FixationRadiusPix.Buffer(1,:,g_strctParadigm.FixationRadiusPix.BufferIdx));
+strctCurrentTrial.m_strctCuePeriod.m_bCueHighlight = g_strctParadigm.m_strctStimuliVars.m_bCueHighlight;
+
+strctCurrentTrial.m_strctCuePeriod.m_aiClut = g_strctParadigm.m_afMasterClut;
+
+if ~strctCurrentTrial.m_strctTrialParams.m_bGrayTrial
+    % generate a random number based on the least displayed colors and use
+    % it to pick this trial's cue
+    % determine which conditions are not the null condition for use in
+    % balancing
+    eligibleConditions = 1:numel(g_strctParadigm.m_aiColorsDisplayedCount);
+    if any(strctCurrentTrial.m_strctCuePeriod.m_iNullConditionSaturationID)
+        eligibleConditions = eligibleConditions(eligibleConditions ~= strctCurrentTrial.m_strctCuePeriod.m_iNullConditionSaturationID);
+        
+    end
+    if g_strctParadigm.m_bForceBalanceCueProbabilities
+       
+        [leastDisplayedColorPossibilities] = ...
+            find(g_strctParadigm.m_aiColorsDisplayedCount <= ...
+            min(min(g_strctParadigm.m_aiColorsDisplayedCount)));
+        %thisTrialSaturationRandomNumber = ceil(rand(1,1)*numel(leastDisplayedSaturationPossibilities));
+        
+        thisTrialColorRandomNumber = ceil(rand(1,1)*numel(leastDisplayedColorPossibilities));
+
+    else
+        %tempCuePossibilityMatrix = zeros(numSelectedSaturations,numSelectedColors);
+        tempCuePossibilityMatrix = zeros(numel(eligibleConditions),numSelectedColors);
+        [leastDisplayedColorPossibilities] = find(tempCuePossibilityMatrix <= min(min(tempCuePossibilityMatrix)));
+
+        %find(g_strctParadigm.m_aiColorsDisplayedCount(eligibleConditions,:) <= min(min(tempCuePossibilityMatrix)));
+       % thisTrialSaturationRandomNumber = ceil(rand(1,1)*size(tempCuePossibilityMatrix,1));
+        thisTrialColorRandomNumber = ceil(rand(1,1)*size(tempCuePossibilityMatrix,2));
+    end
+    %currentlySelectedSaturationvalue = currentlySelectedSaturationvalue(eligibleConditions);
+    
+       % [currentlySelectedSaturationvalue, ~] = find(currentlySelectedSaturationvalue(eligibleConditions);
+
+    
+    thisTrialTempColorID = leastDisplayedColorPossibilities(thisTrialColorRandomNumber);
+    %thisTrialTempSaturationID = leastDisplayedSaturationPossibilities(thisTrialSaturationRandomNumber);
+    if eligibleConditions(leastDisplayedColorPossibilities(thisTrialColorRandomNumber)) <= 16
+       thisTrialTempSaturationID = 1;
+       strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID = eligibleConditions(leastDisplayedColorPossibilities(thisTrialColorRandomNumber));
+    elseif eligibleConditions(leastDisplayedColorPossibilities(thisTrialColorRandomNumber)) > 16 && ...
+            eligibleConditions(leastDisplayedColorPossibilities(thisTrialColorRandomNumber)) <= 24
+         thisTrialTempSaturationID = 2;
+          strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID = eligibleConditions(leastDisplayedColorPossibilities(thisTrialColorRandomNumber)) - 16;
+    else
+         thisTrialTempSaturationID = 3;
+          strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID = eligibleConditions(leastDisplayedColorPossibilities(thisTrialColorRandomNumber)) - 24;
+    end
+
+    strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID = thisTrialTempSaturationID;%...
+       % currentlySelectedSaturationvalue(eligibleConditions(leastDisplayedSaturationPossibilities(thisTrialSaturationRandomNumber)));
+   %strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID = currentlySelectedColors(leastDisplayedColorPossibilities(thisTrialColorRandomNumber));
+    strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation = ...
+        strctCurrentTrial.m_cCurrentlySelectedSaturations.(deblank(currentlySelectedSaturationStrings(currentlySelectedSaturationvalue(thisTrialTempSaturationID),:)));
+	% store the absolute ID of the cue
+	% I.E., which iteration of generation it was during creation of the texture, for local display
+   % strctCurrentTrial.m_strctCuePeriod.m_iCueHandleIndexingColorID = ((strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID - 1) * numSelectedColors) + thisTrialTempColorID;
+    strctCurrentTrial.m_strctCuePeriod.m_iCueHandleIndexingColorID = thisTrialTempColorID;
+
+    thisTrialSatNames =  fieldnames(strctCurrentTrial.m_cCurrentlySelectedSaturations);
+    strctCurrentTrial.m_strctCuePeriod.m_strCurrentSaturationName = thisTrialSatNames{strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID};
+
+    strctCurrentTrial.m_strctCuePeriod.m_aiRGB = strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.RGB(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID,:);
+    strctCurrentTrial.m_strctCuePeriod.m_aiLocalStimulusColors = round((strctCurrentTrial.m_strctCuePeriod.m_aiRGB/65535)*255);
+    strctCurrentTrial.m_strctCuePeriod.m_iSaturation = strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.Radius;
+    strctCurrentTrial.m_strctCuePeriod.m_afLUV_CartCoordinates = ...
+        strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.m_afCartCoordinates(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID,:);
+    strctCurrentTrial.m_strctCuePeriod.m_afSphereCoordinates = strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.m_afSphereCoordinates(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID,:);
+    strctCurrentTrial.m_strctCuePeriod.m_iAzimuth = strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
+
+    % update the trial counter for trial count balancing
+    %currentlySelectedSaturationvalue(strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID)
+   % trialSatID = currentlySelectedSaturationvalue(strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID);
+    %trialColorID = leastDisplayedColorPossibilities(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
+    g_strctParadigm.m_aiColorsDisplayedCount(thisTrialTempColorID) = ...
+        g_strctParadigm.m_aiColorsDisplayedCount(thisTrialTempColorID) + 1;
+    
+    %{
+        g_strctParadigm.m_aiColorsDisplayedCount(strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID,leastDisplayedColorPossibilities(thisTrialRandomNumber)) = ...
+        g_strctParadigm.m_aiColorsDisplayedCount(strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID,leastDisplayedColorPossibilities(thisTrialRandomNumber)) + 1;
+  
+        %}
+else
+    strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID = strctCurrentTrial.m_strctCuePeriod.m_iNullConditionSaturationID;
+    strctCurrentTrial.m_strctCuePeriod.m_aiRGB = g_strctParadigm.m_aiBackgroundColor;
+    strctCurrentTrial.m_strctCuePeriod.m_aiLocalStimulusColors = g_strctParadigm.m_aiLocalBackgroundColor;
+    strctCurrentTrial.m_strctCuePeriod.m_iSaturation = 0;
+    strctCurrentTrial.m_strctCuePeriod.m_iAzimuth = 0;
+    strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation = ...
+        strctCurrentTrial.m_cCurrentlySelectedSaturations.(g_strctParadigm.m_strctChoiceVars.m_strNullConditionName);
+    strctCurrentTrial.m_strctCuePeriod.m_afLUV_CartCoordinates = ...
+        strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.m_afCartCoordinates(1,:);
+    strctCurrentTrial.m_strctCuePeriod.m_afSphereCoordinates = ...
+        strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.m_afSphereCoordinates(1,:);
+    % use all of the null condition colors, they're all "correct"
+    strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID = currentlySelectedColors;
+    
+    % all the null condition cue handles are the same. 
+    strctCurrentTrial.m_strctCuePeriod.m_iCueHandleIndexingColorID = ...
+        ((strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID - 1) * numSelectedColors) + 1;
+    
+
+end
+
+if strctCurrentTrial.m_strctCuePeriod.m_bLuminanceMaskedCueStimuli
+    
+    
+    % strctCurrentTrial.m_iMaxFramesInCueEpoch = round((1e3/g_strctParadigm.m_strctStimServerVars.m_fStimulusMonitorRefreshRate) * (squeeze(g_strctParadigm.TrialTimeoutMS.Buffer(1,:,g_strctParadigm.TrialTimeoutMS.BufferIdx)/1e3)));
+    %strctCurrentTrial.thisTrialChoiceTextureOrder = floor(rand(1, strctCurrentTrial.m_iMaxFramesInChoiceEpoch ) * fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'))+1;
+    strctCurrentTrial.m_strctCuePeriod.m_iCuePeriodFrameCounter = 1;
+    strctCurrentTrial.m_strctCuePeriod.m_iMaxFramesInCueEpoch = round((1e3/g_strctParadigm.m_strctStimServerVars.m_fStimulusMonitorRefreshRate) * strctCurrentTrial.m_strctCuePeriod.m_fCuePeriodMS/1e3);
+    strctCurrentTrial.m_strctCuePeriod.thisTrialCueTextureOrder = floor(rand(1, strctCurrentTrial.m_strctCuePeriod.m_iMaxFramesInCueEpoch ) * fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerCue'))+1;
+    %if ~strctCurrentTrial.m_strctTrialParams.m_bGrayTrial
+        %for iSaturations = 1:numel(strctCurrentTrial.m_aiActiveChoiceSaturationID)
+        %for iColors = strctCurrentTrial.m_aiActiveChoiceColorID
+        thisColorCoordinate = strctCurrentTrial.m_strctCuePeriod.m_afLUV_CartCoordinates;
+        rawValues = luv2rgb([ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .* ...
+            ((thisColorCoordinate(1)*100) + g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps*100)', ...
+            ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .*thisColorCoordinate(2)'.*100, ...
+            ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .*thisColorCoordinate(3)'.*100]);
+        if any(any(rawValues > 1)) ||  any(any(rawValues < 0))
+            rawValues( rawValues > 1) = 1;
+            rawValues( rawValues < 0) = 0;
+            fnParadigmToKofikoComm('DisplayMessageNow','Cue Color Values Out Of Range');
         end
+        %end
+        %end
+        %{
+    else
+        % append the gray choice information
+        thisColorCoordinate = fnTsGetVar('g_strctParadigm', 'BackgroundLUVCoordinates');
+        rawValues = luv2rgb([ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .* ...
+            ((thisColorCoordinate(1)) + g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps*100)', ...
+            ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .*thisColorCoordinate(2)'.*100, ...
+            ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .*thisColorCoordinate(3)'.*100]);
+        if any(any(rawValues > 1)) ||  any(any(rawValues < 0))
+            rawValues( rawValues > 1) = 1;
+            rawValues( rawValues < 0) = 0;
+            fnParadigmToKofikoComm('DisplayMessageNow','Cue Color Values Out Of Range');
+        end
+    end
+        %}
+    strctCurrentTrial.m_strctCuePeriod.ClutEntries = fnGammaCorrectRGBValues(rawValues);
+    strctCurrentTrial.m_strctCuePeriod.CueLUTs = g_strctParadigm.CLUTOffset + 1:g_strctParadigm.CLUTOffset + size(strctCurrentTrial.m_strctCuePeriod.ClutEntries,1);
+    strctCurrentTrial.m_strctCuePeriod.m_aiClut(strctCurrentTrial.m_strctCuePeriod.CueLUTs ,:) = strctCurrentTrial.m_strctCuePeriod.ClutEntries;
+    
+    
+    
+    %g_strctParadigm.m_aiColorsDisplayedCount
+    
+else
+    if strctCurrentTrial.m_strctTrialParams.m_bGrayTrial
+        
+        strctCurrentTrial.m_strctCuePeriod.m_aiClut(3,:) = g_strctParadigm.m_aiBackgroundColor;
         
     else
-        acParsedRequiredAttributes = [acParsedRequiredAttributes,acAttributes{k}];
+        strctCurrentTrial.m_strctCuePeriod.m_aiClut(3,:) = strctCurrentTrial.m_strctCuePeriod.m_aiRGB;% stimulus server color
     end
-end;
+end
+strctCurrentTrial.m_strctCuePeriod.m_aiCueColors = [2, 2, 2];
+strctCurrentTrial.m_strctCuePeriod.m_afCueHighlightColor = [255 0 0];
+if g_strctParadigm.m_bUseFixationSpotAsCue
+    % Use the fixation point as the cue color, only use for training right now
+    % Not used atm but might be nice to have at some point.
+    strctCurrentTrial.m_strctTrialParams.m_bUseFixationSpotAsCue = 1;
+    strctCurrentTrial.m_strctCuePeriod.m_afFixationColor = [2, 2, 2];
+    strctCurrentTrial.m_strctCuePeriod.m_afLocalFixationColor = [255, 255, 255];
+    strctCurrentTrial.m_strctTrialParams.m_bDoNotShowCue = 1;
+    
+else
+    strctCurrentTrial.m_strctTrialParams.m_bUseFixationSpotAsCue = 0;
+    % this is the CLUT index of the fixation color, not the actual stimulus server fixation color
+    strctCurrentTrial.m_strctCuePeriod.m_afFixationColor = [255 255 255];
+    
+    strctCurrentTrial.m_strctCuePeriod.m_afLocalFixationColor = [255, 255, 255];
+    strctCurrentTrial.m_strctTrialParams.m_bDoNotShowCue = 0;
+    
+end
+strctCurrentTrial.m_strctCuePeriod.m_astrctMicroStim = [];
+strctCurrentTrial.m_strctCuePeriod.m_fCueMemoryPeriodMS = 0;
+
+% Support for determining Cue Size, hopefully this works
+strctCurrentTrial.m_strctCuePeriod.m_fCueSizePix =  max(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions);
+
+strctCurrentTrial.m_strctCuePeriod.m_pt2fCuePosition = strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(3:4)/2;
+
+strctCurrentTrial.m_strctCuePeriod.m_bAbortTrialIfBreakFixationDuringCue = true;
+
+strctCurrentTrial.m_strctCuePeriod.m_bAbortTrialIfBreakFixationOnCue = false;
+
+
+return;
+% ----------------------------------------------------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------------------------------------------------
+
+
+function [strctCurrentTrial] = fnDynamicTrialMemoryPeriodSetup(strctCurrentTrial)
+global g_strctParadigm
+
+strctCurrentTrial.m_strctMemoryPeriod.m_fMemoryPeriodMS = squeeze(g_strctParadigm.MemoryPeriodMS.Buffer(1,:,g_strctParadigm.MemoryPeriodMS.BufferIdx));
+
+if strctCurrentTrial.m_strctMemoryPeriod.m_fMemoryPeriodMS > 0
+    strctCurrentTrial.m_strctMemoryPeriod.m_afBackgroundColor = [1, 1, 1];
+    strctCurrentTrial.m_strctMemoryPeriod.m_bShowFixationSpot= 1;
+    strctCurrentTrial.m_strctMemoryPeriod.m_pt2fFixationPosition = [strctCurrentTrial.m_strctTrialParams.m_aiStimulusServerScreenCenter(1), strctCurrentTrial.m_strctTrialParams.m_aiStimulusServerScreenCenter(2)]; %[1024/2,768/2];
+    strctCurrentTrial.m_strctMemoryPeriod.m_afFixationColor = [255, 255, 255];
+    %strctCurrentTrial.m_strctMemoryPeriod.m_strFixationSpotType = 'disc';
+    strctCurrentTrial.m_strctMemoryPeriod.m_strFixationSpotType = 'x.';
+    strctCurrentTrial.m_strctMemoryPeriod.m_fFixationSpotSize  = squeeze(g_strctParadigm.MemoryPeriodFixationSpotPix.Buffer(1,:,g_strctParadigm.MemoryPeriodFixationSpotPix.BufferIdx));
+    %strctCurrentTrial.m_strctMemoryPeriod.m_fFixationRegionSize = squeeze(g_strctParadigm.MemoryPeriodFixationRegionPix.Buffer(1,:,g_strctParadigm.MemoryPeriodFixationRegionPix.BufferIdx));
+    strctCurrentTrial.m_strctMemoryPeriod.m_fFixationRegionSize = squeeze(g_strctParadigm.FixationRadiusPix.Buffer(1,:,g_strctParadigm.FixationRadiusPix.BufferIdx));
+    strctCurrentTrial.m_strctMemoryPeriod.m_fJuiceTimeMS = squeeze(g_strctParadigm.MemoryPeriodJuiceTimeMS.Buffer(1,:,g_strctParadigm.MemoryPeriodJuiceTimeMS.BufferIdx));
+    strctCurrentTrial.m_strctMemoryPeriod.m_bRewardMemoryPeriod = g_strctParadigm.m_bMemoryPeriodReward;
+    
+    
+else
+    strctCurrentTrial.m_strctMemoryPeriod = [];
+end
+
+
+return;
+% ----------------------------------------------------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------------------------------------------------
+
+function [strctCurrentTrial] = fnDynamicTrialChoicesSetup(strctCurrentTrial)
+global g_strctParadigm g_strctPTB
+if ~g_strctParadigm.m_bChoiceTexturesInitialized 
+	fnPauseParadigm();
+	fnParadigmToKofikoComm('DisplayMessageNow','Choice Textures Not Initialized! Create Textures Before Running Task');
+
+end
+
+strctCurrentTrial.m_iChoiceFrameCounter = 1;
+strctCurrentTrial.m_bLuminanceNoiseBackground = 0;
+% init Color Lookup Table
+strctCurrentTrial.m_strctChoicePeriod.Clut(:,1) = round(g_strctParadigm.m_aiBackgroundColor(ceil(end/2),1)) .* ones(256,1)  ;
+strctCurrentTrial.m_strctChoicePeriod.Clut(:,2) = round(g_strctParadigm.m_aiBackgroundColor(ceil(end/2),2)) .* ones(256,1)  ;
+strctCurrentTrial.m_strctChoicePeriod.Clut(:,3) = round(g_strctParadigm.m_aiBackgroundColor(ceil(end/2),3)) .* ones(256,1)  ;
+
+if g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial
+    if g_strctParadigm.m_strctChoiceVars.m_bProgressiveChoiceRingRotation
+        strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = -(g_strctParadigm.m_strctChoiceVars.m_fLastChoiceRingRotation + g_strctParadigm.m_strctChoiceVars.m_iChoiceRingRotationIncrement);
+        g_strctParadigm.m_strctChoiceVars.m_fLastChoiceRingRotation = strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle;
+    else
+        
+        % take the negative of the rotation angle. Psychophysics toolbox handles rotation in the opposite manner of the matlab functions that determine the angle of the choice direction
+        strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = -rad2deg(rand(1) * (2 * pi));
+        strctCurrentTrial.m_strctChoicePeriod.m_bRandomChoiceRotationAngle = true;
+    end
+else
+    strctCurrentTrial.m_strctChoicePeriod.m_bRandomChoiceRotationAngle = false;
+    strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = 0;
+end
+strctCurrentTrial.m_iChoiceRingSize = fnTsGetVar('g_strctParadigm','ChoiceRingSize');
+strctCurrentTrial.m_afChoiceRingLocation = fnTsGetVar('g_strctParadigm','AFCChoiceLocation');
+strctCurrentTrial.m_strChoiceDisplayType = g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType;
+
+
+strctCurrentTrial.m_afChoiceRingDestinationRect = [strctCurrentTrial.m_afChoiceRingLocation(1) - strctCurrentTrial.m_iChoiceRingSize(1)/2,...
+    strctCurrentTrial.m_afChoiceRingLocation(2) - strctCurrentTrial.m_iChoiceRingSize(1)/2,...
+    strctCurrentTrial.m_afChoiceRingLocation(1) + strctCurrentTrial.m_iChoiceRingSize(1)/2,...
+    strctCurrentTrial.m_afChoiceRingLocation(2) + strctCurrentTrial.m_iChoiceRingSize(1)/2];
+strctCurrentTrial.m_iChoiceWidth = fnTsGetVar('g_strctParadigm','ChoiceWidth');
+strctCurrentTrial.m_iChoiceLength = fnTsGetVar('g_strctParadigm','ChoiceLength');
+
+
+strctCurrentTrial.m_astrctChoicesMedia.m_strChoiceType = g_strctParadigm.m_strctChoiceVars.m_strChoiceType;
+
+strctCurrentTrial.m_iChoiceRingChoices = numel(get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value'));
+%strctCurrentTrial.m_iChoiceRingNumChoices = numel(get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'value'));
+
+
+strctCurrentTrial.m_aiActiveChoiceSaturationID = get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value');
+m_strActiveChoiceSaturations = get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'string');
+for iSaturations = 1:numel(strctCurrentTrial.m_aiActiveChoiceSaturationID)
+    strctCurrentTrial.m_strActiveChoiceSaturations{iSaturations} = deblank(m_strActiveChoiceSaturations(strctCurrentTrial.m_aiActiveChoiceSaturationID(iSaturations),:));
+end
+
+%strctCurrentTrial.m_aiActiveChoiceColorID = get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'value');
+strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion = fnTsGetVar('g_strctParadigm','InsideChoiceRegion');
+
+if  ~isfield(g_strctParadigm.m_strctChoiceVars,'m_aiChoiceRingRGBCorrected') || isempty(g_strctParadigm.m_strctChoiceVars.m_aiChoiceRingRGBCorrected)
+    % init choice ring texture via callbacks
+    %feval(g_strctParadigm.m_strCallbacks,'GenerateChoices');
+end
+if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') || ...
+        strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'bar') || ...
+        strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli') || ...
+        strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
+    
+    if g_strctParadigm.m_bDebugModeEnabled
+        dbstop if warning
+        warning('stop')
+    end
+    
+    strctCurrentTrial.m_strctChoiceVars.numSaturations = 3;%numel(get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value'));
+    strctCurrentTrial.m_strctChoiceVars.numColors = 16;%numel(get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'value'));
+    
+    strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = rad2deg([0:(2*pi)/16:(2*pi) - .00001]);
+    if strcmp(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'Disc')
+        minimumSeparation = strctCurrentTrial.m_iChoiceWidth;
+    else
+        minimumSeparation = max([strctCurrentTrial.m_iChoiceWidth, strctCurrentTrial.m_iChoiceLength]);
+    end
+    
+    % set the size of the circle based on the size of each disc, the number of choices, and the number of saturations
+    % leave one spot for the null choice in the center
+    if strcmp(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'Disc')
+        %dbstop if warning
+        %warning('stop')
+        
+        minCircumference = minimumSeparation * strctCurrentTrial.m_strctChoiceVars.numColors * g_strctParadigm.m_strctChoicesVars.m_fMinimumSeparationMultiplier;
+        minRadius = round(minCircumference/(2*pi));
+        minRho = minimumSeparation * g_strctParadigm.m_strctChoicesVars.m_fMinimumSeparationMultiplier;
+        strctCurrentTrial.m_strctChoiceVars.choiceRhos(1) =  minRadius; % + minRadius;
+        strctCurrentTrial.m_strctChoiceVars.choiceRhos(2:strctCurrentTrial.m_strctChoiceVars.numSaturations) =...
+		((1:strctCurrentTrial.m_strctChoiceVars.numSaturations-1) .* minRho) + strctCurrentTrial.m_strctChoiceVars.choiceRhos(1);
+        % reverse rho direction to match saturation list
+        % first in saturation list is highest saturation and it should be
+        % on the outside
+        strctCurrentTrial.m_strctChoiceVars.choiceRhos = fliplr(strctCurrentTrial.m_strctChoiceVars.choiceRhos);
+        strctCurrentTrial.m_aiChoiceScreenCoordinates = [];
+        
+        strctCurrentTrial.m_iMaxFramesInChoiceEpoch = round((1e3/g_strctParadigm.m_strctStimServerVars.m_fStimulusMonitorRefreshRate) * (squeeze(g_strctParadigm.TrialTimeoutMS.Buffer(1,:,g_strctParadigm.TrialTimeoutMS.BufferIdx)/1e3)));
+        strctCurrentTrial.thisTrialChoiceTextureOrder = floor(rand(1, strctCurrentTrial.m_iMaxFramesInChoiceEpoch ) * fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'))+1;
+        
+        % index in reverse to go from high saturation in the outermost ring to low
+        % saturation in the innermost ring
+        % alternatively change the order of the saturations in the config file
+        for iSaturations = strctCurrentTrial.m_strctChoiceVars.numSaturations:-1:1
+        %for iSaturations = 1:strctCurrentTrial.m_strctChoiceVars.numSaturations
+            [targetPointsX, targetPointsY] = pol2cart(strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas + strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle, strctCurrentTrial.m_strctChoiceVars.choiceRhos(iSaturations));
+            
+            targetPointsX = targetPointsX + strctCurrentTrial.m_afChoiceRingLocation(1);
+            targetPointsY = targetPointsY + strctCurrentTrial.m_afChoiceRingLocation(2);
+            for iTargetPoints = 1:numel(targetPointsX)
+                targetRect(iTargetPoints,:) = round([targetPointsX(iTargetPoints) - strctCurrentTrial.m_iChoiceWidth/2; ...
+                    targetPointsY(iTargetPoints) - strctCurrentTrial.m_iChoiceWidth/2; ...
+                    targetPointsX(iTargetPoints) + strctCurrentTrial.m_iChoiceWidth/2; ...
+                    targetPointsY(iTargetPoints) + strctCurrentTrial.m_iChoiceWidth/2]);
+                
+                strctCurrentTrial.m_strctReward.m_aiChoiceCenters(iSaturations,iTargetPoints,:) = round([targetPointsX(iTargetPoints); targetPointsY(iTargetPoints)]);
+            end
+            %strctCurrentTrial.m_aiChoiceTargetRects = strctCurrentTrial.targetRect;
+            strctCurrentTrial.m_aiChoiceScreenCoordinates = vertcat(strctCurrentTrial.m_aiChoiceScreenCoordinates,targetRect);
+            
+        end
+        if strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials
+            % append the gray choice information
+            grayTargetRect(1,:) = round([strctCurrentTrial.m_afChoiceRingLocation(1) - strctCurrentTrial.m_iChoiceWidth/2; ...
+                strctCurrentTrial.m_afChoiceRingLocation(2) - strctCurrentTrial.m_iChoiceWidth/2; ...
+                strctCurrentTrial.m_afChoiceRingLocation(1)  + strctCurrentTrial.m_iChoiceWidth/2; ...
+                strctCurrentTrial.m_afChoiceRingLocation(2) + strctCurrentTrial.m_iChoiceWidth/2]);
+            strctCurrentTrial.m_aiChoiceScreenCoordinates = vertcat(strctCurrentTrial.m_aiChoiceScreenCoordinates,grayTargetRect);
+            strctCurrentTrial.m_strctReward.m_aiChoiceCenters(end+1,1,1:2) = deal(strctCurrentTrial.m_afChoiceRingLocation');
+        end
+        
+    elseif strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli')
+        %dbstop if warning
+        %warning('stop')
+        nTotalChoices = ((strctCurrentTrial.m_strctChoiceVars.numSaturations) * strctCurrentTrial.m_strctChoiceVars.numColors);
+        strctCurrentTrial.m_strctReward.m_aiChoiceCenters = [];
+        % draw matches in a 180 degree annuli ring in the contralateral field to the samples
+        
+        %dbstop if warning
+        %warning('stop')
+        if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli')
+            
+			if strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1) <...
+                    (strctCurrentTrial.m_strctTrialParams.m_aiStimulusServerScreenCenter(1))
+                strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = linspace(-90,90,nTotalChoices);%    0:180/nTotalChoices:180;
+            else
+                strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = linspace(90,270,nTotalChoices);%    180:180/nTotalChoices:360;
+            end
+            
+			strctCurrentTrial.m_strctChoiceVars.choiceRhos = strctCurrentTrial.m_iChoiceRingSize/2;
+            [targetPointsX, targetPointsY] = pol2cart(deg2rad(strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas), strctCurrentTrial.m_strctChoiceVars.choiceRhos);
+            targetPointsX = targetPointsX + strctCurrentTrial.m_strctTrialParams.m_pt2fFixationPosition(1);
+            targetPointsY = targetPointsY + strctCurrentTrial.m_strctTrialParams.m_pt2fFixationPosition(2);
+        
+%        elseif strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
+%             %{
+% 			if strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1) <...
+%                     (strctCurrentTrial.m_strctTrialParams.m_aiStimulusServerScreenCenter(1))
+%                 strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = ...
+%                     linspace(-90,90, strctCurrentTrial.m_strctChoiceVars.numColors  );
+%             else
+%                 strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = ...
+%                     linspace(90,270,strctCurrentTrial.m_strctChoiceVars.numColors );
+%             end
+% 			%}
+% 			strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = [0:(360/ strctCurrentTrial.m_strctChoiceVars.numColors):359.999];
+% 			strctCurrentTrial.m_strctChoiceVars.m_bRotateRingOnEachTrial = g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial;
+% 			if strctCurrentTrial.m_strctChoiceVars.m_bRotateRingOnEachTrial
+% 				strctCurrentTrial.m_strctChoiceVars.m_fThisTrialRotationTheta = (rand(1,1) * 360);
+% 				strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas + strctCurrentTrial.m_strctChoiceVars.m_fThisTrialRotationTheta;
+% 			else	
+% 				strctCurrentTrial.m_strctChoiceVars.m_fThisTrialRotationTheta = 0;
+% 			end
+% 
+%             minimumSeparation = strctCurrentTrial.m_iChoiceWidth;
+%             
+%             minHalfCircumference = (minimumSeparation * strctCurrentTrial.m_strctChoiceVars.numColors * ...
+%                 g_strctParadigm.m_strctChoicesVars.m_fMinimumSeparationMultiplier)/2;
+%             minRadius = round(minHalfCircumference/(2*pi));
+%             minRho = minimumSeparation * g_strctParadigm.m_strctChoicesVars.m_fMinimumSeparationMultiplier;
+%             iRhoSteps = minRho : minRho : minRho * strctCurrentTrial.m_strctChoiceVars.numSaturations;
+%             
+%             targetPointsX = [];
+%             targetPointsY = [];
+%             for iActiveSaturations = 1:strctCurrentTrial.m_strctChoiceVars.numSaturations
+%                 strctCurrentTrial.m_strctChoiceVars.choiceRhos(iActiveSaturations) = iRhoSteps(iActiveSaturations);
+%                 [targetPointsX(end+1:end+strctCurrentTrial.m_strctChoiceVars.numColors), ...
+%                     targetPointsY(end+1:end+strctCurrentTrial.m_strctChoiceVars.numColors)] = ...
+%                     pol2cart(deg2rad(strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas), ...
+%                     strctCurrentTrial.m_strctChoiceVars.choiceRhos(iActiveSaturations));
+%                 
+%             end
+%             targetPointsX = targetPointsX + strctCurrentTrial.m_strctTrialParams.m_pt2fFixationPosition(1);
+%             targetPointsY = targetPointsY + strctCurrentTrial.m_strctTrialParams.m_pt2fFixationPosition(2);
+%         
+%         
+%         for iTargetPoints = 1:numel(targetPointsX)
+%             targetRect(iTargetPoints,:) = round([targetPointsX(iTargetPoints) - strctCurrentTrial.m_iChoiceWidth/2; ...
+%                 targetPointsY(iTargetPoints) - strctCurrentTrial.m_iChoiceWidth/2; ...
+%                 targetPointsX(iTargetPoints) + strctCurrentTrial.m_iChoiceWidth/2; ...
+%                 targetPointsY(iTargetPoints) + strctCurrentTrial.m_iChoiceWidth/2]);
+%         end
+%         strctCurrentTrial.m_strctReward.m_aiChoiceCenters(:,:,1) = reshape(targetPointsX(1:end),[strctCurrentTrial.m_strctChoiceVars.numSaturations, strctCurrentTrial.m_strctChoiceVars.numColors]);
+%         strctCurrentTrial.m_strctReward.m_aiChoiceCenters(:,:,2) = reshape(targetPointsY(1:end),[strctCurrentTrial.m_strctChoiceVars.numSaturations, strctCurrentTrial.m_strctChoiceVars.numColors]);
+%         
+%         strctCurrentTrial.m_strctReward.m_aiChoiceCenters(end+1,1,1) = targetPointsX(end);
+%         strctCurrentTrial.m_strctReward.m_aiChoiceCenters(end,1,2) = targetPointsY(end);
+%         
+%         strctCurrentTrial.m_aiChoiceScreenCoordinates = targetRect;
+% 		
+%         strctCurrentTrial.m_iMaxFramesInChoiceEpoch = ...
+%             round((1e3/g_strctParadigm.m_strctStimServerVars.m_fStimulusMonitorRefreshRate) * ...
+%             (squeeze(g_strctParadigm.TrialTimeoutMS.Buffer(1,:,g_strctParadigm.TrialTimeoutMS.BufferIdx)/1e3)));
+% 			
+%         strctCurrentTrial.thisTrialChoiceTextureOrder = floor(rand(1, strctCurrentTrial.m_iMaxFramesInChoiceEpoch ) * ...
+%             fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'))+1;
+		end
+    elseif strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
+        %dbstop if warning
+%       warning('stop')
+        nTotalChoices = 28;%((strctCurrentTrial.m_strctChoiceVars.numSaturations) * strctCurrentTrial.m_strctChoiceVars.numColors);
+        strctCurrentTrial.m_strctReward.m_aiChoiceCenters = [];
+        %{
+		if g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial
+			if g_strctParadigm.m_bDebugModeEnabled
+                dbstop if warning
+                ShowCursor();
+                warning('stop')
+            end
+			g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial = true;
+			g_strctParadigm.m_strctChoiceVars.m_fChoiceRotationDegrees = floor(rand(1,1) * 359.99);
+			g_strctParadigm.m_strctChoiceVars.m_iNumChoiceRotationSteps = ...
+                floor((g_strctParadigm.m_strctChoiceVars.m_fChoiceRotationDegrees / 360) * ...
+                strctCurrentTrial.m_strctChoiceVars.numColors);
+		else
+			g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial = false;
+			g_strctParadigm.m_strctChoiceVars.m_fTrialRotationDegrees = 0;
+			g_strctParadigm.m_strctChoiceVars.m_iNumChoiceRotationSteps = 0;
+
+		end
+        %}
+		%{
+        if strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1) <...
+                (strctCurrentTrial.m_strctTrialParams.m_aiStimulusServerScreenCenter(1))
+            strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = ...
+                linspace(-90,90, strctCurrentTrial.m_strctChoiceVars.numColors  );
+        else
+            strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = ...
+                linspace(90,270,strctCurrentTrial.m_strctChoiceVars.numColors );
+        end
+		%}
+		
+		%strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = [0:(360/ strctCurrentTrial.m_strctChoiceVars.numColors):359.999];
+		strctCurrentTrial.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial = g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial;
+		if strctCurrentTrial.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial
+			strctCurrentTrial.m_strctChoiceVars.m_fThisTrialRotationTheta = (rand(1,1) * 360);
+			strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas + strctCurrentTrial.m_strctChoiceVars.m_fThisTrialRotationTheta;
+		else	
+			strctCurrentTrial.m_strctChoiceVars.m_fThisTrialRotationTheta = 0;
+		end
+		
+        minimumSeparation = fnTsGetVar('g_strctParadigm', 'AnnulusSaturationSeparation');%strctCurrentTrial.m_iChoiceWidth;
+        
+        minHalfCircumference = (minimumSeparation * strctCurrentTrial.m_strctChoiceVars.numColors * ...
+            g_strctParadigm.m_strctChoicesVars.m_fMinimumSeparationMultiplier)/2;
+        minRadius = round(minHalfCircumference/(2*pi));
+        minRho = fnTsGetVar('g_strctParadigm', 'AnnulusCenterOffset');%minRadius * g_strctParadigm.m_strctChoicesVars.m_fMinimumSeparationMultiplier;
+        iRhoSteps = minRho : minimumSeparation : minRho + (minimumSeparation * (strctCurrentTrial.m_strctChoiceVars.numSaturations)) - minimumSeparation;
+        
+        targetPointsX = [];
+        targetPointsY = [];
+        tempX = [];
+        tempY = [];
+        tempColorCounts = fliplr(g_strctParadigm.m_cAllColorsPerSat);
+        for iActiveSaturations = strctCurrentTrial.m_strctChoiceVars.numSaturations : -1 : 1
+        %for iActiveSaturations =   1 : strctCurrentTrial.m_strctChoiceVars.numSaturations 
+            strctCurrentTrial.m_strctChoiceVars.choiceRhos(iActiveSaturations) = iRhoSteps(iActiveSaturations);
+            [tempX, tempY] = ...
+                pol2cart(deg2rad(strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas(tempColorCounts{iActiveSaturations})), ...
+                strctCurrentTrial.m_strctChoiceVars.choiceRhos(iActiveSaturations));
+            
+            targetPointsX = [targetPointsX, tempX];
+            targetPointsY = [targetPointsY, tempY];
+			%targetPointsX = [targetPointsX, circshift(tempX, [1,g_strctParadigm.m_strctChoiceVars.m_iNumChoiceRotationSteps])];
+			%targetPointsY = [targetPointsY, circshift(tempY, [1,g_strctParadigm.m_strctChoiceVars.m_iNumChoiceRotationSteps])];
+            
+            %{
+            [targetPointsX(end+1:end+strctCurrentTrial.m_strctChoiceVars.numColors), ...
+                targetPointsY(end+1:end+strctCurrentTrial.m_strctChoiceVars.numColors)] = ...
+                pol2cart(deg2rad(strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas), ...
+                strctCurrentTrial.m_strctChoiceVars.choiceRhos(iActiveSaturations));
+			targetPointsX = circshift(targetPointsX, [1,g_strctParadigm.m_strctChoiceVars.m_iNumChoiceRotationSteps]);
+			targetPointsY = circshift(targetPointsY, [1,g_strctParadigm.m_strctChoiceVars.m_iNumChoiceRotationSteps] );
+            %}
+            
+        end
+        targetPointsX = targetPointsX + strctCurrentTrial.m_strctTrialParams.m_pt2fFixationPosition(1);
+        targetPointsY = targetPointsY + strctCurrentTrial.m_strctTrialParams.m_pt2fFixationPosition(2);
+    end
+    
+    for iTargetPoints = 1 : numel(targetPointsX)
+        targetRect(iTargetPoints,:) = round([targetPointsX(iTargetPoints) - strctCurrentTrial.m_iChoiceWidth/2; ...
+            targetPointsY(iTargetPoints) - strctCurrentTrial.m_iChoiceWidth/2; ...
+            targetPointsX(iTargetPoints) + strctCurrentTrial.m_iChoiceWidth/2; ...
+            targetPointsY(iTargetPoints) + strctCurrentTrial.m_iChoiceWidth/2]);
+    end
+	
+	
+    strctCurrentTrial.m_strctReward.m_aiChoiceCenters(:,:,1) = targetPointsX;%...
+        %reshape(targetPointsX(1:end),[strctCurrentTrial.m_strctChoiceVars.numColors,...
+        %strctCurrentTrial.m_strctChoiceVars.numSaturations])';
+    strctCurrentTrial.m_strctReward.m_aiChoiceCenters(:,:,2) = targetPointsY; ...
+        %reshape(targetPointsY(1:end),[strctCurrentTrial.m_strctChoiceVars.numColors,...
+        %strctCurrentTrial.m_strctChoiceVars.numSaturations])';
+    
+    %strctCurrentTrial.m_strctReward.m_aiChoiceCenters(end+1,1,1) = targetPointsX(end);
+    %strctCurrentTrial.m_strctReward.m_aiChoiceCenters(end,1,2) = targetPointsY(end);
+    
+    strctCurrentTrial.m_aiChoiceScreenCoordinates = targetRect;
+    strctCurrentTrial.m_iMaxFramesInChoiceEpoch = ...
+        round((1e3/g_strctParadigm.m_strctStimServerVars.m_fStimulusMonitorRefreshRate) * ...
+        (squeeze(g_strctParadigm.TrialTimeoutMS.Buffer(1,:,g_strctParadigm.TrialTimeoutMS.BufferIdx)/1e3)));
+    strctCurrentTrial.thisTrialChoiceTextureOrder = floor(rand(nTotalChoices, strctCurrentTrial.m_iMaxFramesInChoiceEpoch ) * ...
+        fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'))+1;
+
+   % strctCurrentTrial.m_iStimulusLUTEntries = repmat(g_strctParadigm.m_strctChoiceVars. , [3,1])-1;
+    %strctCurrentTrial.m_aiLocalStimulusColors = floor((g_strctParadigm.m_strctChoiceVars.m_aiChoiceRingRGBCorrected/((2^16)-1))*255);
+end
+
+strctCurrentTrial.m_strctChoicePeriod.m_afBackgroundLUT= [1 1 1];
+if g_strctParadigm.m_bDebugModeEnabled
+    dbstop if warning
+    ShowCursor();
+    warning('stop')
+end
+
+luminanceDeviation = fnTsGetVar('g_strctParadigm','ChoiceLuminanceDeviation');
+%numLuminanceStepsPerChoice = floor(253 / ((strctCurrentTrial.m_strctChoiceVars.numColors*strctCurrentTrial.m_strctChoiceVars.numSaturations) + 1));
+numLuminanceStepsPerChoice = floor(253 / (sum(cellfun(@numel,g_strctParadigm.m_cAllColorsPerSat)) + fnTsGetVar('g_strctParadigm','IncludeGrayTrials')));
+
+if rem(numLuminanceStepsPerChoice,2) == 0
+    numLuminanceStepsPerChoice = numLuminanceStepsPerChoice - 1;
+end
+
+g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps = ...
+    linspace(-luminanceDeviation,luminanceDeviation,numLuminanceStepsPerChoice);
+LUTsize = size(g_strctParadigm.m_strctChoiceVars.ChoiceLUTs);
+strctCurrentTrial.m_strctChoiceVars.ChoiceLUTs = ...
+    sort(reshape(g_strctParadigm.m_strctChoiceVars.ChoiceLUTs,[LUTsize(1) * LUTsize(2),1]));
+%sort(g_strctParadigm.m_strctChoiceVars.ChoiceLUTs);
+strctCurrentTrial.m_strctChoicePeriod.ClutEntries = [];
+%dbstop if warning
+%warning('stop')
+for iSaturations = 1:numel(strctCurrentTrial.m_aiActiveChoiceSaturationID)
+	strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{iSaturations} = g_strctParadigm.m_strctMasterColorTable{1}.(strctCurrentTrial.m_strActiveChoiceSaturations{iSaturations});
+	
+    currentSatChoices = g_strctParadigm.m_cAllColorsPerSat{iSaturations};
+    %for iColors = strctCurrentTrial.m_aiActiveChoiceColorID
+    for iColors = currentSatChoices
+
+        thisColorCoordinate = strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{iSaturations}.m_afCartCoordinates(iColors,:);
+        rawValues = luv2rgb([ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .* ...
+            ((thisColorCoordinate(1)*100) + g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps*100)', ...
+            ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .*thisColorCoordinate(2)'.*100, ...
+            ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .*thisColorCoordinate(3)'.*100]);
+        if any(any(rawValues > 1)) ||  any(any(rawValues < 0))
+            rawValues( rawValues > 1) = 1;
+            rawValues( rawValues < 0) = 0;
+            fnParadigmToKofikoComm('DisplayMessageNow','Choice Color Values Out Of Range');
+        end
+        strctCurrentTrial.m_strctChoicePeriod.ClutEntries = ...
+            vertcat(strctCurrentTrial.m_strctChoicePeriod.ClutEntries,fnGammaCorrectRGBValues(rawValues));
+    end
+end
+
+if strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials
+    % append the gray choice information
+    thisColorCoordinate = fnTsGetVar('g_strctParadigm', 'BackgroundLUVCoordinates');
+    rawValues = luv2rgb([ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .* ...
+        ((thisColorCoordinate(1)) + g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps*100)', ...
+        ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .*thisColorCoordinate(2)'.*100, ...
+        ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .*thisColorCoordinate(3)'.*100]);
+    if any(any(rawValues > 1)) ||  any(any(rawValues < 0))
+        rawValues( rawValues > 1) = 1;
+        rawValues( rawValues < 0) = 0;
+        fnParadigmToKofikoComm('DisplayMessageNow','Choice Color Values Out Of Range');
+        
+    end
+    %dbstop if warning
+	%warning('stop')
+    strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs =...
+        [ones(1,strctCurrentTrial.m_strctChoiceVars.numColors)* ...
+        nTotalChoices-(strctCurrentTrial.m_strctChoiceVars.numColors-1),...
+        (nTotalChoices-(strctCurrentTrial.m_strctChoiceVars.numColors)):-1:1];
+    strctCurrentTrial.m_strctChoiceVars.ChoiceLUTs = vertcat(strctCurrentTrial.m_strctChoiceVars.ChoiceLUTs,g_strctParadigm.m_strctChoiceVars.GrayChoiceLUTs');
+    strctCurrentTrial.m_strctChoicePeriod.ClutEntries = vertcat(strctCurrentTrial.m_strctChoicePeriod.ClutEntries,fnGammaCorrectRGBValues(rawValues));
+else
+     strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs = 1:nTotalChoices;
+
+end
+%}
+
+%dbstop if warning
+%warning('stop')
+strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs = 1:nTotalChoices;
+strctCurrentTrial.m_strctChoicePeriod.m_afLocalBackgroundColor= floor(g_strctParadigm.m_aiBackgroundColor/255);
+strctCurrentTrial.m_strctChoicePeriod.Clut(1,:) = [0,0,0];
+strctCurrentTrial.m_strctChoicePeriod.Clut(256,:) = [65535,65535,65535];
+% strctCurrentTrial.m_strctChoicePeriod.Clut(g_strctParadigm.m_strctChoiceVars.m_iClutIndices,:) = g_strctParadigm.m_strctChoiceVars.m_aiChoiceRingRGBCorrected;
+%g_strctParadigm.m_strctChoiceVars.ChoiceLUTs
+strctCurrentTrial.m_strctChoicePeriod.Clut(strctCurrentTrial.m_strctChoiceVars.ChoiceLUTs,:) = strctCurrentTrial.m_strctChoicePeriod.ClutEntries;
+%{
+    x(:,1,:) = strctCurrentTrial.m_strctChoicePeriod.Clut
+    figure
+    imagesc(x/65535)
+    
+    
+%}
+%% fixation spot stuff
+
+strctCurrentTrial.m_strctChoicePeriod.m_strInsideChoiceRegionType = 'rect';
+strctCurrentTrial.m_strctChoicePeriod.m_strFixationSpotType = 'x.';
+%strctCurrentTrial.m_strctChoicePeriod.m_strFixationSpotType = 'disc';
+strctCurrentTrial.m_strctChoicePeriod.m_pt2fFixationPosition = strctCurrentTrial.m_strctTrialParams.m_pt2fFixationPosition;
+strctCurrentTrial.m_strctChoicePeriod.m_afFixationColor = [255, 255, 255];
+strctCurrentTrial.m_strctChoicePeriod.m_afLocalFixationColor = [255, 255, 255];
+strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS = fnTsGetVar('g_strctParadigm','HoldToSelectChoiceMS');
+strctCurrentTrial.m_strctChoicePeriod.m_bShowFixationSpot = g_strctParadigm.m_strctChoiceVars.m_bShowFixationSpot;
+strctCurrentTrial.m_strctChoicePeriod.m_fFixationSpotSize = fnTsGetVar('g_strctParadigm','ChoiceFixationSpotPix');
+strctCurrentTrial.m_strctChoicePeriod.m_bKeepCueOnScreen = false;
+
+strctCurrentTrial.m_strctChoicePeriod.m_bShowChoicesOnScreen = true;
+strctCurrentTrial.m_strctChoicePeriod.m_bMultipleAttemptsUntilJuice  = false;
+strctCurrentTrial.m_strctChoicePeriod.m_fInsideChoiceRegionSize  = 40; %strctCurrentTrial.m_astrctChoicesMedia(1).m_fSizePix;
+strctCurrentTrial.m_strctChoicePeriod.m_afBackgroundColor = [1 1 1];
+strctCurrentTrial.m_strctChoicePeriod.m_astrctMicroStim = [];
+strctCurrentTrial.m_astrctChoicesMedia.m_fSizePix = 100;
+
+% determine reward structure
+strctCurrentTrial = fnDetermineRewardStructure(strctCurrentTrial);
+
+
+
+return;
+
+% ----------------------------------------------------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------------------------------------------------
+
+function [strctCurrentTrial] = fnDynamicPostTrialSetup(strctCurrentTrial)
+global g_strctParadigm
+%{
+dbstop if warning
+warning('stop')
+[fMin, fMax, ...
+strctCurrentTrial.m_strctPostTrial.m_fRetainSelectedChoicePeriodMS ,...
+strctCurrentTrial.m_strctPostTrial.m_fIncorrectTrialPunishmentDelayMS ,...
+strctCurrentTrial.m_strctPostTrial.m_fAbortedTrialPunishmentDelayMS,...
+strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS,...
+strctCurrentTrial.m_strctPostTrial.m_fJuiceTimeMSHigh,...
+strctCurrentTrial.m_strctPostTrial.m_fTrialTimeoutMS,...
+strctCurrentTrial.m_strctPostTrial.m_bReward]  = fnTsGetVar('g_strctParadigm', 'InterTrialIntervalMinMS', 'InterTrialIntervalMaxMS',...
+													'RetainSelectedChoicePeriodMS', 'IncorrectTrialPunishmentDelayMS', 'AbortedTrialPunishmentDelayMS',...
+													'JuiceTimeMS', 'JuiceTimeHighMS', 'TrialTimeoutMS', 'PostTrialReward');
+%}
+strctCurrentTrial.m_strctPostTrial.m_bExtinguishNonSelectedChoicesAfterChoice = g_strctParadigm.m_strctPostTrialVars.m_bExtinguishNonSelectedChoicesAfterChoice;
+fMin = squeeze(g_strctParadigm.InterTrialIntervalMinMS.Buffer(1,:,g_strctParadigm.InterTrialIntervalMinMS.BufferIdx));
+fMax = squeeze(g_strctParadigm.InterTrialIntervalMaxMS.Buffer(1,:,g_strctParadigm.InterTrialIntervalMaxMS.BufferIdx));
+strctCurrentTrial.m_strctPostTrial.m_fRetainSelectedChoicePeriodMS = squeeze(g_strctParadigm.RetainSelectedChoicePeriodMS.Buffer(1,:,g_strctParadigm.RetainSelectedChoicePeriodMS.BufferIdx));
+strctCurrentTrial.m_strctPostTrial.m_fInterTrialIntervalSec = (rand() * (fMax-fMin) + fMin)/1e3;
+strctCurrentTrial.m_strctPostTrial.m_fIncorrectTrialPunishmentDelayMS = squeeze(g_strctParadigm.IncorrectTrialPunishmentDelayMS.Buffer(1,:,g_strctParadigm.IncorrectTrialPunishmentDelayMS.BufferIdx));
+strctCurrentTrial.m_strctPostTrial.m_fAbortedTrialPunishmentDelayMS = squeeze(g_strctParadigm.AbortedTrialPunishmentDelayMS.Buffer(1,:,g_strctParadigm.AbortedTrialPunishmentDelayMS.BufferIdx));
+strctCurrentTrial.m_strctPostTrial.m_fDefaultJuiceRewardMS = squeeze(g_strctParadigm.JuiceTimeMS.Buffer(1,:,g_strctParadigm.JuiceTimeMS.BufferIdx));
+strctCurrentTrial.m_strctPostTrial.m_fJuiceTimeMSHigh = squeeze(g_strctParadigm.JuiceTimeHighMS.Buffer(1,:,g_strctParadigm.JuiceTimeHighMS.BufferIdx));
+strctCurrentTrial.m_strctPostTrial.m_fTrialTimeoutMS = squeeze(g_strctParadigm.TrialTimeoutMS.Buffer(1,:,g_strctParadigm.TrialTimeoutMS.BufferIdx));
+strctCurrentTrial.m_strctPostTrial.m_bReward = squeeze(g_strctParadigm.PostTrialReward.Buffer(1,:,g_strctParadigm.PostTrialReward.BufferIdx));
+
+return;
+
+% ----------------------------------------------------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------------------------------------------------
+function [strctCurrentTrial] = fnCalcDiscCoordinates(strctCurrentTrial)
+
+
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,1:4) = [(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1) -...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(1)/2),...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2) -...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(1)/2),...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1) +...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(1)/2),...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2) +...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(1)/2)];
+[strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiCoordinatesX, strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiCoordinatesY]  =...
+    deal(zeros(4, strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames, 1));
+
+
+return;
+
+
+% ----------------------------------------------------------------------------------------------------------------------
+%% ----------------------------------------------------------------------------------------------------------------------
+function [strctCurrentTrial] = fnCalcBarCoordinates(strctCurrentTrial)
+iNumOfBars = 1;
+
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,1:4) =...
+    [(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(1)/2),...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(2)/2),...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1) + strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(1)/2),...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2) + strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimDimensions(2)/2)];
+
+[strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint1(iNumOfBars,1), strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint1(iNumOfBars,2)] =...
+    fnRotateAroundPoint(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,1),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iTheta);
+
+[strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint2(iNumOfBars,1), strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint2(iNumOfBars,2)] =...
+    fnRotateAroundPoint(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,1),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,4),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iTheta);
+
+[strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint3(iNumOfBars,1), strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint3(iNumOfBars,2)] =...
+    fnRotateAroundPoint(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,3),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,4),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iTheta);
+
+[strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint4(iNumOfBars,1), strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint4(iNumOfBars,2)] =...
+    fnRotateAroundPoint(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,3),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect(1,2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iTheta);
+
+[strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,1),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,2)] =...
+    fnRotateAroundPoint(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1),...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2) - ...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iMoveDistance/2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iTheta);
+
+[strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,1),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,2)] = ...
+    fnRotateAroundPoint(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1),...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2)...
+    + strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iMoveDistance/2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(1),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(2),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iTheta);
+
+[strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiCoordinatesX, strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiCoordinatesY]  =...
+    deal(zeros(4, strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames, 1));
+
+
+% yes, this next part is all one line of code
+% all this does is packs all the coordinate information for the stimulus into a single array
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiCoordinatesX(1:4,:,iNumOfBars) = vertcat(round(linspace(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint1(iNumOfBars,1)...
+    - (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,1) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,1)),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint1(iNumOfBars,1)-(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,1) -...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,1)),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames)),...
+    round(linspace(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint2(iNumOfBars,1) - (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,1) -...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,1)),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint2(iNumOfBars,1) -...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,1) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,1)),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames)),...
+    round(linspace(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint3(iNumOfBars,1) - (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,1) -...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,1)),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint3(iNumOfBars,1) -...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,1) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,1)),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames)),...
+    round(linspace(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint4(iNumOfBars,1) - (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,1) -...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,1)),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint4(iNumOfBars,1) -...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,1) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,1)),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames)));
+
+strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiCoordinatesY(1:4,:,iNumOfBars) = vertcat(round(linspace(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint1(iNumOfBars,2)...
+    - (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,2) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,2)),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint1(iNumOfBars,2)-(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,2) -...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,2)),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames)),...
+    round(linspace(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint2(iNumOfBars,2) - (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,2)...
+    - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,2)),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint2(iNumOfBars,2) -...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,2) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,2)),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames)),...
+    round(linspace(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint3(iNumOfBars,2) - (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,2) -...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,2)),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint3(iNumOfBars,2) -...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,2) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,2)),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames)),...
+    round(linspace(strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint4(iNumOfBars,2) - (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,2) -...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_starting_point(iNumOfBars,2)),strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiPoint4(iNumOfBars,2) -...
+    (strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiStimCoordinates(iNumOfBars,2) - strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_ending_point(iNumOfBars,2)),...
+    strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumFrames)));
+
+return;
+
+% ----------------------------------------------------------------------------------------------------------------------
+% ----------------------------------------------------------------------------------------------------------------------
+
+function [strctCurrentTrial] = fnDetermineRewardStructure(strctCurrentTrial)
+global g_strctParadigm
+% check for reward eligibility
+%dbstop if warning
+%warning('stop')
+if g_strctParadigm.m_bDebugModeEnabled
+    dbstop if warning
+    ShowCursor();
+    warning('stop')
+end
+% fraction of maximum color space radius to reward;
+strctCurrentTrial.m_strctReward.m_bBinaryReward = g_strctParadigm.m_bBinaryReward;
+strctCurrentTrial.m_strctReward.m_fRewardRange = .2;
+% Reward falloff rate
+strctCurrentTrial.m_strctReward.m_fRewardFalloffRate = .01;
+if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'ring')
+    
+    strctCurrentTrial.m_strctReward.m_fChoiceThetaTolerance = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceAngleTolerance;
+    if strctCurrentTrial.m_strctTrialParams.m_bGrayTrial
+        nullCategoryID = find(strcmp(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname,g_strctParadigm.m_strNullCategoryName));
+        strctCurrentTrial.m_strctReward.m_aiRhoRange = unique(squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(nullCategoryID,:,:)));
+        strctCurrentTrial.m_strctReward.m_afColorSpaceTheta = 0;
+        strctCurrentTrial.m_strctReward.m_afRingTheta = 0;
+        strctCurrentTrial.m_strctReward.m_strRewardSaturationName = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{nullCategoryID};
+        strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex = [0,0];
+    else
+        strCurrentSaturationNames = fieldnames(strctCurrentTrial.m_cCurrentlySelectedSaturations);
+        thisSatName = deblank(strCurrentSaturationNames(strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID,:));
+        thisSatName = thisSatName{1};
+        [~,choiceSaturationID] = ismember(thisSatName,g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname);
+        
+        if ~isempty(choiceSaturationID) && any(choiceSaturationID)
+            if ismember(myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec),...
+                    myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec))
+                
+                % an exact match between cue and choice colors exists. Use this
+                % for binary choices, or as the starting point for variable reward
+                
+                choiceColorMatchID = find(ismember(myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec),...
+                    myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec)));
+                
+                strctCurrentTrial.m_strctReward.m_aiRhoRange = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(choiceSaturationID,choiceColorMatchID,:));
+                strctCurrentTrial.m_strctReward.m_afColorSpaceTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,choiceColorMatchID,:));
+                strctCurrentTrial.m_strctReward.m_afRingTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(choiceSaturationID,choiceColorMatchID,:));
+                strctCurrentTrial.m_strctReward.m_strRewardSaturationName = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{choiceSaturationID};
+                strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex = [choiceSaturationID, choiceColorMatchID];
+                
+            else
+                % no exact match; different colors are selected for the cue and
+                % choice. Use the nearest choice value as the starting point.
+                % multiple correct choices will exist, even if binary reward is
+                % set
+                minAngle = min(abs(myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec) - ...
+                    myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec)));
+                
+                allMatchingAngles = find(abs(myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec) - ...
+                    myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec)) == minAngle);
+                
+                strctCurrentTrial.m_strctReward.m_aiTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,allMatchingAngles,:));
+                strctCurrentTrial.m_strctReward.m_aiRhoRange = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(choiceSaturationID,allMatchingAngles,:));
+                strctCurrentTrial.m_strctReward.m_afRingTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(choiceSaturationID,allMatchingAngles,:));
+                strctCurrentTrial.m_strctReward.m_strRewardSaturationName = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{choiceSaturationID};
+                strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex = [choiceSaturationID, allMatchingAngles];
+                
+            end
+            
+            %strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID
+            %strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation
+            
+            %strctCurrentTrial.m_strctReward.m_aiRhoRange = g_strctParadigm.m_strctChoiceVars.choiceParameters.NullArea.m_aiChoiceRho;
+            %strctCurrentTrial.m_strctReward.m_afTheta = 0;
+            % fraction of maximum color space radius to reward;
+            
+        else
+            
+            % this cue saturation is not one of the choice saturations
+        end
+    end
+    
+elseif strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') || ...
+		 strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli') || ...
+		 strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
+
+    % strctCurrentTrial.m_iChoiceRingSize = max(strctCurrentTrial.m_strctChoiceVars.choiceRhos) + (strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion) *5;
+    strctCurrentTrial.m_aiInsideChoiceRects = cat(3,strctCurrentTrial.m_strctReward.m_aiChoiceCenters(:,:,1) - (strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion/2),...
+        strctCurrentTrial.m_strctReward.m_aiChoiceCenters(:,:,2) - (strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion/2),...
+        strctCurrentTrial.m_strctReward.m_aiChoiceCenters(:,:,1) + (strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion/2),...
+        strctCurrentTrial.m_strctReward.m_aiChoiceCenters(:,:,2) + (strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion/2));
+    
+    %iEntries = 1;
+    
+   % strctCurrentTrial.m_strctReward.m_aiChoiceFramingRects = strctCurrentTrial.m_aiInsideChoiceRects;
+    
+    for iEntries = 1:size(strctCurrentTrial.m_aiInsideChoiceRects,2)%		strctCurrentTrial.m_strctChoiceVars.numSaturations
+        
+        %for iChoiceColors = 1:strctCurrentTrial.m_strctChoiceVars.numColors
+            
+            strctCurrentTrial.m_strctReward.m_aiChoiceFramingRects(:,iEntries) = ...
+                [strctCurrentTrial.m_strctReward.m_aiChoiceCenters(1,iEntries,1) - (strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion/2);...
+                strctCurrentTrial.m_strctReward.m_aiChoiceCenters(1,iEntries,2) - (strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion/2);...
+                strctCurrentTrial.m_strctReward.m_aiChoiceCenters(1,iEntries,1) + (strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion/2);...
+                strctCurrentTrial.m_strctReward.m_aiChoiceCenters(1,iEntries,2) + (strctCurrentTrial.m_strctChoiceVars.m_iInsideChoiceRegion/2)];
+            %iEntries = iEntries + 1;
+            
+        %end
+    end
+    
+    %{
+    if strctCurrentTrial.m_strctTrialParams.m_bGrayTrial
+        nullCategoryID = find(strcmp(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname,g_strctParadigm.m_strNullCategoryName));
+        
+        % strctCurrentTrial.m_strctReward.m_aiRhoRange = unique(squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(nullCategoryID,:,:)));
+        strctCurrentTrial.m_strctReward.m_afColorSpaceTheta = 0;
+        strctCurrentTrial.m_strctReward.m_afRingTheta = 0;
+        strctCurrentTrial.m_strctReward.m_strRewardSaturationName = ...
+            g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{strctCurrentTrial.m_strctCuePeriod.m_iNullConditionSaturationID}
+        %strctCurrentTrial.m_strctReward.m_strRewardSaturationName = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{nullCategoryID};
+        strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex = [strctCurrentTrial.m_strctChoiceVars.numSaturations + 1,1];
+    else
+        %}
+        strCurrentSaturationNames = fieldnames(strctCurrentTrial.m_cCurrentlySelectedSaturations);
+        thisSatName = deblank(strCurrentSaturationNames(strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID,:));
+        thisSatName = thisSatName{1};
+        choiceSaturationID = strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID; %strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID;% ismember(thisSatName,g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname);
+        g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname = strCurrentSaturationNames;
+        %        [~,choiceSaturationID] = ismember(thisSatName,g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname);
+
+        if ~isempty(choiceSaturationID) && any(choiceSaturationID)
+            %if ismember(myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec),...
+            %        myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec))
+                
+                % an exact match between cue and choice colors exists. Use this
+                % for binary choices, or as the starting point for variable reward
+                 choiceColorMatchID = strctCurrentTrial.m_strctCuePeriod.m_iCueHandleIndexingColorID;
+                %{
+                choiceColorMatchID = find(ismember(myRoundn...
+                    (g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec),...
+                    myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),...
+                    g_strctParadigm.m_iAzimuthRoundToDec)));
+               %}
+                %strctCurrentTrial.m_strctReward.m_aiRhoRange = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(choiceSaturationID,choiceColorMatchID,:));
+                %strctCurrentTrial.m_strctReward.m_afColorSpaceTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,choiceColorMatchID,:));
+                %strctCurrentTrial.m_strctReward.m_afRingTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(choiceSaturationID,choiceColorMatchID,:));
+                strctCurrentTrial.m_strctReward.m_strRewardSaturationName = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{choiceSaturationID};
+                strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{1} = choiceSaturationID; 
+                strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{2} =  choiceColorMatchID;
+                %{
+            else
+                % no exact match; different colors are selected for the cue and
+                % choice. Use the nearest choice value as the starting point.
+                % multiple correct choices will exist, even if binary reward is
+                % set
+                minAngle = min(abs(myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec) - ...
+                    myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec)));
+                
+                allMatchingAngles = find(abs(myRoundn(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,:),g_strctParadigm.m_iAzimuthRoundToDec) - ...
+                    myRoundn(strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID),g_strctParadigm.m_iAzimuthRoundToDec)) == minAngle);
+                
+                strctCurrentTrial.m_strctReward.m_aiTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(choiceSaturationID,allMatchingAngles,:));
+                strctCurrentTrial.m_strctReward.m_aiRhoRange = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(choiceSaturationID,allMatchingAngles,:));
+                strctCurrentTrial.m_strctReward.m_afRingTheta = squeeze(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(choiceSaturationID,allMatchingAngles,:));
+                strctCurrentTrial.m_strctReward.m_strRewardSaturationName = g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{choiceSaturationID};
+                %strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex = [choiceSaturationID, allMatchingAngles];
+                strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{1} = choiceSaturationID; 
+                strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{2} =  allMatchingAngles;
+                
+            end
+                %}
+        end
+        %strctCurrentTrial.m_aiInsideChoiceCoordinates = strctCurrentTrial.m_strctReward.m_aiChoiceCenters
+        %strctCurrentTrial.m_aiChoiceScreenCoordinates
+        %strctCurrentTrial.m_strctChoiceVars.choiceRhos
+        %strctCurrentTrial.m_aiChoiceScreenCoordinates
+        %strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas
+        %strctCurrentTrial.m_strctChoiceVars.numSaturations
+        %strctCurrentTrial.m_strctChoiceVars.numColors
+        
+    %end
+end
 
 return;

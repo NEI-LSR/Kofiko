@@ -7,7 +7,7 @@ function [strctOutput] = fnParadigmClassificationImageCycle(strctInputs)
 
 global g_strctParadigm 
 
-iParadigmMode = fnTsGetVar(g_strctParadigm,'CurrParadigmMode');
+iParadigmMode = fnTsGetVar('g_strctParadigm','CurrParadigmMode');
 
 switch iParadigmMode
     case 1 %'Scan'

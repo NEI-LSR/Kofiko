@@ -51,7 +51,7 @@ if ~isfield(g_strctParadigm,'m_strInitial_Default_RunType')
 end
  
 if isfield(g_strctParadigm,'m_strInitial_DefaultImageList') && ~isempty(g_strctParadigm.m_strInitial_DefaultImageList) && exist(g_strctParadigm.m_strInitial_DefaultImageList,'file')
-    g_strctParadigm = fnTsSetVar(g_strctParadigm, 'ImageList', g_strctParadigm.m_strInitial_DefaultImageList);
+    fnTsSetVar('g_strctParadigm', 'ImageList', g_strctParadigm.m_strInitial_DefaultImageList);
 
     fnLog('Loading images locally on Kofiko');
     [acFileNames, acFileNamesNoPath] = fnLoadMRIStyleImageList(g_strctParadigm.m_strInitial_DefaultImageList);
@@ -68,8 +68,8 @@ if isfield(g_strctParadigm,'m_strInitial_DefaultImageList') && ~isempty(g_strctP
         %    fnLOG('Loading images locally on Kofiko');
         [acImageIndices,acBlockNames] = fnLoadMRIStyleBlockList(g_strctParadigm.m_strInitial_DefaultBlockList);
 
-        g_strctParadigm = fnTsSetVar(g_strctParadigm, 'BlockNameList', acBlockNames);
-        g_strctParadigm = fnTsSetVar(g_strctParadigm, 'BlockImageIndicesList', acImageIndices);
+        fnTsSetVar('g_strctParadigm', 'BlockNameList', acBlockNames);
+        fnTsSetVar('g_strctParadigm', 'BlockImageIndicesList', acImageIndices);
 
         
         if isfield(g_strctParadigm,'m_strInitial_DefaultRunList') && ... 
@@ -80,7 +80,7 @@ if isfield(g_strctParadigm,'m_strInitial_DefaultImageList') && ~isempty(g_strctP
             if all(ismember( acBlocks, acBlockNames))
                 %g_strctParadigm.m_acBlockRun = acBlocks;
                 
-                g_strctParadigm = fnTsSetVar(g_strctParadigm, 'BlockRunOrder', acBlocks);
+                fnTsSetVar('g_strctParadigm', 'BlockRunOrder', acBlocks);
                 
 %                fnUpdateListController(g_strctParadigm.m_strctControllers.hBlockRunList, g_strctParadigm.m_acBlockRun,1, true);
                 fnPrepareImageListWithTime(g_strctParadigm.m_strInitial_Default_RunType, acBlocks);

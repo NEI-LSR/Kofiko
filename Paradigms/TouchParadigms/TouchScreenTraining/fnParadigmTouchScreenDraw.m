@@ -10,7 +10,7 @@ global g_strctPTB g_strctParadigm
 if g_strctParadigm.m_iMachineState > 4
     fSpotSizePix = g_strctParadigm.m_strctCurrentTrial.m_fSpotRad;
     pt2iSpot = g_strctParadigm.m_strctCurrentTrial.m_pt2fSpotPos(:);
-    fCorrectDist = fnTsGetVar(g_strctParadigm, 'CorrectDistancePix');
+    fCorrectDist = fnTsGetVar('g_strctParadigm', 'CorrectDistancePix');
     
     aiColor = [255 255 255];
     aiTouchSpotRect = g_strctPTB.m_fScale * [pt2iSpot-fSpotSizePix;pt2iSpot+fSpotSizePix];

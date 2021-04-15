@@ -13,42 +13,42 @@ strctControllers.m_iPanelHeight = iPanelHeight;
 strctControllers.m_iPanelWidth = iPanelWidth;
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 40+30*0, ...
-     'Juice Pulse (ms):', 'JuiceTimeMS',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'JuiceTimeMS'));
+     'Juice Pulse (ms):', 'JuiceTimeMS',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','JuiceTimeMS'));
 
  strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*2, ...
-     'ITI minimum (sec):', 'InterTrialIntervalMinSec',  0, 60, [1 5], fnTsGetVar(g_strctParadigm,'InterTrialIntervalMinSec'));
+     'ITI minimum (sec):', 'InterTrialIntervalMinSec',  0, 60, [1 5], fnTsGetVar('g_strctParadigm','InterTrialIntervalMinSec'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*3, ...
-     'ITI maximum (sec):', 'InterTrialIntervalMaxSec',  0, 60, [1 5], fnTsGetVar(g_strctParadigm,'InterTrialIntervalMaxSec'));
+     'ITI maximum (sec):', 'InterTrialIntervalMaxSec',  0, 60, [1 5], fnTsGetVar('g_strctParadigm','InterTrialIntervalMaxSec'));
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*4, ...
-     'Hold To Start(ms):', 'HoldFixationToStartTrialMS',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'HoldFixationToStartTrialMS'));
+     'Hold To Start(ms):', 'HoldFixationToStartTrialMS',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','HoldFixationToStartTrialMS'));
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*5, ...
-     'Delay Before Choice (ms):', 'DelayBeforeChoicesMS',  0, 1000, [1 5], fnTsGetVar(g_strctParadigm,'DelayBeforeChoicesMS'));
+     'Delay Before Choice (ms):', 'DelayBeforeChoicesMS',  0, 1000, [1 5], fnTsGetVar('g_strctParadigm','DelayBeforeChoicesMS'));
  
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*6, ...
-     'Memory Interval (ms):', 'MemoryIntervalMS',  0, 1000, [1 5], fnTsGetVar(g_strctParadigm,'MemoryIntervalMS'));
+     'Memory Interval (ms):', 'MemoryIntervalMS',  0, 1000, [1 5], fnTsGetVar('g_strctParadigm','MemoryIntervalMS'));
  
  
  strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*7, ...
-     'Trial Timeout (ms):', 'TimeoutMS',  0, 4000, [1 5], fnTsGetVar(g_strctParadigm,'TimeoutMS'));
+     'Trial Timeout (ms):', 'TimeoutMS',  0, 4000, [1 5], fnTsGetVar('g_strctParadigm','TimeoutMS'));
 
   strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*8, ...
-     'Incorrect Delay (ms):', 'IncorrectTrialDelayMS',  0, 2000, [1 5], fnTsGetVar(g_strctParadigm,'IncorrectTrialDelayMS'));
+     'Incorrect Delay (ms):', 'IncorrectTrialDelayMS',  0, 2000, [1 5], fnTsGetVar('g_strctParadigm','IncorrectTrialDelayMS'));
 
    strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 60+30*9, ...
-     'Persist Objects (ms):', 'ShowObjectsAfterSaccadeMS',  0, 3000, [1 5], fnTsGetVar(g_strctParadigm,'ShowObjectsAfterSaccadeMS'));
+     'Persist Objects (ms):', 'ShowObjectsAfterSaccadeMS',  0, 3000, [1 5], fnTsGetVar('g_strctParadigm','ShowObjectsAfterSaccadeMS'));
 
  strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*10, ...
-     'Fixation Radius (pix):', 'FixationRadiusPix',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'FixationRadiusPix'));
+     'Fixation Radius (pix):', 'FixationRadiusPix',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','FixationRadiusPix'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*11, ...
-     'Target Hit Radius (pix):', 'HitRadius',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'HitRadius'));
+     'Target Hit Radius (pix):', 'HitRadius',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','HitRadius'));
   
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*12, ...
-     'Image Size (pix):', 'ImageHalfSizePix',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'ImageHalfSizePix'));
+     'Image Size (pix):', 'ImageHalfSizePix',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','ImageHalfSizePix'));
 
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*13, ...
-     'Choices Size (pix):', 'ChoicesHalfSizePix',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'ChoicesHalfSizePix'));
+     'Choices Size (pix):', 'ChoicesHalfSizePix',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','ChoicesHalfSizePix'));
  
  
 
@@ -58,21 +58,32 @@ else
     iMaxNoiseIndex = 1;
 end
 
+%{
+Error in fnAddTextSliderEditComboSmallWithCallback (line 30)
+eval(['strctControllers.',strSliderVar ,' =
+uicontrol(''Parent'',strctControllers.m_hPanel,''Style'', ''slider'',
+''Min'',fMinSlider,''Max'',fMaxSlider, ''value'',fInitialValue',... 
+
+
+%changing fminslider, 4th passed value, to 0 original code follows:
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*14, ...
      'Noise Index:', 'NoiseIndex',  1, iMaxNoiseIndex, [1 5], fnTsGetVar(g_strctParadigm,'NoiseIndex'));
  
+ %}
+ strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*14, ...
+     'Noise Index:', 'NoiseIndex',  0, iMaxNoiseIndex, [1 5], fnTsGetVar('g_strctParadigm','NoiseIndex'));
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*15, ...
-     'Noise Level (%):', 'NoiseLevel',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'NoiseLevel'));
+     'Noise Level (%):', 'NoiseLevel',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','NoiseLevel'));
  
  
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*16, ...
-     'Staircase Up:', 'StairCaseUp',  1, 5, [1 1], fnTsGetVar(g_strctParadigm,'StairCaseUp'));
+     'Staircase Up:', 'StairCaseUp',  1, 5, [1 1], fnTsGetVar('g_strctParadigm','StairCaseUp'));
  
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*17, ...
-     'Staircase Down:', 'StairCaseDown',  1, 5, [1 1], fnTsGetVar(g_strctParadigm,'StairCaseDown'));
+     'Staircase Down:', 'StairCaseDown',  1, 5, [1 1], fnTsGetVar('g_strctParadigm','StairCaseDown'));
  
 strctControllers = fnAddTextSliderEditComboSmallWithCallback(strctControllers, 80+30*18, ...
-     'Staircase Step (%):', 'StairCaseStepPerc',  0, 100, [1 5], fnTsGetVar(g_strctParadigm,'StairCaseStepPerc'));
+     'Staircase Step (%):', 'StairCaseStepPerc',  0, 100, [1 5], fnTsGetVar('g_strctParadigm','StairCaseStepPerc'));
  
 strctControllers.m_hLoadNoiseFile = uicontrol('Parent',hParadigmPanel,'Style', 'pushbutton', 'String', 'Load Noise File',...
      'Position', [5 iPanelHeight-660 130 30], 'Callback', [g_strctParadigm.m_strCallbacks,'(''LoadNoiseFile'');']);

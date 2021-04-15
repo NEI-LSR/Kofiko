@@ -1,4 +1,4 @@
-function fnExecuteRemtoeCommand(acInputFromRemoteClient)
+function fnExecuteRemoteCommand(acInputFromRemoteClient)
 global g_bParadigmRunning g_iCurrParadigm g_iNextParadigm g_bAppIsRunning g_astrctAllParadigms g_strctParadigm g_strctDAQParams
 global g_strctSystemCodes g_strctAppConfig g_strctGUIParams g_strctCycle
 

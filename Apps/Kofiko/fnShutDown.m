@@ -18,8 +18,9 @@ end
 if ~isempty(g_strctAppConfig) && strcmpi(g_strctAppConfig.m_strctDAQ.m_strAcqusitionCard,'arduino')     
     fnCloseSerialPortforArduino();
 end
-
-
+if strcmp(g_strctAppConfig.m_strctDAQ.m_strAcqusitionCard, 'ni')
+	fnDAQNI('Reset')
+end
 % Call "Close Function" for all initialized paradigms.
 for k=find(g_abParadigmInitialized)
     g_strctParadigm = g_astrctAllParadigms{k};
@@ -84,11 +85,6 @@ for k=1:length(ahHandles)
     end;
 end
 
-% Close Nano Stimulator
-try
-   ChipKitStimGUI_Serial('Shutdown');
-catch
-end
 
 if ~isempty(g_hLogFileID)
     fclose(g_hLogFileID);

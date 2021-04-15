@@ -33,7 +33,7 @@ iNumMovies= length(strctXML.Media.Movie);
 end
 
 if iNumMovies == 1
-    strctXML.Media.Movie = {strctXML.Media.Movie};
+    strctXML.Media.Image = {strctXML.Media.Movie};
 end;
 
 iNumMediaFiles = iNumImages+iNumMovies;
@@ -70,8 +70,8 @@ for iFileIter=1:iNumMediaFiles
         if isfield(strctXML.Media.Movie{iFileIter-iNumImages},'Attr')
             acAttributes = fnSplitString(strctXML.Media.Movie{iFileIter-iNumImages}.Attr);
         end
-        if isfield(strctXML.Media.Movie{iFileIter-iNumImages},'LengthMS')
-            strLengthMS = strctXML.Media.Movie{iFileIter-iNumImages}.LengthMS;
+        if isfield(strctXML.Media.Image{iFileIter-iNumImages},'LengthMS')
+            strLengthMS = strctXML.Media.Image{iFileIter-iNumImages}.LengthMS;
         end
     end
     

@@ -195,7 +195,7 @@
         Initial_HitRadius = "100"
         Initial_FixationRadiusPix = "100"
 
-        Initial_DesignFile = "\\touch2\StimulusSet\Delay Match To Sample\DMS_Houdini_Week1_Touch.xml"
+        Initial_DesignFile = "\\touch2\StimulusSet\StimulationDetection\Training_Stimulation_Detection_Exp1_VisualCue.xml"
         Initial_FavroiteList1 = "\\touch2\StimulusSet\StimulationDetection\Training_Stimulation_Detection_Exp1_VisualCue.xml"
 
         Initial_NoiseLevel = "10"

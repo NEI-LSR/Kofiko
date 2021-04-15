@@ -76,7 +76,7 @@ switch strCallback
             g_strctParadigm.m_iMachineState = 1;
             fnParadigmToStimulusServer('AbortRun');
 
-            g_strctParadigm = fnTsSetVar(g_strctParadigm, 'ImageList', strImageList);
+            fnTsSetVar('g_strctParadigm', 'ImageList', strImageList);
 
             [acFileNames, acFileNamesNoPath] = fnLoadMRIStyleImageList(strImageList);
             fnParadigmToStimulusServer('LoadImageList',acFileNames);
@@ -115,8 +115,8 @@ switch strCallback
                 fnShowPTB();
             end
 
-            g_strctParadigm = fnTsSetVar(g_strctParadigm, 'BlockNameList', acBlockNames);
-            g_strctParadigm = fnTsSetVar(g_strctParadigm, 'BlockImageIndicesList', acImageIndices);
+            fnTsSetVar('g_strctParadigm', 'BlockNameList', acBlockNames);
+            fnTsSetVar('g_strctParadigm', 'BlockImageIndicesList', acImageIndices);
             fnTsSetVarParadigm('BlockRunOrder', {});
             
             set(g_strctParadigm.m_strctControllers.hBlockList,'String',char(acBlockNames),'value',1);
@@ -126,11 +126,11 @@ switch strCallback
         end;
  
     case 'FixationSizePix'
-         fnParadigmToStimulusServer('UpdateFixationSize',fnTsGetVar(g_strctParadigm,'FixationSizePix'));
+         fnParadigmToStimulusServer('UpdateFixationSize',fnTsGetVar('g_strctParadigm','FixationSizePix'));
     case 'StimulusSizePix'
-         fnParadigmToStimulusServer('UpdateStimulusSize',fnTsGetVar(g_strctParadigm,'StimulusSizePix'));
+         fnParadigmToStimulusServer('UpdateStimulusSize',fnTsGetVar('g_strctParadigm','StimulusSizePix'));
     case 'RotationAngle'
-        fnParadigmToStimulusServer('UpdateRotationAngle',fnTsGetVar(g_strctParadigm,'RotationAngle'));
+        fnParadigmToStimulusServer('UpdateRotationAngle',fnTsGetVar('g_strctParadigm','RotationAngle'));
     case 'TR'
         g_strctParadigm.m_iMachineState = 1;
         fnUpdateListWithTime();
@@ -171,16 +171,16 @@ switch strCallback
         g_strctParadigm.m_iMachineState = 1;
     case 'SelectBlocks'
         iSelectedBlock = get(g_strctParadigm.m_strctControllers.hBlockList,'value');
-        acBlockImageIndicesList = fnTsGetVar(g_strctParadigm, 'BlockImageIndicesList');
+        acBlockImageIndicesList = fnTsGetVar('g_strctParadigm', 'BlockImageIndicesList');
         set(g_strctParadigm.m_strctControllers.hImageList,'value',acBlockImageIndicesList{iSelectedBlock});
     case 'AddBlockToRun'
         iSelectedBlock = get(g_strctParadigm.m_strctControllers.hBlockList,'value');
         if ~isempty(iSelectedBlock)
-            acBlockNameList = fnTsGetVar(g_strctParadigm, 'BlockNameList');
-            acBlockRunOrder = fnTsGetVar(g_strctParadigm,'BlockRunOrder');
+            acBlockNameList = fnTsGetVar('g_strctParadigm', 'BlockNameList');
+            acBlockRunOrder = fnTsGetVar('g_strctParadigm','BlockRunOrder');
             iNumBlocks = length(acBlockRunOrder);
             acBlockRunOrder{iNumBlocks+1} = acBlockNameList{iSelectedBlock};
-            g_strctParadigm = fnTsSetVar(g_strctParadigm,'BlockRunOrder',acBlockRunOrder);
+            fnTsSetVar('g_strctParadigm','BlockRunOrder',acBlockRunOrder);
             
             fnUpdateListController(g_strctParadigm.m_strctControllers.hBlockRunList, acBlockRunOrder,iNumBlocks+1, true);
             
@@ -198,7 +198,7 @@ switch strCallback
         fnUpdateListWithTime();
     case 'RemoveBlocksFromRun'
         
-        acBlockRunOrder = fnTsGetVar(g_strctParadigm,'BlockRunOrder');
+        acBlockRunOrder = fnTsGetVar('g_strctParadigm','BlockRunOrder');
         abWithMicroStim = zeros(1,length(acBlockRunOrder))>0;
         abWithMicroStim(get(g_strctParadigm.m_strctControllers.m_strctMicroStimControllers.hBlockRunList,'value')) = 1;
         
@@ -208,7 +208,7 @@ switch strCallback
         
         set(g_strctParadigm.m_strctControllers.m_strctMicroStimControllers.hBlockRunList,'String',acBlockRunOrder,'value',find(abWithMicroStim));
         
-        g_strctParadigm = fnTsSetVar(g_strctParadigm,'BlockRunOrder',acBlockRunOrder);
+        fnTsSetVar('g_strctParadigm','BlockRunOrder',acBlockRunOrder);
         fnUpdateListController(g_strctParadigm.m_strctControllers.hBlockRunList, acBlockRunOrder,1, true);
         fnUpdateListWithTime();
     case 'MoveBlockDown'
@@ -236,7 +236,7 @@ switch strCallback
                 waitfor(h);
                 fnShowPTB;
             else
-                g_strctParadigm = fnTsSetVar(g_strctParadigm,'BlockRunOrder',acBlocks);
+                fnTsSetVar('g_strctParadigm','BlockRunOrder',acBlocks);
                 set(g_strctParadigm.m_strctControllers.m_strctMicroStimControllers.hBlockRunList,'String',acBlocks,'value',1:2:length(acBlocks));
                 fnUpdateListController(g_strctParadigm.m_strctControllers.hBlockRunList, acBlocks,1, true);
                 fnUpdateListWithTime();
@@ -267,7 +267,7 @@ switch strCallback
             % Load Image List
             g_strctParadigm.m_iMachineState = 1;
             fnParadigmToStimulusServer('AbortRun');
-            g_strctParadigm = fnTsSetVar(g_strctParadigm, 'ImageList', strImageList);
+            fnTsSetVar('g_strctParadigm', 'ImageList', strImageList);
             [acFileNames, acFileNamesNoPath] = fnLoadMRIStyleImageList(strImageList);
             if fnParadigmToKofikoComm('IsPaused')
 	            fnParadigmToStimulusServer('Resume');
@@ -287,8 +287,8 @@ switch strCallback
             % Load Block List
             [acImageIndices,acBlockNames] = fnLoadMRIStyleBlockList(strBlockList);
             
-            g_strctParadigm = fnTsSetVar(g_strctParadigm, 'BlockNameList', acBlockNames);
-            g_strctParadigm = fnTsSetVar(g_strctParadigm, 'BlockImageIndicesList', acImageIndices);
+            fnTsSetVar('g_strctParadigm', 'BlockNameList', acBlockNames);
+            fnTsSetVar('g_strctParadigm', 'BlockImageIndicesList', acImageIndices);
             set(g_strctParadigm.m_strctControllers.hBlockList,'String',char(acBlockNames),'value',1);
             set(g_strctParadigm.m_strctControllers.hBlockRunList,'String','','value',1);
             
@@ -296,7 +296,7 @@ switch strCallback
 
             % Load Run
             acBlocks = fnLoadBlockOrderListTextFile(strRunList);
-            g_strctParadigm = fnTsSetVar(g_strctParadigm,'BlockRunOrder',acBlocks);
+            fnTsSetVar('g_strctParadigm','BlockRunOrder',acBlocks);
             fnUpdateListController(g_strctParadigm.m_strctControllers.hBlockRunList, acBlocks,1, true);
             
             fnUpdateListController(g_strctParadigm.m_strctControllers.m_strctMicroStimControllers.hBlockRunList, acBlocks,1:2:size(acBlocks,1),true);
@@ -321,7 +321,7 @@ function fnUpdateListWithTime()
 global g_strctParadigm
 iValue = get(g_strctParadigm.m_strctControllers.m_hRunOptions,'value');
 acOptions = {'Block TR With Repeats','Block TR','Stimulus Time'};
-acBlockRunOrder = fnTsGetVar(g_strctParadigm, 'BlockRunOrder');
+acBlockRunOrder = fnTsGetVar('g_strctParadigm', 'BlockRunOrder');
 fnPrepareImageListWithTime(acOptions{iValue}, acBlockRunOrder);
 set(g_strctParadigm.m_strctControllers.m_hNumTR,'String',sprintf('Num TR = %d', g_strctParadigm.m_iTotalTRs));
 return;               

@@ -214,35 +214,22 @@ hJTable2 = fnGetJavaHandle(handles.hDataTable);
 % ,,@fnRawSelection,@SortRawTable);
 % fnModifyTable(handles,handles.hDataTable,@fnDataSelection,@SortDataTable);
 
-try
-    % new matlab version (> 2013?)
-    set(hJTable1,'DoubleBuffered',1);
-catch
-    % Older matlab versions...
-    set(hJTable1,'DoubleBuffered','on');
-end
+
+set(hJTable1,'DoubleBuffered','on');
+%set(jscroll,'DoubleBuffered',1);
 
 hJTable1.setNonContiguousCellSelection(false);
 hJTable1.setColumnSelectionAllowed(false);
 hJTable1.setRowSelectionAllowed(true);
 
-hJTable1tmp = handle(hJTable1, 'CallbackProperties');
-    set(hJTable1tmp, 'MousePressedCallback', {@fnRawSelection, handles});
-    set(hJTable1tmp, 'MouseDraggedCallback', {@fnRawSelection, handles});
-    set(hJTable1tmp, 'KeyPressedCallback', {@fnRawSelection, handles});
-try
-    set(hJTable1.getTableHeader,'MousePressedCallback',{@SortRawTable,handles});
-catch
-    
-end
+% hJTable = handle(hJTable, 'CallbackProperties');
+set(hJTable1, 'MousePressedCallback', {@fnRawSelection, handles});
+set(hJTable1, 'MouseDraggedCallback', {@fnRawSelection, handles});
+set(hJTable1, 'KeyPressedCallback', {@fnRawSelection, handles});
+set(hJTable1.getTableHeader,'MousePressedCallback',{@SortRawTable,handles});
 
 
-try
-    set(hJTable2,'DoubleBuffered',1);
-catch
-    set(hJTable2,'DoubleBuffered','on');
-end
-
+set(hJTable2,'DoubleBuffered','on');
 %set(jscroll,'DoubleBuffered',1);
 
 hJTable2.setNonContiguousCellSelection(false);
@@ -251,14 +238,11 @@ hJTable2.setRowSelectionAllowed(true);
 
 % hJTable = handle(hJTable, 'CallbackProperties');
 
-hJTable2Tmp = handle(hJTable2, 'CallbackProperties');
-set(hJTable2Tmp, 'MousePressedCallback', {@fnDataSelection, handles});
-set(hJTable2Tmp, 'MouseDraggedCallback', {@fnDataSelection, handles});
-set(hJTable2Tmp, 'KeyPressedCallback', {@fnDisplayEntries, handles});
-try
-    set(hJTable2.getTableHeader,'MousePressedCallback',{@SortDataTable,handles});
-catch
-end
+
+set(hJTable2, 'MousePressedCallback', {@fnDataSelection, handles});
+set(hJTable2, 'MouseDraggedCallback', {@fnDataSelection, handles});
+set(hJTable2, 'KeyPressedCallback', {@fnDisplayEntries, handles});
+set(hJTable2.getTableHeader,'MousePressedCallback',{@SortDataTable,handles});
 
 setappdata(handles.figure1,'hJTable1',hJTable1);
 setappdata(handles.figure1,'hJTable2',hJTable2);
@@ -410,9 +394,6 @@ for iDataEntryIter=1:length(acDisplayedEntries)
 end
 
 acAttributes=unique(acAllAttributes);
-if isempty(acAttributes)
-    acAttributes = {};
-end
 % Prioritize certain attributes.
 acPrioritize ={'Subject','TimeDate','Channel','Unit','Paradigm','List','Design'};
 acAttributes=[acPrioritize(ismember(acPrioritize,intersect(acAttributes, acPrioritize))), setdiff(acAttributes,acPrioritize)];

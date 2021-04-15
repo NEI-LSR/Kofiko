@@ -1,4 +1,4 @@
-function [strctOutput] = fnParadigmFiveDotCycle(strctInputs)
+function [strctOutput] = fnParadigmFiveDotCycle(strctInputs, bPaused)
 %
 % Copyright (c) 2008 Shay Ohayon, California Institute of Technology.
 % This file is a part of a free software. you can redistribute it and/or modify
@@ -20,15 +20,22 @@ switch g_strctParadigm.m_iMachineState
             iNewStimulusIndex =  round(rand() * 4) + 1;
             iSpreadPix = g_strctParadigm.m_strctStimulusParams.SpreadPix.Buffer(g_strctParadigm.m_strctStimulusParams.SpreadPix.BufferIdx);
             pt2iCenter = g_strctStimulusServer.m_aiScreenSize(3:4)/2;
-            apt2iFixationSpots = [pt2iCenter;
-                pt2iCenter + [-iSpreadPix,-iSpreadPix];
-                pt2iCenter + [iSpreadPix,-iSpreadPix];
-                pt2iCenter + [-iSpreadPix,iSpreadPix];
-                pt2iCenter + [iSpreadPix,iSpreadPix]; ];
+            % cross configuration 
+            %apt2iFixationSpots = [pt2iCenter;
+             %   pt2iCenter + [-iSpreadPix,-iSpreadPix];
+              %  pt2iCenter + [iSpreadPix,-iSpreadPix];
+               % pt2iCenter + [-iSpreadPix,iSpreadPix];
+                %pt2iCenter + [iSpreadPix,iSpreadPix]; ];
+% plus configuration
+             apt2iFixationSpots = [pt2iCenter;
+                 pt2iCenter + [0,-iSpreadPix];
+                 pt2iCenter + [iSpreadPix,0];
+                 pt2iCenter + [0,iSpreadPix];
+                 pt2iCenter + [-iSpreadPix,0]; ];
             pt2iNextFixationSpot = apt2iFixationSpots(iNewStimulusIndex,:);
         end
-
-        fnTsSetVarParadigm('m_strctStimulusParams.FixationSpotPix',pt2iNextFixationSpot);
+        g_strctParadigm.m_strctStimulusParams = fnTsSetVar(g_strctParadigm.m_strctStimulusParams,'FixationSpotPix',pt2iNextFixationSpot);
+       % fnTsSetVarParadigm('m_strctStimulusParams.FixationSpotPix',pt2iNextFixationSpot);
         fnParadigmToKofikoComm('SetFixationPosition', pt2iNextFixationSpot);
 
         afBackgroundColor = ...

@@ -8,11 +8,11 @@ function [aiImageList, afDisplayTimeMS, iTotalTRs] = fnPrepareImageListWithTime(
 global g_strctParadigm  
 
 
-acBlockImageIndicesList = fnTsGetVar(g_strctParadigm, 'BlockImageIndicesList');
-acBlockNameList = fnTsGetVar(g_strctParadigm, 'BlockNameList');
-fStimulusTimeMS = fnTsGetVar(g_strctParadigm ,'StimulusTimeMS');
-fTR_MS = fnTsGetVar(g_strctParadigm,'TR');
-iNumTRsPerBlock = fnTsGetVar(g_strctParadigm,'NumTRsPerBlock');
+acBlockImageIndicesList = fnTsGetVar('g_strctParadigm', 'BlockImageIndicesList');
+acBlockNameList = fnTsGetVar('g_strctParadigm', 'BlockNameList');
+fStimulusTimeMS = fnTsGetVar('g_strctParadigm' ,'StimulusTimeMS');
+fTR_MS = fnTsGetVar('g_strctParadigm','TR');
+iNumTRsPerBlock = fnTsGetVar('g_strctParadigm','NumTRsPerBlock');
 
 iTotalTRs = 0;
 switch strSelectedMode

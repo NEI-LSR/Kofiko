@@ -4,21 +4,15 @@ function X=fnIncreaseBufferSize(X)
 % This file is a part of a free software. you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (see GPL.txt)
-
-OLD_Buf = X.Buffer;
-OLD_TS = X.TimeStamp;
-sz = size(OLD_Buf);
-iNewBufferSize = 2*length(OLD_TS);
-sz(end) = iNewBufferSize;
-if iscell(OLD_Buf)
-    X.Buffer = cell(sz);
-    X.Buffer(1:X.BufferIdx) = OLD_Buf;
+sz = size(X.Buffer,2);
+if iscell(X.Buffer)
+	X.Buffer{sz*2} = [];
 else
-    X.Buffer = zeros(sz);
-    X.Buffer(:,:,1:X.BufferIdx) = OLD_Buf;
-end;
-X.TimeStamp = zeros(1,iNewBufferSize);
-X.TimeStamp(1:X.BufferIdx) = OLD_TS;
-X.BufferSize = iNewBufferSize;
+	X.Buffer(:,:,sz*2) = 0;
+end
+X.TimeStamp(sz*2) = 0;
+X.BufferSize = sz*2;
+
+
 return;
 
