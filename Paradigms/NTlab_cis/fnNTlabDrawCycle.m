@@ -51,8 +51,22 @@ if ~isempty(acInputFromKofiko)
                 fnInitializeHandMappingTextures(acInputFromKofiko{2}, acInputFromKofiko{3});
             
             
-            
-            
+        case 'InitializeHartleyTextures'
+			%fnInitializeChoiceTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
+		    fnInitializeHartleyTextures(acInputFromKofiko{2}, acInputFromKofiko{3});
+        
+        case 'InitializeAchromCloudTextures'
+			%fnInitializeChoiceTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
+		    fnInitializeAchromCloudTextures(acInputFromKofiko{2}, acInputFromKofiko{3}, acInputFromKofiko{4}, acInputFromKofiko{5});
+        
+        case 'InitializeChromCloudTextures'
+			%fnInitializeChoiceTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
+		    fnInitializeChromCloudTextures(acInputFromKofiko{2}, acInputFromKofiko{3}, acInputFromKofiko{4}, acInputFromKofiko{5});
+        
+        case 'InitializeChromBarTextures'
+			%fnInitializeChoiceTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
+		    fnInitializeChromBarTextures(acInputFromKofiko{2}, acInputFromKofiko{3}, acInputFromKofiko{4}, acInputFromKofiko{5});
+        
         case 'LoadImageList'
             acFileNames = acInputFromKofiko{2};
             
@@ -113,6 +127,19 @@ if ~isempty(acInputFromKofiko)
                         g_strctServerCycle.m_iMachineState = 11;
                     case 'Dual Stim'
                         g_strctServerCycle.m_iMachineState = 22;
+                    case 'CI Handmapper'
+                        g_strctServerCycle.m_iMachineState = 24;  
+                    case 'Ground Truth'
+                        g_strctServerCycle.m_iMachineState = 26;  
+                    case 'Dense Noise'
+                        g_strctServerCycle.m_iMachineState = 28; 
+                    case 'Fivedot'
+                        g_strctServerCycle.m_iMachineState = 30;
+                    case 'OneD Noise'
+                        g_strctServerCycle.m_iMachineState = 32; 
+                    case 'Disc Probe'
+                        g_strctServerCycle.m_iMachineState = 34;
+                        
                     case 'Plain Bar'
                         g_strctServerCycle.m_iMachineState = 11;
                     case 'Color Tuning Function'
@@ -149,6 +176,19 @@ if ~isempty(acInputFromKofiko)
                         g_strctServerCycle.m_iMachineState = 11;
                     case 'Dual Stim'
                         g_strctServerCycle.m_iMachineState = 22;
+                    case 'CI Handmapper'
+                        g_strctServerCycle.m_iMachineState = 24;
+                    case 'Ground Truth'
+                        g_strctServerCycle.m_iMachineState = 26;  
+                    case 'Dense Noise'
+                        g_strctServerCycle.m_iMachineState = 28;
+                    case 'Fivedot'
+                        g_strctServerCycle.m_iMachineState = 30;
+                    case 'OneD Noise'
+                        g_strctServerCycle.m_iMachineState = 32;
+                    case 'Disc Probe'
+                        g_strctServerCycle.m_iMachineState = 34;
+                        
                     case 'Plain Bar'
                         g_strctServerCycle.m_iMachineState = 11;
                     case 'Color Tuning Function'
@@ -171,7 +211,7 @@ if ~isempty(acInputFromKofiko)
                         g_strctServerCycle.m_iMachineState = 11;
                         
                     otherwise
-                        assert(false);
+                         assert(false);
                 end
             end
             
@@ -182,7 +222,7 @@ if g_strctServerCycle.m_bUseSavedTrialsIfNecessary && g_strctServerCycle.m_iMach
     fCurrTime  = GetSecs();
     %fCurrTime - g_strctServerCycle.m_fLastFlipTime
     %(.9 * (1/g_strctPTB.m_iRefreshRate) )
-    fCurrTime - g_strctServerCycle.m_fLastFlipTime
+    fCurrTime - g_strctServerCycle.m_fLastFlipTime;
     if (fCurrTime - g_strctServerCycle.m_fLastFlipTime) > ...
             (.8 * (1/g_strctPTB.m_iRefreshRate) )
         %disp('next saved trial triggered')
@@ -214,6 +254,19 @@ if g_strctServerCycle.m_bUseSavedTrialsIfNecessary && g_strctServerCycle.m_iMach
                     g_strctServerCycle.m_iMachineState = 11;
                 case 'Dual Stim'
                     g_strctServerCycle.m_iMachineState = 22;
+                case 'CI Handmapper'
+                    g_strctServerCycle.m_iMachineState = 24;
+                case 'Ground Truth'
+                    g_strctServerCycle.m_iMachineState = 26;  
+                case 'Dense Noise'
+                    g_strctServerCycle.m_iMachineState = 28;
+                case 'Fivedot'
+                    g_strctServerCycle.m_iMachineState = 30;
+                case 'OneD Noise'
+                    g_strctServerCycle.m_iMachineState = 32;
+                case 'Disc Probe'
+                    g_strctServerCycle.m_iMachineState = 34;
+
                 case 'Plain Bar'
                     g_strctServerCycle.m_iMachineState = 11;
                 case 'Color Tuning Function'
@@ -277,7 +330,30 @@ switch g_strctServerCycle.m_iMachineState
         fnDisplayDualstim();
     case 23
         fnKeepDisplayingDualstim();
-
+    case 24
+        fnDisplayCIHandmapper();
+    case 25
+        fnKeepDisplayingCIHandmapper();
+    case 26
+        fnDisplayGroundtruth();
+    case 27
+        fnKeepDisplayingGroundtruth();
+    case 28
+        fnDisplayDensenoise();
+    case 29
+        fnKeepDisplayingDensenoise();
+    case 30
+        fnDisplayFivedot();
+    case 31
+        fnKeepDisplayingFivedot();
+    case 32
+        fnDisplayOneDnoise();
+    case 33
+        fnKeepDisplayingOneDnoise();    
+    case 34
+        fnDisplayDiscProbe();
+    case 35
+        fnKeepDisplayingDiscProbe();
 end;
 
 return;
@@ -587,12 +663,269 @@ return;
 % ---------------------------------------------------------------------------------------------------------------------
 % ---------------------------------------------------------------------------------------------------------------------
 
+
+function fnDisplayFivedot()
+global g_strctPTB g_strctDraw g_strctServerCycle
+
+fCurrTime  = GetSecs();
+
+g_strctDraw.m_iFrameCounter=1;
+
+aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+    g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+% if sum(g_strctDraw.m_strctTrial.m_aiCLUT(2,:))==0
+%     g_strctDraw.m_strctTrial.m_aiCLUT(2,:)=[round(127*(65535/255)),round(127*(65535/255)),round(127*(65535/255))];
+% end
+% Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+%sprintf(num2str(g_strctDraw.m_strctTrial.m_afBackgroundColor));
+
+%define and draw current fixation spot
+pt2fFixationSpotPix = g_strctDraw.m_strctTrial.apt2iFixationSpots(g_strctDraw.m_strctTrial.targspot,:);
+    fFixationSizePix = round(g_strctDraw.m_strctTrial.fFixationSizePix/2);
+aiFixationSpot =  [pt2fFixationSpotPix(1) - fFixationSizePix,...
+    pt2fFixationSpotPix(2) - fFixationSizePix,...
+    pt2fFixationSpotPix(1) + fFixationSizePix,...
+    pt2fFixationSpotPix(2) + fFixationSizePix];
+
+%Screen(g_strctPTB.m_hWindow,'FillArc',[255 255 255], aiFixationSpot,0,360);
+%Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationSpot,0,360);
+Screen(g_strctPTB.m_hWindow,'FillArc',g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationSpot,0,360);
+
+% deal with internal updating stuff
+if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+    Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+        [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+end
+
+ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT); 
+ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+Screen('Close',ClutTextureIndex);
+
+g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow, 0, 0, 2); % Time onset of trial, blocking
+
+if g_strctServerCycle.m_iLastShownTrialID < 2
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+else
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+end
+
+% Update the machine
+if g_strctDraw.m_strctTrial.numFrames > 1
+    % Go and display the rest of the frames in this trial
+    g_strctServerCycle.m_iMachineState = 31;
+    
+    g_strctDraw.m_a2fFrameFlipTS = NaN*ones(2,g_strctDraw.m_strctTrial.numFrames); % allocate the trial timing array
+    g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime;   % First frame
+    g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % Actual Flip Time
+else
+    % Do nothing? Kofiko will supply the next frame when it updates
+    g_strctServerCycle.m_iMachineState = 0;
+    
+    fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+end
+
+% Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_afBackgroundColor, g_strctPTB.m_aiRect);
+% aiFixationSpot = [...
+%     g_strctDraw.m_pt2fPos(1) - g_strctDraw.m_fSize,...
+%     g_strctDraw.m_pt2fPos(2) - g_strctDraw.m_fSize,...
+%     g_strctDraw.m_pt2fPos(1) + g_strctDraw.m_fSize,...
+%     g_strctDraw.m_pt2fPos(2) + g_strctDraw.m_fSize];
+% 
+% Screen(g_strctPTB.m_hWindow,'FillArc',[255 255 255], aiFixationSpot,0,360);
+% g_strctServerCycle.m_iMachineState = 0;
+% 
+% g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow, 0, 0, 2);
+%         
+return
+
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+    function fnKeepDisplayingFivedot()
+    global g_strctPTB g_strctDraw g_strctServerCycle
+
+    fCurrTime  = GetSecs();
+    g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
+    
+    aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+        g_strctDraw.m_strctTrial.m_pt2iFixationSpot + g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+    Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+
+    pt2fFixationSpotPix = g_strctDraw.m_strctTrial.apt2iFixationSpots(g_strctDraw.m_strctTrial.targspot,:);
+    fFixationSizePix = round(g_strctDraw.m_strctTrial.fFixationSizePix/2);
+    aiFixationSpot =  [pt2fFixationSpotPix(1) - fFixationSizePix,...
+        pt2fFixationSpotPix(2) - fFixationSizePix,...
+        pt2fFixationSpotPix(1) + fFixationSizePix,...
+        pt2fFixationSpotPix(2) + fFixationSizePix];
+    %Screen(g_strctPTB.m_hWindow,'FillArc',[255 255 255], aiFixationSpot,0,360);
+    %Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationSpot,0,360);
+    Screen(g_strctPTB.m_hWindow,'FillArc',g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationSpot,0,360);
+
+%    g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+%        if g_strctDraw.m_iFrameCounter < g_strctDraw.m_strctTrial.numFrames % Felix test for keeping stims on screen
+%         dbstop if warning
+%         warning('stop')
+%         end
+
+    if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+        Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+            [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+            g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+            g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+    end
+    
+    % Update information
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+%    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,1)); 
+    ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+    Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+    Screen('Close',ClutTextureIndex);
+
+    g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+
+    g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = ...
+        g_strctDraw.m_a2fFrameFlipTS(1,1) + (g_strctDraw.m_iFrameCounter*(1000/g_strctPTB.m_iRefreshRate));   % How long has it been since we started this presentation, estimated
+    g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % What is the actual time, so we can compare with the estimated if necessary
+
+    % Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_afBackgroundColor, g_strctPTB.m_aiRect);
+    % aiFixationSpot = [...
+    %     g_strctDraw.m_pt2fPos(1) - g_strctDraw.m_fSize,...
+    %     g_strctDraw.m_pt2fPos(2) - g_strctDraw.m_fSize,...
+    %     g_strctDraw.m_pt2fPos(1) + g_strctDraw.m_fSize,...
+    %     g_strctDraw.m_pt2fPos(2) + g_strctDraw.m_fSize];
+    % 
+    % Screen(g_strctPTB.m_hWindow,'FillArc',[255 255 255], aiFixationSpot,0,360);
+    % g_strctServerCycle.m_iMachineState = 0;
+    % 
+    % g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow, 0, 0, 2);
+    %       
+%     dbstop if warning
+%     warning('stop')
+    
+    return
+
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+%{
 function fnDisplayDualstim()
 global g_strctPTB g_strctDraw g_strctServerCycle
 % 	dbstop if warning
 % 	warning('stop')
 
 fCurrTime  = GetSecs();
+% if  g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+%     Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+% end
+    
+% Show a moving bar using the PTB draw functions
+% Get the trial parameters from the imported struct
+aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+    g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+g_strctDraw.m_iFrameCounter = 1; %to keep changing stimulus orientation
+
+% Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+% Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+
+if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1 % achromatic cloud
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==2 %color cloud
+    hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud<=2 % use bar stimuli    
+%     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+% %    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+%     hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+% elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud>=3 & g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud<=6 %achromatic hartleys
+%     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%     hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+end
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0,0);
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0,0);
+
+% draw primary stim
+if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==0
+    for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
+        for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+            if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+                Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iNumOfBars,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                    horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                    g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+            end
+        end
+    end
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==1 % achromatic cloud
+    hImageID2 = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==2 %color cloud
+    hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+% elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=2 % use bar stimuli    
+%     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+% %    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+%     hImageID2 = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+% Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+% elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=3 & g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=6 %achromatic hartleys
+%     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%     hImageID2 = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+end
+
+% Fixation point last so it's on top
+Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+    Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+        [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+end
+
+if g_strctDraw.m_strctTrial.m_bUseGaussianPulses & g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud>2
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter) );
+% elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=2
+%     ClutEncoded = BitsPlusEncodeClutRow( squeeze(g_strctDraw.m_strctTrial.m_aiCLUT(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter),:,:)) );
+else
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+end
+ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+Screen('Close',ClutTextureIndex);
+
+g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+
+if g_strctServerCycle.m_iLastShownTrialID < 2
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+else
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+end
+
+% Update the machine
+if g_strctDraw.m_strctTrial.numFrames > 1
+    % Go and display the rest of the frames in this trial
+    g_strctServerCycle.m_iMachineState = 23;
+    
+    g_strctDraw.m_a2fFrameFlipTS = NaN*ones(2,g_strctDraw.m_strctTrial.numFrames); % allocate the trial timing array
+    g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime;   % First frame
+    g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % Actual Flip Time
+else
+    % Do nothing? Kofiko will supply the next frame when it updates
+    g_strctServerCycle.m_iMachineState = 0;
+    
+    fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+end
+
+%{
+fCurrTime  = GetSecs();
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
 
 % Show a moving bar using the PTB draw functions
 % Get the trial parameters from the imported struct
@@ -604,30 +937,69 @@ g_strctDraw.m_iFrameCounter = 1; %to keep changing stimulus orientation
 Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
 
 % redraw here?
-[cur_peristim, ~]=GenerateTernaryStim(.25, 1, 0); 
-hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  cur_peristim);
-if mod(g_strctDraw.m_iFrameCounter,2); fRotationAngle=0; else; fRotationAngle=90; end
-Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctParadigm.m_aiSecondaryStimulusRect, fRotationAngle);
-
-if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
-    for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
-        for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps           
-            
-            if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))          
-                
-                Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iBlurStep,g_strctDraw.m_iFrameCounter),...
-                    horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
-                    g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
-                
-            end
-        end
-    end
+%[cur_peristim, ~]=GenerateTernaryStim(.25, 1, 0); 
+% Draw peripheral stimulus
+if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1
+    hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  g_strctDraw.m_strctTrial.DualStimSecondary_disp(:,:,g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+    Screen('Close',hImageID);
     
+else
+    hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  g_strctDraw.m_strctTrial.DualStimSecondary_disp(:,:,g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
+    Screen('Close',hImageID);
+end
+% felix added 4 dualstim
+if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==1
+    mImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  squeeze(g_strctDraw.m_strctTrial.DualStimPrimaryCloud(:,:,g_strctDraw.m_iFrameCounter,:)));
+%    mImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  rgb2ldrgyv(squeeze(g_strctDraw.m_strctTrial.DualStimPrimaryCloud(:,:,g_strctDraw.m_iFrameCounter,:))));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, mImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+    Screen('Close',mImageID);
+
+else
+ % if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+	   %{
+	   strctTrial.NSmClutIndex
+	   strctTrial.NSpClutIndex
+	   strctTrial.NMmClutIndex
+	   strctTrial.NMpClutIndex
+	   strctTrial.NLmClutIndex
+	   strctTrial.NLpClutIndex
+	   %}
+%             for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iActiveStimulusBars
+% 				iBlurStep = 1;
+%                 %for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+%                     if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+%                         Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iNumOfBars,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+%                             horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+%                             g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0)
+%                     end
+%                % end
+%     
+%             end
+            iNumOfBars=1;
+            for iColOfBars = g_strctDraw.m_strctTrial.m_iBarPresentationOrder; % 1:g_strctDraw.m_strctTrial.m_iActiveStimulusBars
+                if g_strctDraw.m_strctTrial.numofeachCIS(iColOfBars)>0
+                    for inumCisBars=1:g_strctDraw.m_strctTrial.numofeachCIS(iColOfBars) %Felix note: not yet finished!!!
+                        for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+                            if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+                                Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iColOfBars,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                                    horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                                    g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+                            end
+                        end
+                    iNumOfBars=iNumOfBars+1;
+                    end
+                end
+            end
+    %{
 else
     for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
         for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
             
-            
+            % fELIX NOTE - ADD LOOP FOR COLOR ADJUSTMENT HERE
             if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
                 Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iBlurStep),...
                     horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
@@ -636,13 +1008,16 @@ else
         end
     end
 end
+%}
+end %end Rgb cloud if statement
 
-if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar')
-    
-    if  g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
-        Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
-    end
-end
+% if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') %Felix
+% commented out
+%     
+%     if  g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+%         Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+%     end
+% end
 
 
 % Fixation point last so it's on top
@@ -688,9 +1063,10 @@ else
     % Do nothing? Kofiko will supply the next frame when it updates
     g_strctServerCycle.m_iMachineState = 0;
     
-    %fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+    fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
 end
-
+%crashvar = lololol(15);
+%}
 return;
 
 % ---------------------------------------------------------------------------------------------------------------------
@@ -700,34 +1076,172 @@ return;
     function fnKeepDisplayingDualstim()
     global g_strctPTB g_strctDraw g_strctServerCycle
 
+        g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
+    
+    
+    fCurrTime  = GetSecs();
+    aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+        g_strctDraw.m_strctTrial.m_pt2iFixationSpot + g_strctDraw.m_strctTrial.m_fFixationSizePix];
+    
+
+    % check if there are more frames to display
+    if g_strctDraw.m_iFrameCounter > g_strctDraw.m_strctTrial.numFrames && g_strctDraw.m_strctTrial.ContinuousDisplay; % we shouldn't be able to get larger than this number, but just in case
+       g_strctServerCycle.m_iMachineState = 3;
+       fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+       return
+       
+    elseif g_strctDraw.m_iFrameCounter > g_strctDraw.m_strctTrial.numFrames && ~g_strctDraw.m_strctTrial.ContinuousDisplay; % we shouldn't be able to get larger than this number, but just in case
+            
+%        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%        Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+%         if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=6 % use bar stimuli or hartleys   
+%             Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%         elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=7 % cloud
+            Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+%        end
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[0 0 0], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+        end
+
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,end ));
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT);
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow);
+        % Set the machine to the wait off period and send the flip off command
+
+    else
+        % Display the next frame of the bar
+
+        fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter);
+        Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+        if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1 % achromatic cloud
+            hImageID2 = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+        elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==2 %color cloud
+            hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+        % elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud<=2 % use bar stimuli    
+        %     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        % %    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+        %     hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+        % elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud>=3 & g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud<=6 %achromatic hartleys
+        %     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        %     hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+        end
+        Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0,0);
+        Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0,0);
+       
+        % draw primary stim
+        if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==0
+            for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
+                for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+                    if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+                        Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iNumOfBars,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                            horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                            g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+                    end
+                end
+            end
+        elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==1 % achromatic cloud
+            hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+            Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+        elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==2 %color cloud
+            hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+            Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+        % elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=2 % use bar stimuli    
+        %     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        % %    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+        %     hImageID2 = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+        % Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+        % elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=3 & g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=6 %achromatic hartleys
+        %     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        %     hImageID2 = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+        % Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+        end
+        
+
+        %end
+        if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+            %Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+            Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+        end
+
+        % Fixation point last so it's on top
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+            
+        end
+
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses & g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud>2
+                    if size( g_strctDraw.m_strctTrial.m_aiCLUT,3) >= g_strctDraw.m_iFrameCounter
+                        ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter ));
+                    end
+%         elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=2
+%             ClutEncoded = BitsPlusEncodeClutRow( squeeze(g_strctDraw.m_strctTrial.m_aiCLUT(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter),:,:)) );
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+%        fliptracker=[fliptracker g_strctServerCycle.m_fLastFlipTime];
+        
+        % Update information
+        g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = ...
+            g_strctDraw.m_a2fFrameFlipTS(1,1) + (g_strctDraw.m_iFrameCounter*(1000/g_strctPTB.m_iRefreshRate));   % How long has it been since we started this presentation, estimated
+        g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % What is the actual time, so we can compare with the estimated if necessary
+
+    end
+    
+    %{
     g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
     
     fCurrTime  = GetSecs();
     aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
         g_strctDraw.m_strctTrial.m_pt2iFixationSpot + g_strctDraw.m_strctTrial.m_fFixationSizePix];
     % check if there are more frames to display
-    g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
     if g_strctDraw.m_iFrameCounter >= g_strctDraw.m_strctTrial.numFrames; % we shouldn't be able to get larger than this number, but just in case
 
         % Clear the screen
-        %Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
-
-        if strcmp(g_strctDraw.m_strctTrial.m_strTrialType, 'Moving Bar') && g_strctDraw.m_strctTrial.m_bFlipForegroundBackground
-            %disp('triggered')
-            %
-            if g_strctDraw.m_strctTrial.numberBlurSteps > 1
-                %	x(1,1) = [1,2,3,];
-
-                Screen('FillRect',g_strctPTB.m_hWindow, [ones(1,3) * 3+g_strctDraw.m_strctTrial.numberBlurSteps-2]);
-
-            else
-                Screen('FillRect',g_strctPTB.m_hWindow, [2 2 2]);
-            end
-
-        else
-            Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
-        end
-        %Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+%{
+%         if strcmp(g_strctDraw.m_strctTrial.m_strTrialType, 'Moving Bar') && g_strctDraw.m_strctTrial.m_bFlipForegroundBackground
+%             %disp('triggered')
+%             %
+%             if g_strctDraw.m_strctTrial.numberBlurSteps > 1
+%                 %	x(1,1) = [1,2,3,];
+% 
+%                 Screen('FillRect',g_strctPTB.m_hWindow, [ones(1,3) * 3+g_strctDraw.m_strctTrial.numberBlurSteps-2]);
+% 
+%             else
+%                 Screen('FillRect',g_strctPTB.m_hWindow, [2 2 2]);
+%             end
+% 
+%         else
+%             Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%         end 
+%}
+        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
 
 
         %Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
@@ -759,32 +1273,59 @@ return;
     else
         % Display the next frame of the bar
 
-        fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter)
+        fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter);
         %Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
 
-        %if strcmp(g_strctDraw.m_strctTrial.m_strTrialType, 'Moving Bar') && g_strctDraw.m_strctTrial.m_bFlipForegroundBackground
-        %	Screen('FillRect',g_strctPTB.m_hWindow, [2 2 2]);
-        %else
-
-        %if  g_strctDraw.m_strctTrial.m_bFlipForegroundBackground
-
         Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
-        %end
+        
+        
+        if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1
+            hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  round((65535/255)*(g_strctDraw.m_strctTrial.DualStimSecondary(:,:,g_strctDraw.m_iFrameCounter))));
+            Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
+            Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+            Screen('Close',hImageID);
+        else
+            hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  (g_strctDraw.m_strctTrial.DualStimSecondary_disp(:,:,g_strctDraw.m_iFrameCounter)));
+            Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
+            Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
+            Screen('Close',hImageID);
+        end    
+        
 
+    % If switching between Cloud and bars
+    if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==1
+        mImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  round((65535/255)*(squeeze(g_strctDraw.m_strctTrial.DualStimPrimaryCloud(:,:,g_strctDraw.m_iFrameCounter,:)))));
+        Screen('DrawTexture', g_strctPTB.m_hWindow, mImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+        Screen('Close',mImageID);
 
-        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
-
-            for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
-
-                for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
-                    if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
-                        Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iBlurStep,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
-                            horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
-                            g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0)
+    else
+       % if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+	   %{
+	   strctTrial.NSmClutIndex
+	   strctTrial.NSpClutIndex
+	   strctTrial.NMmClutIndex
+	   strctTrial.NMpClutIndex
+	   strctTrial.NLmClutIndex
+	   strctTrial.NLpClutIndex
+	   %}
+            iNumOfBars=1;
+            for iColOfBars = g_strctDraw.m_strctTrial.m_iBarPresentationOrder; % 1:g_strctDraw.m_strctTrial.m_iActiveStimulusBars
+                if g_strctDraw.m_strctTrial.numofeachCIS(iColOfBars)>0
+                    for inumCisBars=1:g_strctDraw.m_strctTrial.numofeachCIS(iColOfBars) %Felix note: not yet finished!!!
+                        for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+                            if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+                                Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iColOfBars,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                                    horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                                    g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+                            end
+                        end
+                    iNumOfBars=iNumOfBars+1;
                     end
                 end
             end
-        else
+            
+       % else
+	   %{
             for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
                 for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
                     if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
@@ -794,21 +1335,17 @@ return;
                     end
                 end
             end
+%}
 
-
-        end
-
+       % end
+    end %end Cloud stim switch
 
         %end
         if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
             %Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
             Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
         end
-        %{
-        if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
-            Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
-        end
-        %}
+        
         % Fixation point last so it's on top
         Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
         %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
@@ -829,6 +1366,523 @@ return;
         ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
         Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
         Screen('Close',ClutTextureIndex);
+        
+%        if g_strctDraw.m_iFrameCounter < g_strctDraw.m_strctTrial.numFrames % Felix test for keeping stims on screen
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+%         dbstop if warning
+%         warning('stop')
+%         end
+        
+        % Update information
+        g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = ...
+            g_strctDraw.m_a2fFrameFlipTS(1,1) + (g_strctDraw.m_iFrameCounter*(1000/g_strctPTB.m_iRefreshRate));   % How long has it been since we started this presentation, estimated
+        g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % What is the actual time, so we can compare with the estimated if necessary
+
+        
+    end
+    %}
+return;
+%}
+function fnDisplayDualstim()
+global g_strctPTB g_strctDraw g_strctServerCycle
+% 	dbstop if warning
+% 	warning('stop')
+
+fCurrTime  = GetSecs();
+% if  g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+%     Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+% end
+    
+% Show a moving bar using the PTB draw functions
+% Get the trial parameters from the imported struct
+aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+    g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+g_strctDraw.m_iFrameCounter = 1; %to keep changing stimulus orientation
+
+Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+%Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+% 
+if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==0 % use ground truth
+    iBlurStep=1;
+    for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
+        if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+            Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iBlurStep),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0)
+        end
+    end
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=1 && g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=2 % use bar stimuli    
+%    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+%    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=3 && g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=6 %achromatic hartleys
+%    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==7 % achromatic cloud
+%    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==8 %color cloud
+%    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+end
+%hImageID = g_strctDraw.hartleys_disp(randi(1188));
+%Screen('Close',hImageID);
+
+% TODO: code up the sequence for secondary stims too
+% Draw peripheral stimulus
+if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==0
+
+    %Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
+    %Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1
+    hImageID2 = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+%    Screen('Close',hImageID);
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==2
+    hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+%    Screen('Close',hImageID);
+end
+
+if g_strctDraw.m_strctTrial.CSDtrigframe && g_strctDraw.m_iFrameCounter<=3
+    Screen('FillRect',g_strctPTB.m_hWindow, [256 256 256], g_strctDraw.m_strctTrial.m_aiStimulusRect);
+end
+
+% Fixation point last so it's on top
+Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+    Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+        [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+end
+
+% if g_strctDraw.m_strctTrial.m_bUseGaussianPulses & g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>2
+%     ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter) );
+% elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=2
+%     ClutEncoded = BitsPlusEncodeClutRow( squeeze(g_strctDraw.m_strctTrial.m_aiCLUT(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter),:,:)) );
+% else
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+% end
+ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+Screen('Close',ClutTextureIndex);
+
+g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+
+if g_strctServerCycle.m_iLastShownTrialID < 2
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+else
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+end
+
+% Update the machine
+if g_strctDraw.m_strctTrial.numFrames > 1
+    % Go and display the rest of the frames in this trial
+    g_strctServerCycle.m_iMachineState = 23;
+    
+    g_strctDraw.m_a2fFrameFlipTS = NaN*ones(2,g_strctDraw.m_strctTrial.numFrames); % allocate the trial timing array
+    g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime;   % First frame
+    g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % Actual Flip Time
+else
+    % Do nothing? Kofiko will supply the next frame when it updates
+    g_strctServerCycle.m_iMachineState = 0;
+    
+    fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+end
+
+
+% dbstop if warning
+% warning('big oof')
+return
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+   function fnKeepDisplayingDualstim()
+    global g_strctPTB g_strctDraw g_strctServerCycle
+%     persistent fliptracker
+%     if isempty(fliptracker)
+%         fliptracker=zeros(1,10000);
+%     end
+    g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
+    
+    
+    fCurrTime  = GetSecs();
+    aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+        g_strctDraw.m_strctTrial.m_pt2iFixationSpot + g_strctDraw.m_strctTrial.m_fFixationSizePix];
+    
+
+    % check if there are more frames to display
+    if g_strctDraw.m_iFrameCounter > g_strctDraw.m_strctTrial.numFrames && g_strctDraw.m_strctTrial.ContinuousDisplay; % we shouldn't be able to get larger than this number, but just in case
+       g_strctServerCycle.m_iMachineState = 3;
+       fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+       return
+       
+    elseif g_strctDraw.m_iFrameCounter > g_strctDraw.m_strctTrial.numFrames && ~g_strctDraw.m_strctTrial.ContinuousDisplay; % we shouldn't be able to get larger than this number, but just in case
+            
+%        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%        Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+%         if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=6 % use bar stimuli    
+%             Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%         elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=7 % achromatic cloud
+            Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+%        end
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[0 0 0], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+        end
+
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,end ));
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT);
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow);
+        % Set the machine to the wait off period and send the flip off command
+
+    else
+        % Display the next frame of the bar
+
+        fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter);
+        Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+
+%        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+
+% felix added 4 dense noise - working code
+% mImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  squeeze(g_strctDraw.m_strctTrial.Densenoisestim_disp(:,:,g_strctDraw.m_iFrameCounter,:)));
+% Screen('DrawTexture', g_strctPTB.m_hWindow, mImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% Screen('Close',mImageID);
+
+% Screen('DrawTexture', g_strctPTB.m_hWindow, g_strctDraw.mImageID(g_strctDraw.m_iFrameCounter),[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% Screen('Close',g_strctDraw.mImageID(g_strctDraw.m_iFrameCounter));
+%     dbstop if warning
+%     warning('stop')
+
+if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==0 % use ground truth
+    iBlurStep=1;
+    for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
+        if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+            Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iBlurStep),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0)
+        end
+    end
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=1 && g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=2 % use bar stimuli    
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+%    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=3 && g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=6 %achromatic hartleys
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==7 % achromatic cloud
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==8 %color cloud
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+end
+
+%hImageID = g_strctDraw.hartleys_disp(randi(1188));
+%Screen('Close',hImageID);
+
+if g_strctDraw.m_strctTrial.CSDtrigframe && g_strctDraw.m_iFrameCounter<=3
+    Screen('FillRect',g_strctPTB.m_hWindow, [256 256 256], g_strctDraw.m_strctTrial.m_aiStimulusRect);
+end
+
+if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==0
+
+    %Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
+    %Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1
+    hImageID2 = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+%    Screen('Close',hImageID);
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==2
+    hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+%    Screen('Close',hImageID);
+end
+        %end
+        if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+            %Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+            Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+        end
+
+        % Fixation point last so it's on top
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+            
+        end
+
+%         if g_strctDraw.m_strctTrial.m_bUseGaussianPulses & g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>2
+%                     if size( g_strctDraw.m_strctTrial.m_aiCLUT,3) >= g_strctDraw.m_iFrameCounter
+%                         ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter ));
+%                     end
+%         elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=2
+%             ClutEncoded = BitsPlusEncodeClutRow( squeeze(g_strctDraw.m_strctTrial.m_aiCLUT(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter),:,:)) );
+%         else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+%         end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+%        fliptracker=[fliptracker g_strctServerCycle.m_fLastFlipTime];
+        
+        % Update information
+        g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = ...
+            g_strctDraw.m_a2fFrameFlipTS(1,1) + (g_strctDraw.m_iFrameCounter*(1000/g_strctPTB.m_iRefreshRate));   % How long has it been since we started this presentation, estimated
+        g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % What is the actual time, so we can compare with the estimated if necessary
+
+        
+    end
+% if  g_strctDraw.m_iFrameCounter>=100    
+%     dbstop if warning
+%     warning('stop')
+% end
+return;
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+
+function fnDisplayCIHandmapper()
+global g_strctPTB g_strctDraw g_strctServerCycle
+% 	dbstop if warning
+% 	warning('stop')
+
+fCurrTime  = GetSecs();
+
+% Show a moving bar using the PTB draw functions
+% Get the trial parameters from the imported struct
+aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+    g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+g_strctDraw.m_iFrameCounter = 1; %to keep changing stimulus orientation
+%Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+Screen('FillRect',g_strctPTB.m_hWindow, [g_strctDraw.m_strctTrial.BGtargcolor g_strctDraw.m_strctTrial.BGtargcolor g_strctDraw.m_strctTrial.BGtargcolor]);
+
+%{
+iNumOfBars=1;
+for iColOfBars = g_strctDraw.m_strctTrial.m_iBarPresentationOrder; % 1:g_strctDraw.m_strctTrial.m_iActiveStimulusBars
+    if g_strctDraw.m_strctTrial.numofeachCIS(iColOfBars)>0
+        for inumCisBars=1:g_strctDraw.m_strctTrial.numofeachCIS(iColOfBars) %Felix note: not yet finished!!!
+            for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+                if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+                    Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iColOfBars,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                        horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                        g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+                end
+            end
+        iNumOfBars=iNumOfBars+1;
+        end
+    end
+end
+%}
+
+
+for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
+    for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+        if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+            Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,1,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+        end
+    end
+end
+
+% Fixation point last so it's on top
+Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+    Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+        [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+end
+
+if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter) );
+else
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+end
+ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+Screen('Close',ClutTextureIndex);
+
+
+g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+
+
+if g_strctServerCycle.m_iLastShownTrialID < 2
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+else
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+end
+
+% Update the machine
+if g_strctDraw.m_strctTrial.numFrames > 1
+    % Go and display the rest of the frames in this trial
+    g_strctServerCycle.m_iMachineState = 25;
+    
+    g_strctDraw.m_a2fFrameFlipTS = NaN*ones(2,g_strctDraw.m_strctTrial.numFrames); % allocate the trial timing array
+    g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime;   % First frame
+    g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % Actual Flip Time
+else
+    % Do nothing? Kofiko will supply the next frame when it updates
+    g_strctServerCycle.m_iMachineState = 0;
+    
+    fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+end
+%crashvar = lololol(15);
+return;
+
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+
+    function fnKeepDisplayingCIHandmapper()
+    global g_strctPTB g_strctDraw g_strctServerCycle
+
+    g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
+    
+    fCurrTime  = GetSecs();
+    aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+        g_strctDraw.m_strctTrial.m_pt2iFixationSpot + g_strctDraw.m_strctTrial.m_fFixationSizePix];
+    % check if there are more frames to display
+    if g_strctDraw.m_iFrameCounter >= g_strctDraw.m_strctTrial.numFrames; % we shouldn't be able to get larger than this number, but just in case
+
+%Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+Screen('FillRect',g_strctPTB.m_hWindow, [g_strctDraw.m_strctTrial.BGtargcolor g_strctDraw.m_strctTrial.BGtargcolor g_strctDraw.m_strctTrial.BGtargcolor]);
+
+
+        %Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[0 0 0], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+        end
+
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,end ));
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT);
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow);
+        % Set the machine to the wait off period and send the flip off command
+
+        g_strctServerCycle.m_iMachineState = 3;
+        fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+
+    else
+        % Display the next frame of the bar
+
+        fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter);
+        %Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+        %Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        Screen('FillRect',g_strctPTB.m_hWindow, [g_strctDraw.m_strctTrial.BGtargcolor g_strctDraw.m_strctTrial.BGtargcolor g_strctDraw.m_strctTrial.BGtargcolor]);
+
+    % If switching between Cloud and bars
+
+        %{
+        iNumOfBars=1;
+        for iColOfBars = g_strctDraw.m_strctTrial.m_iBarPresentationOrder; % 1:g_strctDraw.m_strctTrial.m_iActiveStimulusBars
+            if g_strctDraw.m_strctTrial.numofeachCIS(iColOfBars)>0
+                for inumCisBars=1:g_strctDraw.m_strctTrial.numofeachCIS(iColOfBars) %Felix note: not yet finished!!!
+                    for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+                        if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+                            Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iColOfBars,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                                horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                                g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+                        end
+                    end
+                iNumOfBars=iNumOfBars+1;
+                end
+            end
+        end
+        %}
+
+
+        for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
+            for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+                if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+                    Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,1,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                        horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                        g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+                end
+            end
+        end
+
+        %end
+        if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+            %Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+            %Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+            Screen('FillRect',g_strctPTB.m_hWindow, [g_strctDraw.m_strctTrial.BGtargcolor g_strctDraw.m_strctTrial.BGtargcolor g_strctDraw.m_strctTrial.BGtargcolor],g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+        end
+
+        % Fixation point last so it's on top
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+            
+        end
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+            if size( g_strctDraw.m_strctTrial.m_aiCLUT,3) >= g_strctDraw.m_iFrameCounter
+                ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter ));
+            end
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,1));
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
         g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
 
         % Update information
@@ -836,16 +1890,784 @@ return;
             g_strctDraw.m_a2fFrameFlipTS(1,1) + (g_strctDraw.m_iFrameCounter*(1000/g_strctPTB.m_iRefreshRate));   % How long has it been since we started this presentation, estimated
         g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % What is the actual time, so we can compare with the estimated if necessary
 
+        
     end
     return;
 
 % ---------------------------------------------------------------------------------------------------------------------
 % ---------------------------------------------------------------------------------------------------------------------
 
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+
+
+function fnDisplayGroundtruth()
+global g_strctPTB g_strctDraw g_strctServerCycle
+% 	dbstop if warning
+% 	warning('stop')
+
+fCurrTime  = GetSecs();
+
+% Show a moving bar using the PTB draw functions
+% Get the trial parameters from the imported struct
+aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+    g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+if sum(g_strctDraw.m_strctTrial.m_aiCLUT(2,:))==0
+    g_strctDraw.m_strctTrial.m_aiCLUT(2,:)=[round(127*(65535/255)),round(127*(65535/255)),round(127*(65535/255))];
+end
+g_strctDraw.m_iFrameCounter = 1; %to keep changing stimulus orientation
+Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+
+
+for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
+    for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+        if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+            Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iNumOfBars,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+        end
+    end
+end
+
+% Fixation point last so it's on top
+Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+    Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+        [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+end
+
+if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter) );
+else
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+end
+ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+Screen('Close',ClutTextureIndex);
+
+
+g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+
+
+if g_strctServerCycle.m_iLastShownTrialID < 2
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+else
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+end
+
+% Update the machine
+if g_strctDraw.m_strctTrial.numFrames > 1
+    % Go and display the rest of the frames in this trial
+    g_strctServerCycle.m_iMachineState = 27;
+    
+    g_strctDraw.m_a2fFrameFlipTS = NaN*ones(2,g_strctDraw.m_strctTrial.numFrames); % allocate the trial timing array
+    g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime;   % First frame
+    g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % Actual Flip Time
+else
+    % Do nothing? Kofiko will supply the next frame when it updates
+    g_strctServerCycle.m_iMachineState = 0;
+    
+    fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+end
+%crashvar = lololol(15);
+return;
 
 % ---------------------------------------------------------------------------------------------------------------------
 % ---------------------------------------------------------------------------------------------------------------------
 
+
+    function fnKeepDisplayingGroundtruth()
+    global g_strctPTB g_strctDraw g_strctServerCycle
+
+    g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
+    
+    fCurrTime  = GetSecs();
+    aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+        g_strctDraw.m_strctTrial.m_pt2iFixationSpot + g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+    % check if there are more frames to display
+    if g_strctDraw.m_iFrameCounter >= g_strctDraw.m_strctTrial.numFrames; % we shouldn't be able to get larger than this number, but just in case
+
+        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        
+%        Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+        %Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[0 0 0], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+        end
+
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,end ));
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT);
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow);
+        % Set the machine to the wait off period and send the flip off command
+
+        g_strctServerCycle.m_iMachineState = 3;
+        fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+
+    else
+        % Display the next frame of the bar
+
+        fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter);
+
+        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%       Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+%     
+%  dbstop if warning 
+%  warning('stop')
+
+        for iNumOfBars = 1:g_strctDraw.m_strctTrial.m_iNumberOfBars
+            for iBlurStep = 1:g_strctDraw.m_strctTrial.numberBlurSteps
+                if any(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep))
+                    Screen('FillPoly',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_aiBlurStepHolder(:,iNumOfBars,g_strctDraw.m_iFrameCounter),...%,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)] ,...
+                        horzcat(g_strctDraw.m_strctTrial.coordinatesX(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep),...
+                        g_strctDraw.m_strctTrial.coordinatesY(1:4,g_strctDraw.m_iFrameCounter,iNumOfBars,iBlurStep)),0);
+                end
+            end
+        end
+
+        %end
+        if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+            %Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+            Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+        end
+
+        % Fixation point last so it's on top
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+            
+        end
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+            if size( g_strctDraw.m_strctTrial.m_aiCLUT,3) >= g_strctDraw.m_iFrameCounter
+                ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter ));
+            end
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,1));
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+
+        % Update information
+        g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = ...
+            g_strctDraw.m_a2fFrameFlipTS(1,1) + (g_strctDraw.m_iFrameCounter*(1000/g_strctPTB.m_iRefreshRate));   % How long has it been since we started this presentation, estimated
+        g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % What is the actual time, so we can compare with the estimated if necessary
+
+        
+    end
+return;
+
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+function fnDisplayDensenoise()
+global g_strctPTB g_strctDraw g_strctServerCycle
+% 	dbstop if warning
+% 	warning('stop')
+
+fCurrTime  = GetSecs();
+% if  g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+%     Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+% end
+    
+% Show a moving bar using the PTB draw functions
+% Get the trial parameters from the imported struct
+aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+    g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+g_strctDraw.m_iFrameCounter = 1; %to keep changing stimulus orientation
+
+Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+% 
+%     if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+%         %Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+%         Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+%     end
+    
+% felix added 4 dense noise - working code
+% mImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  squeeze(g_strctDraw.m_strctTrial.Densenoisestim_disp(:,:,g_strctDraw.m_iFrameCounter,:)));
+% Screen('DrawTexture', g_strctPTB.m_hWindow, mImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% Screen('Close',mImageID);
+
+
+% for mImage=1:size(g_strctDraw.m_strctTrial.Densenoisestim_disp,3);
+% g_strctDraw.mImageID(mImage) = Screen('MakeTexture', g_strctPTB.m_hWindow,  squeeze(g_strctDraw.m_strctTrial.Densenoisestim_disp(:,:,mImage,:)));
+% end
+% Screen('DrawTexture', g_strctPTB.m_hWindow, g_strctDraw.mImageID(1),[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% Screen('Close',g_strctDraw.mImageID(1));
+
+if g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud<=2 % use bar stimuli    
+    Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud>=3 & g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud<=6 %achromatic hartleys
+    Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+    hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==7 % achromatic cloud
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==8 %color cloud
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+end
+%hImageID = g_strctDraw.hartleys_disp(randi(1188));
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+%Screen('Close',hImageID);
+
+if g_strctDraw.m_strctTrial.CSDtrigframe && g_strctDraw.m_iFrameCounter<=3
+    Screen('FillRect',g_strctPTB.m_hWindow, [256 256 256], g_strctDraw.m_strctTrial.m_aiStimulusRect);
+end
+
+% Fixation point last so it's on top
+Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+    Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+        [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+end
+
+if g_strctDraw.m_strctTrial.m_bUseGaussianPulses & g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud>2
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter) );
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud<=2
+    ClutEncoded = BitsPlusEncodeClutRow( squeeze(g_strctDraw.m_strctTrial.m_aiCLUT(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter),:,:)) );
+else
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+end
+ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+Screen('Close',ClutTextureIndex);
+
+g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+
+if g_strctServerCycle.m_iLastShownTrialID < 2
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+else
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+end
+
+% Update the machine
+if g_strctDraw.m_strctTrial.numFrames > 1
+    % Go and display the rest of the frames in this trial
+    g_strctServerCycle.m_iMachineState = 29;
+    
+    g_strctDraw.m_a2fFrameFlipTS = NaN*ones(2,g_strctDraw.m_strctTrial.numFrames); % allocate the trial timing array
+    g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime;   % First frame
+    g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % Actual Flip Time
+else
+    % Do nothing? Kofiko will supply the next frame when it updates
+    g_strctServerCycle.m_iMachineState = 0;
+    
+    fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+end
+
+
+% dbstop if warning
+% warning('big oof')
+return
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+   function fnKeepDisplayingDensenoise()
+    global g_strctPTB g_strctDraw g_strctServerCycle
+%     persistent fliptracker
+%     if isempty(fliptracker)
+%         fliptracker=zeros(1,10000);
+%     end
+    g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
+    
+    
+    fCurrTime  = GetSecs();
+    aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+        g_strctDraw.m_strctTrial.m_pt2iFixationSpot + g_strctDraw.m_strctTrial.m_fFixationSizePix];
+    
+
+    % check if there are more frames to display
+    if g_strctDraw.m_iFrameCounter > g_strctDraw.m_strctTrial.numFrames && g_strctDraw.m_strctTrial.ContinuousDisplay; % we shouldn't be able to get larger than this number, but just in case
+       g_strctServerCycle.m_iMachineState = 3;
+       fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+       return
+       
+    elseif g_strctDraw.m_iFrameCounter > g_strctDraw.m_strctTrial.numFrames && ~g_strctDraw.m_strctTrial.ContinuousDisplay; % we shouldn't be able to get larger than this number, but just in case
+            
+%        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%        Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+        if g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud<=6 % use bar stimuli    
+            Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+        elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud>=7 % achromatic cloud
+            Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+        end
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[0 0 0], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+        end
+
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,end ));
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT);
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow);
+        % Set the machine to the wait off period and send the flip off command
+
+    else
+        % Display the next frame of the bar
+
+        fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter);
+        Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+
+        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+
+% felix added 4 dense noise - working code
+% mImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  squeeze(g_strctDraw.m_strctTrial.Densenoisestim_disp(:,:,g_strctDraw.m_iFrameCounter,:)));
+% Screen('DrawTexture', g_strctPTB.m_hWindow, mImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% Screen('Close',mImageID);
+
+% Screen('DrawTexture', g_strctPTB.m_hWindow, g_strctDraw.mImageID(g_strctDraw.m_iFrameCounter),[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% Screen('Close',g_strctDraw.mImageID(g_strctDraw.m_iFrameCounter));
+%     dbstop if warning
+%     warning('stop')
+
+if g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud<=2 % use bar stimuli    
+    Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud>=3 & g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud<=6 %achromatic hartleys
+    Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+    hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==7 % achromatic cloud
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==8 %color cloud
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+end
+%{
+if g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==4 % achromatic cloud
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==1 %achromatic hartleys
+    Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+    hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==2 %color hartleys
+    Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);    
+    hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==3 %color cloud
+    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+    hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+end
+%}
+
+%hImageID = g_strctDraw.hartleys_disp(randi(1188));
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+%Screen('Close',hImageID);
+
+if g_strctDraw.m_strctTrial.CSDtrigframe && g_strctDraw.m_iFrameCounter<=3
+    Screen('FillRect',g_strctPTB.m_hWindow, [256 256 256], g_strctDraw.m_strctTrial.m_aiStimulusRect);
+end
+        %end
+        if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+            %Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+            Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+        end
+
+        % Fixation point last so it's on top
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+            
+        end
+
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses & g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud>2
+                    if size( g_strctDraw.m_strctTrial.m_aiCLUT,3) >= g_strctDraw.m_iFrameCounter
+                        ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter ));
+                    end
+        elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud<=2
+            ClutEncoded = BitsPlusEncodeClutRow( squeeze(g_strctDraw.m_strctTrial.m_aiCLUT(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter),:,:)) );
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+%        fliptracker=[fliptracker g_strctServerCycle.m_fLastFlipTime];
+        
+        % Update information
+        g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = ...
+            g_strctDraw.m_a2fFrameFlipTS(1,1) + (g_strctDraw.m_iFrameCounter*(1000/g_strctPTB.m_iRefreshRate));   % How long has it been since we started this presentation, estimated
+        g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % What is the actual time, so we can compare with the estimated if necessary
+
+        
+    end
+% if  g_strctDraw.m_iFrameCounter>=100    
+%     dbstop if warning
+%     warning('stop')
+% end
+return;
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+function fnDisplayOneDnoise()
+global g_strctPTB g_strctDraw g_strctServerCycle
+% 	dbstop if warning
+% 	warning('stop')
+
+fCurrTime  = GetSecs();
+    
+% Show a moving bar using the PTB draw functions
+% Get the trial parameters from the imported struct
+aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+    g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+g_strctDraw.m_iFrameCounter = 1; %to keep changing stimulus orientation
+
+Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+
+% felix added 4 dense noise - working code
+% mImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  squeeze(g_strctDraw.m_strctTrial.Densenoisestim_disp(:,:,g_strctDraw.m_iFrameCounter,:)));
+% Screen('DrawTexture', g_strctPTB.m_hWindow, mImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% Screen('Close',mImageID);
+
+% previosu code: induces crashes after about 10 mins of data
+%{
+tic
+for mImage=1:size(g_strctDraw.m_strctTrial.stimuli,1);
+g_strctDraw.mImageID(mImage) = Screen('MakeTexture', g_strctPTB.m_hWindow,  squeeze(g_strctDraw.m_strctTrial.stimuli(mImage,:,:)));
+end
+Screen('DrawTexture', g_strctPTB.m_hWindow, g_strctDraw.mImageID(1),[],g_strctDraw.m_strctTrial.m_aiStimulusRect,g_strctDraw.m_strctTrial.orientation,0);
+%Screen('Close',g_strctDraw.mImageID(1));
+toc
+%}
+hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,g_strctDraw.m_strctTrial.orientation,0);
+
+% if g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==4 % achromatic cloud
+%     Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+%     hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==1 %achromatic hartleys
+%     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%     hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==2 %color hartleys
+%     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);    
+%     hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==3 %color cloud
+%     Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+%     hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% end
+% %hImageID = g_strctDraw.hartleys_disp(randi(1188));
+% Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% %Screen('Close',hImageID);
+
+% Fixation point last so it's on top
+Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+
+if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+    Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+        [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+        g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+end
+
+if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter) );
+else
+    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+end
+ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+Screen('Close',ClutTextureIndex);
+
+g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+
+if g_strctServerCycle.m_iLastShownTrialID < 2
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+else
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex,g_strctServerCycle.m_iLastShownTrialID);
+end
+
+% Update the machine
+if g_strctDraw.m_strctTrial.numFrames > 1
+    % Go and display the rest of the frames in this trial
+    g_strctServerCycle.m_iMachineState = 33;
+    
+    g_strctDraw.m_a2fFrameFlipTS = NaN*ones(2,g_strctDraw.m_strctTrial.numFrames); % allocate the trial timing array
+    g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime;   % First frame
+    g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % Actual Flip Time
+else
+    % Do nothing? Kofiko will supply the next frame when it updates
+    g_strctServerCycle.m_iMachineState = 0;
+    
+    fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+end
+
+% dbstop if warning
+% warning('big oof')
+return
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+   function fnKeepDisplayingOneDnoise()
+    global g_strctPTB g_strctDraw g_strctServerCycle
+%     persistent fliptracker
+%     if isempty(fliptracker)
+%         fliptracker=zeros(1,10000);
+%     end
+    g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter + 1;
+    
+    
+    fCurrTime  = GetSecs();
+    aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+        g_strctDraw.m_strctTrial.m_pt2iFixationSpot + g_strctDraw.m_strctTrial.m_fFixationSizePix];
+    
+
+    % check if there are more frames to display
+    if g_strctDraw.m_iFrameCounter > g_strctDraw.m_strctTrial.numFrames; % we shouldn't be able to get larger than this number, but just in case
+       g_strctServerCycle.m_iMachineState = 3;
+       fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+       return 
+
+    else
+        % Display the next frame of the bar
+
+        fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter);
+        Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor);
+        Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+
+% felix added 4 dense noise - working code
+% mImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  squeeze(g_strctDraw.m_strctTrial.Densenoisestim_disp(:,:,g_strctDraw.m_iFrameCounter,:)));
+% Screen('DrawTexture', g_strctPTB.m_hWindow, mImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% Screen('Close',mImageID);
+
+% previosu code: cause crashes about 10 mins in
+%{
+Screen('DrawTexture', g_strctPTB.m_hWindow, g_strctDraw.mImageID(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter)),[],g_strctDraw.m_strctTrial.m_aiStimulusRect,g_strctDraw.m_strctTrial.orientation,0);
+if mod(g_strctDraw.m_iFrameCounter,2)==0;
+Screen('Close',g_strctDraw.mImageID(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter)));
+end
+%}
+hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,g_strctDraw.m_strctTrial.orientation,0);
+
+%     dbstop if warning
+%     warning('stop')
+
+% 
+% if g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==4 % achromatic cloud
+%     Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+%     hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==1 %achromatic hartleys
+%     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);
+%     hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==2 %color hartleys
+%     Screen('FillRect',g_strctPTB.m_hWindow, [1 1 1]);    
+%     hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% elseif g_strctDraw.m_strctTrial.DensenoisePrimaryuseRGBCloud==3 %color cloud
+%     Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+%     hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% end
+% 
+% %hImageID = g_strctDraw.hartleys_disp(randi(1188));
+% Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect);
+% %Screen('Close',hImageID);
+
+        %end
+        if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
+            %Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+            Screen('FillRect', g_strctPTB.m_hWindow, [1 1 1], g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
+        end
+
+        % Fixation point last so it's on top
+        Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+        %Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], aiFixationRect,0,360);
+        if g_strctDraw.m_strctTrial.m_bShowPhotodiodeRect
+            Screen('FillRect',g_strctPTB.m_hWindow,[255 255 255], ...
+                [g_strctPTB.m_aiRect(3)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(4)-g_strctDraw.m_strctTrial.m_iPhotoDiodeWindowPix ...
+                g_strctPTB.m_aiRect(3) g_strctPTB.m_aiRect(4)]);
+            
+        end
+        if g_strctDraw.m_strctTrial.m_bUseGaussianPulses
+            if size( g_strctDraw.m_strctTrial.m_aiCLUT,3) >= g_strctDraw.m_iFrameCounter
+                ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter ));
+            end
+        else
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,1));
+        end
+
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+        
+        g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow); % Time onset of trial, blocking
+%        fliptracker=[fliptracker g_strctServerCycle.m_fLastFlipTime];
+        
+        % Update information
+        g_strctDraw.m_a2fFrameFlipTS(1,g_strctDraw.m_iFrameCounter) = ...
+            g_strctDraw.m_a2fFrameFlipTS(1,1) + (g_strctDraw.m_iFrameCounter*(1000/g_strctPTB.m_iRefreshRate));   % How long has it been since we started this presentation, estimated
+        g_strctDraw.m_a2fFrameFlipTS(2,g_strctDraw.m_iFrameCounter) = g_strctServerCycle.m_fLastFlipTime; % What is the actual time, so we can compare with the estimated if necessary
+
+        
+    end
+% if  g_strctDraw.m_iFrameCounter>=100    
+%     dbstop if warning
+%     warning('stop')
+% end
+return;
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+% ---------------------------------------------------------------------------------------------------------------------
+% ---------------------------------------------------------------------------------------------------------------------
+
+
+function fnDisplayDiscProbe()
+global g_strctPTB g_strctDraw g_strctServerCycle
+
+fCurrTime  = GetSecs();
+g_strctDraw.m_iFrameCounter = 1;
+%fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter); % Update the control computer's frame counter
+
+aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+    g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+
+%Screen('FillRect',g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor ); % This will blank the screen if the trial is over
+Screen('FillRect',g_strctPTB.m_hWindow, [128 128 128] ); % This will blank the screen if the trial is over
+
+% Screen('FillOval', g_strctPTB.m_hWindow, [2 2 2],  squeeze([g_strctDraw.m_strctTrial.m_aiCoordinates(1, g_strctDraw.m_iFrameCounter, :),... left
+%     g_strctDraw.m_strctTrial.m_aiCoordinates(2, g_strctDraw.m_iFrameCounter, :),... top
+%     g_strctDraw.m_strctTrial.m_aiCoordinates(3, g_strctDraw.m_iFrameCounter, :),... right
+%     g_strctDraw.m_strctTrial.m_aiCoordinates(4, g_strctDraw.m_iFrameCounter, :)])); % bottom
+
+DiscProbeRect=[g_strctDraw.m_strctTrial.m_aiStimCenter(1)-g_strctDraw.m_strctTrial.m_iDiscDiameter/2,...
+    g_strctDraw.m_strctTrial.m_aiStimCenter(2)-g_strctDraw.m_strctTrial.m_iDiscDiameter/2,...
+    g_strctDraw.m_strctTrial.m_aiStimCenter(1)+g_strctDraw.m_strctTrial.m_iDiscDiameter/2,...
+    g_strctDraw.m_strctTrial.m_aiStimCenter(2)+g_strctDraw.m_strctTrial.m_iDiscDiameter/2];   
+Screen('FillArc', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.DiscprobeColor, DiscProbeRect,0,360);
+
+    aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+        g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+    Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+    if g_strctDraw.m_strctTrial.m_bUseBitsPlusPlus
+        ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+        ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+        Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+        Screen('Close',ClutTextureIndex);
+    end
+    
+    g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow);
+    fnStimulusServerToKofikoParadigm('FlipON',fCurrTime,g_strctDraw.m_strctTrial.m_iStimulusIndex);
+    
+    if g_strctDraw.m_strctTrial.numFrames > 1
+        g_strctServerCycle.m_iMachineState = 35;
+    else
+        g_strctServerCycle.m_iMachineState = 0;
+        fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+        fnStimulusServerToKofikoParadigm('TrialFinished');
+    end
+    
+    return;
+    
+    
+    % --------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+    function fnKeepDisplayingDiscProbe()
+        global g_strctPTB g_strctDraw g_strctServerCycle
+        fCurrTime  = GetSecs();
+        
+        Screen('FillRect',g_strctPTB.m_hWindow, [128 128 128] );
+        
+        aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+            g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+        
+        g_strctDraw.m_iFrameCounter = g_strctDraw.m_iFrameCounter  + 1;
+        if g_strctDraw.m_iFrameCounter <= g_strctDraw.m_strctTrial.numFrames
+            % at least 1 more frame in this trial, continue displaying
+            
+            fnStimulusServerToKofikoParadigm('UpdateFrameCounter',g_strctDraw.m_iFrameCounter); % Update the control computer's frame counter
+            % Rectangle coordinates are filled in the following order: top left, bottom left, bottom right, top right
+            DiscProbeRect=[g_strctDraw.m_strctTrial.m_aiStimCenter(1)-g_strctDraw.m_strctTrial.m_iDiscDiameter/2,...
+                g_strctDraw.m_strctTrial.m_aiStimCenter(2)-g_strctDraw.m_strctTrial.m_iDiscDiameter/2,...
+                g_strctDraw.m_strctTrial.m_aiStimCenter(1)+g_strctDraw.m_strctTrial.m_iDiscDiameter/2,...
+                g_strctDraw.m_strctTrial.m_aiStimCenter(2)+g_strctDraw.m_strctTrial.m_iDiscDiameter/2];
+            Screen('FillArc', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.DiscprobeColor, DiscProbeRect,0,360);
+            
+                % Time onset of trial, blocking
+                aiFixationRect = [g_strctDraw.m_strctTrial.m_pt2iFixationSpot-g_strctDraw.m_strctTrial.m_fFixationSizePix,...
+                    g_strctDraw.m_strctTrial.m_pt2iFixationSpot+g_strctDraw.m_strctTrial.m_fFixationSizePix];
+                Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+                
+                if g_strctDraw.m_strctTrial.m_bUseBitsPlusPlus
+                    ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT );
+                    ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+                    Screen( 'DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
+                    Screen('Close',ClutTextureIndex);
+                end
+                
+                g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow);
+                
+        else
+            Screen('FillRect',g_strctPTB.m_hWindow, [128 128 128]);
+            Screen('FillArc',g_strctPTB.m_hWindow,g_strctDraw.m_strctTrial.m_iFixationColor, aiFixationRect,0,360);
+            % We just showed the last frame, end the trial
+            g_strctServerCycle.m_iMachineState = 3;
+            g_strctServerCycle.m_fLastFlipTime = fnFlipWrapper(g_strctPTB.m_hWindow);
+            fnStimulusServerToKofikoParadigm('FlipOFF',g_strctServerCycle.m_fLastFlipTime);
+            return;
+        end
+        
+        return;
+
+    % --------------------------------------------------------------------------------------------------------------------------------------------------------
+    % --------------------------------------------------------------------------------------------------------------------------------------------------------
+   
+    % --------------------------------------------------------------------------------------------------------------------------------------------------------
+    % --------------------------------------------------------------------------------------------------------------------------------------------------------
+       
 function fnColorTuningFunction()
 % DEFUNCT
 global g_strctDraw g_strctPTB g_strctServerCycle

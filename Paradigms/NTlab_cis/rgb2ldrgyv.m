@@ -18,14 +18,23 @@ global g_strctParadigm
 % Values for MIT, july 2015
 matrix = g_strctParadigm.m_strctConversionMatrices.ldgyb;
 
-%{
-matrix=  [1	1	0.304455308556149
-			1	-0.253409957412193	-0.257060304918859
-			1	0.00799723127465672	1];
-%}
+% {
+% matrix=  [1	1	0.304455308556149
+% 			1	-0.253409957412193	-0.257060304918859
+% 			1	0.00799723127465672	1];
+
+% }
+
+
+% Values for NIH, Oct 2019
+% {
+% matrix=  [1	1	0.156888838783085
+% 			1	-0.233347782674963	-0.142960334308503
+% 			1	0.020310076560882	1];
+
+% }
 % These are the correct values given out
 % by the calib_correct function.
-
 ldrgyv = ((2*(rgb'-.5))/matrix')';
 
 ld= ldrgyv(1,:);

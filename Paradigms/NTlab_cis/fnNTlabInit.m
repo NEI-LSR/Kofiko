@@ -38,19 +38,106 @@ g_strctParadigm.m_iMachineState = 0; % Always initialize first state to zero.
 
 g_strctParadigm.m_iUserCommentIteration = 1;
 g_strctParadigm.m_bFlipJustOccurred = false;
-%{
-g_strctParadigm.m_cPresetColors{1,1} = [255, 0, 0];
-g_strctParadigm.m_cPresetColors{1,2} = [0,154,38]; 
-g_strctParadigm.m_cPresetColors{2,1} = [0, 252, 0];
-g_strctParadigm.m_cPresetColors{2,2} = [255, 0, 55];
-g_strctParadigm.m_cPresetColors{3,1} = [148, 0, 255];
-g_strctParadigm.m_cPresetColors{3,2} = [52, 209, 0]; 
+
+
 g_strctParadigm.m_bInvertPresetColors = false;
-%}
+
 g_strctParadigm.m_strctGammaCorrectedLookupTable = load('gammaCorrectedLookUpTable');
-g_strctParadigm.m_strctConversionMatrices = load('ConversionMatrices');
+%g_strctParadigm.m_strctConversionMatrices = load('ConversionMatrices');
+% g_strctParadigm.m_strctConversionMatrices.ldgyb = [1	1	0.156888838783085;
+% 			1	-0.233347782674963	-0.142960334308503;
+% 			1	0.020310076560882	1]; %felix added calibration as of oct 2018
+% g_strctParadigm.m_strctConversionMatrices.ldgyb = [    1.0000    1.0000    0.2506
+%     1.0000   -0.2337   -0.2166
+%     1.0000   0.0135    1.0000]; %felix added calibration as of april 2019
+% g_strctParadigm.m_strctConversionMatrices.ldgyb = [    1.0000    1.0000    0.2215
+%     1.0000   -0.3629   -0.3466
+%     1.0000   0.0093    1.0000]; %felix added calibration as of feb 2020
+g_strctParadigm.m_strctConversionMatrices.ldgyb = [    1.0000    1.0000    0.2116
+    1.0000   -0.2335   -0.1862
+    1.0000   0.0108    1.0000]; %felix added calibration as of jan 2021
+
+g_strctParadigm.m_cPresetColors{1,1} = [97,150,12];     %round(255*ldrgyv2rgb(-0.0146,0,-.89)); % S-; % [52, 209, 0];
+g_strctParadigm.m_cPresetColors{1,2} = [161,102,255];   %round(255*ldrgyv2rgb(0.0145,0,.985));  % S+; %[148, 0, 255];
+g_strctParadigm.m_cPresetColors{2,1} = [197,106,124];   %round(255*ldrgyv2rgb(-0.0351,.5804,0));% M-; %[255, 0, 55];
+g_strctParadigm.m_cPresetColors{2,2} = [73,146,131];    %round(255*ldrgyv2rgb(.0351,-.4635,0)); % M+; %[0, 252, 0];
+g_strctParadigm.m_cPresetColors{3,1} = [56,138,122];    %round(255*ldrgyv2rgb(-0.04,.522,0));   % L-; %[0,154,38]; 
+g_strctParadigm.m_cPresetColors{3,2} = [255,103,134];   %round(255*ldrgyv2rgb(0.0351,.97,0));   % L+; %[255, 0, 0];
+
+Probe_ii=1;
+for theta = 1:15
+    for satur = [0.33 0.66 1]
+        [x,y,z]=pol2cart(floor(100*theta*pi/8)/100,satur,0);
+        g_strctParadigm.m_cPresetProbeColors(Probe_ii,:) = round(255*ldrgyv2rgb(0,x,y));
+        g_strctParadigm.m_cPresetProbeColorIDS(Probe_ii,:) = [theta, satur, 0, x, y, z];
+        Probe_ii=Probe_ii+1;
+    end
+end
+for theta = 1:15
+    for elev = [-.8 -.5 -.2 .2 .5 .8]
+        if abs(elev)==.8
+            satur=.2;
+        elseif abs(elev) == .5
+            satur = .5;
+        elseif abs(elev) == .2
+            satur = .8;
+        end
+        [x,y,z]=pol2cart(floor(100*theta*pi/8)/100,satur,elev);
+        g_strctParadigm.m_cPresetProbeColors(Probe_ii,:) = round(255*ldrgyv2rgb(z,x,y));
+        g_strctParadigm.m_cPresetProbeColorIDS(Probe_ii,:) = [theta, satur, elev, x, y, z];
+        Probe_ii=Probe_ii+1;
+    end
+end
+g_strctParadigm.m_cPresetProbeColors_N = size(g_strctParadigm.m_cPresetProbeColors,1);
+g_strctParadigm.m_cPresetProbeColors(g_strctParadigm.m_cPresetProbeColors<0)=0;
+
+g_strctParadigm.m_cPresetColors{4,1} = round(255*ldrgyv2rgb(0,0,1));        %DKL0
+g_strctParadigm.m_cPresetColors{4,2} = round(255*ldrgyv2rgb(0,.7,.7));      %DKL45
+g_strctParadigm.m_cPresetColors{4,3} = round(255*ldrgyv2rgb(0,1,0));        %DKL90
+g_strctParadigm.m_cPresetColors{4,4} = round(255*ldrgyv2rgb(0,.7,-.7));     %DKL135
+g_strctParadigm.m_cPresetColors{4,5} = round(255*ldrgyv2rgb(0,0,-1));       %DKL180
+g_strctParadigm.m_cPresetColors{4,6} = round(255*ldrgyv2rgb(0,-.7,-.7));    %DKL225
+g_strctParadigm.m_cPresetColors{4,7} = round(255*ldrgyv2rgb(0,-1,0));       %DKL270
+g_strctParadigm.m_cPresetColors{4,8} = round(255*ldrgyv2rgb(0,-.7,.7));     %DKL315
+
+g_strctParadigm.m_cPresetColorList(1,:) = g_strctParadigm.m_cPresetColors{1,1};
+g_strctParadigm.m_cPresetColorList(2,:) = g_strctParadigm.m_cPresetColors{1,2};
+g_strctParadigm.m_cPresetColorList(3,:) = g_strctParadigm.m_cPresetColors{2,1};
+g_strctParadigm.m_cPresetColorList(4,:) = g_strctParadigm.m_cPresetColors{2,2};
+g_strctParadigm.m_cPresetColorList(5,:) = g_strctParadigm.m_cPresetColors{3,1};
+g_strctParadigm.m_cPresetColorList(6,:) = g_strctParadigm.m_cPresetColors{3,2};
+g_strctParadigm.m_cPresetColorList(7,:) = g_strctParadigm.m_cPresetColors{4,1};
+g_strctParadigm.m_cPresetColorList(8,:) = g_strctParadigm.m_cPresetColors{4,2};
+g_strctParadigm.m_cPresetColorList(9,:) = g_strctParadigm.m_cPresetColors{4,3};
+g_strctParadigm.m_cPresetColorList(10,:) = g_strctParadigm.m_cPresetColors{4,4};
+g_strctParadigm.m_cPresetColorList(11,:) = g_strctParadigm.m_cPresetColors{4,5};
+g_strctParadigm.m_cPresetColorList(12,:) = g_strctParadigm.m_cPresetColors{4,6};
+g_strctParadigm.m_cPresetColorList(13,:) = g_strctParadigm.m_cPresetColors{4,7};
+g_strctParadigm.m_cPresetColorList(14,:) = g_strctParadigm.m_cPresetColors{4,8};
+g_strctParadigm.m_cPresetColorList(15,:) = [0 0 0];
+g_strctParadigm.m_cPresetColorList(16,:) = [255 255 255];
 
 g_strctParadigm.m_aiPresetSaturations = g_strctParadigm.m_afInitial_Saturations;
+
+% Felix add: comment: these are cone-isolating stimulus values...
+% apparently?
+% edit as needed for correct luminance callibration vals on screen
+% g_strctParadigm.m_cPresetColors{1,1} = [255, 0, 0];
+% g_strctParadigm.m_cPresetColors{1,2} = [0,154,38]; 
+% g_strctParadigm.m_cPresetColors{2,1} = [0,154,38]; 
+% g_strctParadigm.m_cPresetColors{2,2} = [255, 0, 0]; 
+% g_strctParadigm.m_cPresetColors{3,1} = [0, 252, 0];
+% g_strctParadigm.m_cPresetColors{3,2} = [255, 0, 55];
+% g_strctParadigm.m_cPresetColors{4,1} = [255, 0, 55];
+% g_strctParadigm.m_cPresetColors{4,2} = [0, 252, 0];
+% g_strctParadigm.m_cPresetColors{5,1} = [148, 0, 255];
+% g_strctParadigm.m_cPresetColors{5,2} = [52, 209, 0];
+% g_strctParadigm.m_cPresetColors{6,1} = [52, 209, 0]; 	
+% g_strctParadigm.m_cPresetColors{6,2} = [148, 0, 255]; 	
+% g_strctParadigm.m_cPresetColors{7,1} = [255, 255, 255];
+% g_strctParadigm.m_cPresetColors{7,2} = [0, 0, 0];
+% g_strctParadigm.m_cPresetColors{8,1} = [0, 0, 0]; 	
+% g_strctParadigm.m_cPresetColors{8,2} = [255, 255, 255]; 	
 
 %Initial_Saturations = 90 50 30 10 5
 %Initial_SaturationsAzimuthSteps = "16"
@@ -159,26 +246,8 @@ g_strctParadigm.m_strctCurrentBackgroundColors = g_strctParadigm.m_strctMasterCo
 
 g_strctParadigm.m_iSelectedColorList = 1;
 
-% Felix add: comment: these are cone-isolating stimulus values...
-% apparently?
-% edit as needed for correct luminance callibration vals on screen
-g_strctParadigm.m_cPresetColors{1,1} = [255, 0, 0];
-g_strctParadigm.m_cPresetColors{1,2} = [0,154,38]; 
-g_strctParadigm.m_cPresetColors{2,1} = [0,154,38]; 
-g_strctParadigm.m_cPresetColors{2,2} = [255, 0, 0]; 
-g_strctParadigm.m_cPresetColors{3,1} = [0, 252, 0];
-g_strctParadigm.m_cPresetColors{3,2} = [255, 0, 55];
-g_strctParadigm.m_cPresetColors{4,1} = [255, 0, 55];
-g_strctParadigm.m_cPresetColors{4,2} = [0, 252, 0];
-g_strctParadigm.m_cPresetColors{5,1} = [148, 0, 255];
-g_strctParadigm.m_cPresetColors{5,2} = [52, 209, 0];
-g_strctParadigm.m_cPresetColors{6,1} = [52, 209, 0]; 	
-g_strctParadigm.m_cPresetColors{6,2} = [148, 0, 255]; 	
-g_strctParadigm.m_cPresetColors{7,1} = [255, 255, 255];
-g_strctParadigm.m_cPresetColors{7,2} = [0, 0, 0];
-g_strctParadigm.m_cPresetColors{8,1} = [0, 0, 0]; 	
-g_strctParadigm.m_cPresetColors{8,2} = [255, 255, 255]; 	
-				
+
+% 				
 
 g_strctParadigm.m_cParadigmSpecificKeyCodes{1,1} = 32;
 g_strctParadigm.m_cParadigmSpecificKeyCodes{1,2} = 'g_strctParadigm.m_strCurrentlySelectedVariable = ''StimulusPosition'';';
@@ -214,7 +283,7 @@ g_strctParadigm.m_bBlockLooping = true;
 % Finite State Machine related parameters
 g_strctParadigm.m_bRandom = g_strctParadigm.m_fInitial_RandomStimuli; 
 
-g_strctParadigm.m_bRepeatNonFixatedImages = true;
+g_strctParadigm.m_bRepeatNonFixatedImages = false;
 
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'JuiceTimeMS', g_strctParadigm.m_fInitial_JuiceTimeMS, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'JuiceTimeHighMS', g_strctParadigm.m_fInitial_JuiceTimeHighMS, iSmallBuffer);
@@ -247,12 +316,10 @@ end
 g_strctParadigm.m_bUseChosenBackgroundColor = g_strctParadigm.m_fInitial_UserChosenBackgroundColor;
 %g_strctParadigm.m_strctCurrentBackgroundColors = [49670  49841  49965];
 uncorrectedBGColor = ldrgyv2rgb(0,0,0);
-g_strctParadigm.m_aiCalibratedBackgroundColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(uncorrectedBGColor(1)*65535)+1),...
-                                                 g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(uncorrectedBGColor(2)*65535)+1),...
-                                                 g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(uncorrectedBGColor(3)*65535)+1)];
-
-
-%round(ldrgyv2rgb(0,0,0)*65535);
+% g_strctParadigm.m_aiCalibratedBackgroundColor = [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(uncorrectedBGColor(1)*65535)+1),...
+%                                                  g_strctParadigm.m_strctGammaCorrectedLookupTable.GLUT(floor(uncorrectedBGColor(2)*65535)+1),...
+%                                                  g_strctParadigm.m_strctGammaCorrectedLookupTable.BLUT(floor(uncorrectedBGColor(3)*65535)+1)];
+g_strctParadigm.m_aiCalibratedBackgroundColor = round(ldrgyv2rgb(0,0,0)*65535);
 
 % MRI stim directory path 
 g_strctParadigm.m_strImageListDirectoryPath = g_strctParadigm.m_strInitial_ImageListsetPath;
@@ -291,7 +358,7 @@ g_strctParadigm.m_strctColorPicker.m_aiColorPickerCenter = round([range([g_strct
 																		range([g_strctParadigm.m_strctColorPicker.m_aiColorPickerRect(2),g_strctParadigm.m_strctColorPicker.m_aiColorPickerRect(4)])/2 + ...
 																		g_strctParadigm.m_strctColorPicker.m_aiColorPickerRect(2)]);
 g_strctParadigm.m_strctColorPicker.m_iColorPickerRadius = range([g_strctParadigm.m_strctColorPicker.m_aiColorPickerRect(1),g_strctParadigm.m_strctColorPicker.m_aiColorPickerRect(3)])/2;
-g_strctParadigm.m_iNumOrientationBins = 20;
+g_strctParadigm.m_iNumOrientationBins = 36;
 
 g_strctParadigm.m_strctColorPicker.m_bColorPickerUpdating = 0;
 g_strctParadigm.m_strctColorPicker.m_bShowColorPicker = 1;
@@ -334,7 +401,8 @@ g_strctParadigm.m_strctCurrentSaturationLookup = {g_strctParadigm.m_strctMasterC
 
 
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'StimulusPosition', g_strctParadigm.m_afInitial_StimulusPosition, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'SecondaryStimulusPosition', g_strctParadigm.m_afInitial_StimulusPosition, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'SecondaryStimulusPosition', g_strctParadigm.m_afInitial_SecondaryStimulusPosition, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'TertiaryStimulusPosition', g_strctParadigm.m_afInitial_SecondaryStimulusPosition, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CurrStimulusIndex', 0, iLargeBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FixationSizePix', g_strctParadigm.m_fInitial_FixationSizePix, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FixationSpotPix', g_strctStimulusServer.m_aiScreenSize(3:4)/2, iSmallBuffer);
@@ -403,35 +471,529 @@ g_strctParadigm.m_bClipStimulusOutsideStimArea = false;
 g_strctParadigm.m_bUseMovingBarPresetColors = 0;
 g_strctParadigm.m_bFlipForegroundBackgroundMovingBar = false;
 
+%% Five Dot
+
+g_strctParadigm.m_bShowEyeTraces = 1;
+
+iBufferLen = 30000;
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'initFixationSpotPix', g_strctStimulusServer.m_aiScreenSize(3:4)/2, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FixationSpotPix', g_strctStimulusServer.m_aiScreenSize(3:4)/2, iBufferLen);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FixationSizePix', g_strctParadigm.m_fInitial_FixationSizePix, 100);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'SpreadPix', g_strctParadigm.m_fInitial_SpreadPix, 100);
+%g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GazeBoxPix', g_strctParadigm.m_fInitial_GazeBoxPix, 100);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotBackgroundColor', g_strctParadigm.m_afInitial_BackgroundColor, 100);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotStimulusON_MS', g_strctParadigm.m_fInitial_FivedotStimulusON_MS, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotStimulusArea', g_strctParadigm.m_fInitial_SpreadPix*2, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotWidth', g_strctParadigm.m_fInitial_GroundtruthWidth, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotLength', g_strctParadigm.m_fInitial_GroundtruthLength, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotOffset', g_strctParadigm.m_fInitial_GroundtruthOffset, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotOrientation', g_strctParadigm.m_fInitial_MovingBarOrientation, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotNumberOfBars', g_strctParadigm.m_fInitial_GroundtruthNumberOfBars, iSmallBuffer);
+%g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotCISonly', g_strctParadigm.m_fInitial_GroundtruthCISonly, iSmallBuffer); % formerly used g_strctParadigm.m_fInitial_MovingBarStimulusArea as width
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotMoveDistance', g_strctParadigm.m_fInitial_MovingBarMoveDistance, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotMoveSpeed', g_strctParadigm.m_fInitial_MovingBarMoveSpeed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotStimulusRed', g_strctParadigm.m_fInitial_MovingBarStimulusRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotStimulusGreen', g_strctParadigm.m_fInitial_MovingBarStimulusGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotStimulusBlue', g_strctParadigm.m_fInitial_MovingBarStimulusBlue, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotBackgroundRed', g_strctParadigm.m_fInitial_DualstimBackgroundRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotBackgroundGreen', g_strctParadigm.m_fInitial_DualstimBackgroundGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotBackgroundBlue', g_strctParadigm.m_fInitial_DualstimBackgroundBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotBlur', g_strctParadigm.m_fInitial_DualstimBlur, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotBlurSteps', g_strctParadigm.m_fInitial_DualstimBlurSteps, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotStimulusOffTime', g_strctParadigm.m_fInitial_GroundtruthStimulusOffTime , iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotStimulusOnTime', g_strctParadigm.m_fInitial_GroundtruthStimulusOnTime, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotStimulusPresetColor', g_strctParadigm.m_fInitial_PlainBarStimulusPresetColor, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotCurrentVariableModifySpeedHz', g_strctParadigm.m_fInitial_CurrentVariableModifySpeedHz, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FivedotCurrentVariableModifyRange', g_strctParadigm.m_fInitial_CurrentVariableModifyRange, iSmallBuffer);
+
+%% For discs
+g_strctParadigm.m_bUseCenterSurroundProbe = 0;
+g_strctParadigm.m_strctHandMappingParams.m_bPerfectCircles = 1;
+
+
+g_strctParadigm.DiscprobeBlockSize = g_strctParadigm.m_cPresetProbeColors_N;
+g_strctParadigm.Discprobe_trialindex = randperm(g_strctParadigm.DiscprobeBlockSize);
+g_strctParadigm.DiscprobeBlocknum=1;
+g_strctParadigm.DiscprobeTrialnum=1;
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeDiameter', g_strctParadigm.m_fInitial_DiscDiameter, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeStimulusOnTime', g_strctParadigm.m_fInitial_DiscStimulusOnTime, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeStimulusOffTime', g_strctParadigm.m_fInitial_DiscStimulusOffTime, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeStimulusArea', g_strctParadigm.m_fInitial_DiscStimulusArea, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeBackgroundRed', g_strctParadigm.m_fInitial_DiscBackgroundRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeBackgroundGreen', g_strctParadigm.m_fInitial_DiscBackgroundGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeBackgroundBlue', g_strctParadigm.m_fInitial_DiscBackgroundBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeStimulusRed', g_strctParadigm.m_fInitial_DiscStimulusRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeStimulusGreen', g_strctParadigm.m_fInitial_DiscStimulusGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeStimulusBlue', g_strctParadigm.m_fInitial_DiscStimulusBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscProbeStimulusPresetColor', g_strctParadigm.m_fInitial_DiscStimulusPresetColor, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscDiameter', g_strctParadigm.m_fInitial_DiscDiameter, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusArea', g_strctParadigm.m_fInitial_DiscStimulusArea, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusRed', g_strctParadigm.m_fInitial_DiscStimulusRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusGreen', g_strctParadigm.m_fInitial_DiscStimulusGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusBlue', g_strctParadigm.m_fInitial_DiscStimulusBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBackgroundRed', g_strctParadigm.m_fInitial_DiscBackgroundRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBackgroundGreen', g_strctParadigm.m_fInitial_DiscBackgroundGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBackgroundBlue', g_strctParadigm.m_fInitial_DiscBackgroundBlue, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusOnTime', g_strctParadigm.m_fInitial_DiscStimulusOnTime, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusOffTime', g_strctParadigm.m_fInitial_DiscStimulusOffTime, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusPresetColor', g_strctParadigm.m_fInitial_DiscStimulusPresetColor, iSmallBuffer);
+g_strctParadigm.m_strctHandMappingParameters.m_bDiscRandomStimulusOrientation = 0;
+g_strctParadigm.m_bRandomDiscStimulusPosition = 0;
+g_strctParadigm.m_bUseDiscPresetColors = 0;
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscNumberOfDiscs', g_strctParadigm.m_fInitial_DiscNumberOfDiscs, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscOrientation', g_strctParadigm.m_fInitial_DiscOrientation, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscMoveDistance', g_strctParadigm.m_fInitial_DiscMoveDistance, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscMoveSpeed', g_strctParadigm.m_fInitial_DiscMoveSpeed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBlur', g_strctParadigm.m_fInitial_DiscBlur, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBlurSteps', g_strctParadigm.m_fInitial_DiscBlurSteps, iSmallBuffer);
+
+%disc colors
+%[x,y,z]=pol2cart(pi/4,1,0);
+
 %% Dualstim Stimuli
-% Felix add
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'ContinuousDisplay', g_strctParadigm.m_fInitial_ContinuousDisplay, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CSDtrigframe', g_strctParadigm.m_fInitial_CSDtrigframe, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'cloudpix', g_strctParadigm.m_fInitial_cloudpix, iSmallBuffer);
 
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimSecondaryWidth', g_strctParadigm.m_fInitial_MovingBarWidth, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimSecondaryLength', g_strctParadigm.m_fInitial_MovingBarLength, iSmallBuffer);
+tic
+g_strctParadigm.DKLref=[];
+% for lvch=[-1 -0.5 0 0.5 1]
+%     for rgch=[-1 -0.6 -0.3 0 0.3 0.6 1]
+%         for yvch=[-1 -0.6 -0.3 0 0.3 0.6 1]
+%             g_strctParadigm.DKLref=[g_strctParadigm.DKLref, [lvch;rgch;yvch]];
+%         end
+%     end
+% end
+for lvch=[-1 -0.6 -0.3 0 0.3 0.6 1]
+    g_strctParadigm.DKLref=[g_strctParadigm.DKLref, [lvch;0;0]];
+end
+for rgch=[-1 -0.6 -0.3 0 0.3 0.6 1]
+    g_strctParadigm.DKLref=[g_strctParadigm.DKLref, [0;rgch;0]];
+end
+for yvch=[-1 -0.6 -0.3 0 0.3 0.6 1]
+    g_strctParadigm.DKLref=[g_strctParadigm.DKLref, [0;0;yvch]];
+end
+g_strctParadigm.DKLclut=round(255*ldrgyv2rgb(g_strctParadigm.DKLref(1,:), g_strctParadigm.DKLref(2,:), g_strctParadigm.DKLref(3,:))');
 
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimNumberOfBars', g_strctParadigm.m_fInitial_MovingBarNumberOfBars, iSmallBuffer);
+fnInitializeHartleyTextures('Z:\StimulusSet\NTlab_cis\hartleys_50_wbins.mat', 7)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeHartleyTextures', 'Z:\StimulusSet\NTlab_cis\hartleys_50_wbins.mat', 7);
+
+% pregen Achromcloud - commented out for time
+%{
+% 		fnParadigmToStimulusServer('ForceMessage', 'PrepareChoiceTextures', g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType,...
+% 										fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'), numInitialChoices,...
+% 										[fnTsGetVar('g_strctParadigm', 'ChoiceLength'),fnTsGetVar('g_strctParadigm', 'ChoiceWidth')], ...
+% 										numLuminanceStepsPerChoice, ...
+% 										g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'ChoiceLuminanceNoiseBlockSize'));
+
+% g_strctParadigm.hartleyset=load('Z:\StimulusSet\NTlab_cis\hartleys_50_wbins.mat');
+% g_strctParadigm.hartleyset.hartleys=shiftdim(127.5*(1+(g_strctParadigm.hartleyset.hartleys50./max(max(max(g_strctParadigm.hartleyset.hartleys50))))),1);
+% g_strctParadigm.hartleyset.hartleys_binned=shiftdim(g_strctParadigm.hartleyset.hartleys50_binned,1);
+% 
+% g_strctParadigm.hartleyset.Colhartleys50=cat(3,cat(4,g_strctParadigm.hartleyset.hartleys,ones(size(g_strctParadigm.hartleyset.hartleys))*127,ones(size(g_strctParadigm.hartleyset.hartleys))*127),...
+%     cat(4,ones(size(g_strctParadigm.hartleyset.hartleys))*127,g_strctParadigm.hartleyset.hartleys,ones(size(g_strctParadigm.hartleyset.hartleys))*127),...
+%     cat(4,ones(size(g_strctParadigm.hartleyset.hartleys))*127,ones(size(g_strctParadigm.hartleyset.hartleys))*127,g_strctParadigm.hartleyset.hartleys));
+% 
+% g_strctParadigm.hartleyset.Colhartleys50_binned=cat(3,g_strctParadigm.hartleyset.hartleys_binned, g_strctParadigm.hartleyset.hartleys_binned+7,g_strctParadigm.hartleyset.hartleys_binned+14);
+
+% Initialize cloud stimuli
+%}
+%{
+cloudpix=fnTsGetVar('g_strctParadigm' ,'cloudpix');
+% g_strctParadigm = fnTsAddVar(g_strctParadigm, 'Dualstim_pregen_achromcloud_n', g_strctParadigm.m_fInitial_DualstimPregen_achromcloud_n, iSmallBuffer);
+g_strctParadigm.DensenoiseScale=g_strctParadigm.m_fInitial_DualstimPrimaryCloudScale;
+g_strctParadigm.Dualstim_pregen_achromcloud_n =  g_strctParadigm.m_fInitial_DualstimPregen_achromcloud_n; %number of unique frames; 6000 in pregen code
+g_strctParadigm.DensenoiseAchromcloud = (mk_spatialcloud(cloudpix,cloudpix, g_strctParadigm.Dualstim_pregen_achromcloud_n, g_strctParadigm.DensenoiseScale)./2 +.5).*255;
+[~,g_strctParadigm.DensenoiseAchromcloud_binned] = histc(g_strctParadigm.DensenoiseAchromcloud,linspace(0,255,256));
+
+fnInitializeAchromCloudTextures(g_strctParadigm.Dualstim_pregen_achromcloud_n, 0, g_strctParadigm.DensenoiseAchromcloud, g_strctParadigm.DensenoiseAchromcloud_binned) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeAchromCloudTextures', g_strctParadigm.Dualstim_pregen_achromcloud_n, 0, g_strctParadigm.DensenoiseAchromcloud, g_strctParadigm.DensenoiseAchromcloud_binned);
+%}
+
+
+
+%/{
+g_strctParadigm.NoiseStimDir = 'Z:\StimulusSet\NTlab_cis\Cloudstims_calib_02_2021';
+g_strctParadigm.Cur_CCloud_loaded = g_strctParadigm.NoiseStimDir;
+g_strctParadigm.Dualstim_pregen_chromcloud_n = 4000;
+g_strctParadigm.Dualstim_pregen_achromcloud_n = 4000;
+g_strctParadigm.maxblocks = 10;
+
+cloudpix=fnTsGetVar('g_strctParadigm' ,'cloudpix');
+g_strctParadigm.DensenoiseScale = g_strctParadigm.m_fInitial_DualstimPrimaryCloudScale;
+load([g_strctParadigm.NoiseStimDir '\' sprintf('Cloudstims_Achrom_size%d_scale%d_%02d.mat', cloudpix, g_strctParadigm.DensenoiseScale, 1)],'DensenoiseAchromcloud_binned');
+g_strctParadigm.DensenoiseAchromcloud_binned = DensenoiseAchromcloud_binned; clearvars DensenoiseAchromcloud_binned
+fnInitializeAchromCloudTextures(g_strctParadigm.Dualstim_pregen_achromcloud_n, 0, g_strctParadigm.DensenoiseAchromcloud_binned, g_strctParadigm.DensenoiseAchromcloud_binned) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeAchromCloudTextures', g_strctParadigm.Dualstim_pregen_achromcloud_n, 0, g_strctParadigm.DensenoiseAchromcloud_binned, g_strctParadigm.DensenoiseAchromcloud_binned);
+%}
+
+Nreps=2;
+g_strctParadigm.DualstimTrialLength = g_strctParadigm.m_fInitial_DualstimTrialLength;
+g_strctParadigm.DualstimBlockSize = g_strctParadigm.m_fInitial_DualstimBlockSize;
+g_strctParadigm.DualstimBlockSizeTotal = g_strctParadigm.DualstimBlockSize*Nreps;
+g_strctParadigm.DualstimAchromcloud_stimseqs=randi(g_strctParadigm.Dualstim_pregen_achromcloud_n,g_strctParadigm.DualstimBlockSize,ceil(g_strctParadigm.DualstimTrialLength/2));
+g_strctParadigm.DualstimAchromcloud_trialindex = [randperm(g_strctParadigm.DualstimBlockSize),randperm(g_strctParadigm.DualstimBlockSize)];
+g_strctParadigm.DualstimAchromcloudBlocknum=1;
+g_strctParadigm.DualstimAchromcloudTrialnum=1;
+
+g_strctParadigm.DensenoiseTrialLength = g_strctParadigm.m_fInitial_DensenoiseTrialLength;
+g_strctParadigm.DensenoiseBlockSize = g_strctParadigm.m_fInitial_DensenoiseBlockSize;
+g_strctParadigm.DensenoiseBlockSizeTotal = g_strctParadigm.DensenoiseBlockSize*Nreps;
+g_strctParadigm.DensenoiseAchromcloud_stimseqs=randi(g_strctParadigm.Dualstim_pregen_achromcloud_n,g_strctParadigm.DensenoiseBlockSize,ceil(g_strctParadigm.DensenoiseTrialLength/2));
+g_strctParadigm.DensenoiseAchromcloud_trialindex = [randperm(g_strctParadigm.DensenoiseBlockSize),randperm(g_strctParadigm.DensenoiseBlockSize)];
+g_strctParadigm.DensenoiseAchromcloudBlocknum=1;
+g_strctParadigm.DensenoiseAchromcloudTrialnum=1;
+
+% Initialize color cloud stimuli
+% g_strctParadigm = fnTsAddVar(g_strctParadigm, 'Dualstim_pregen_chromcloud_n', g_strctParadigm.m_fDualstimpregen_chromcloud_n, iSmallBuffer);
+% pregen chromcloud - commented out for time
+%{ 
+%tic
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseScale', g_strctParadigm.m_fInitial_DualstimSecondaryBarWidth, iSmallBuffer);
+        g_strctParadigm.Cur_CCloud_loaded = 'randpregen';
+        spatialscale=fnTsGetVar('g_strctParadigm' ,'DensenoiseScale');
+        g_strctParadigm.Dualstim_pregen_chromcloud_n =  g_strctParadigm.m_fInitial_DualstimPregen_chromcloud_n;
+        g_strctParadigm.DensenoiseChromcloud_DKlspace=reshape(mk_spatialcloudRGB(cloudpix, cloudpix, g_strctParadigm.Dualstim_pregen_chromcloud_n, spatialscale),cloudpix*cloudpix*g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+        DensenoiseChromcloud_sums=sum(abs(g_strctParadigm.DensenoiseChromcloud_DKlspace),2); DensenoiseChromcloud_sums(DensenoiseChromcloud_sums < 1)=1;
+        g_strctParadigm.DensenoiseChromcloud_DKlspace=g_strctParadigm.DensenoiseChromcloud_DKlspace./[DensenoiseChromcloud_sums,DensenoiseChromcloud_sums,DensenoiseChromcloud_sums];
+        g_strctParadigm.DensenoiseChromcloud=reshape(round(255.*ldrgyv2rgb(g_strctParadigm.DensenoiseChromcloud_DKlspace(:,1)',g_strctParadigm.DensenoiseChromcloud_DKlspace(:,2)',g_strctParadigm.DensenoiseChromcloud_DKlspace(:,3)'))',cloudpix,cloudpix,g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+        g_strctParadigm.DensenoiseChromcloud_DKlspace=reshape(g_strctParadigm.DensenoiseChromcloud_DKlspace,cloudpix,cloudpix,g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+%{
+g_strctParadigm.DensenoiseScale=g_strctParadigm.m_fInitial_DualstimSecondaryBarWidth;
+g_strctParadigm.Cur_CCloud_loaded = 'randpregen';
+g_strctParadigm.Dualstim_pregen_chromcloud_n =  g_strctParadigm.m_fInitial_DualstimPregen_chromcloud_n;
+DensenoiseChromcloud1 = (mk_spatialcloudRGB(25, 25, g_strctParadigm.Dualstim_pregen_chromcloud_n, g_strctParadigm.DensenoiseScale));
+DensenoiseChromcloud2=reshape(DensenoiseChromcloud1,25*25*g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+DensenoiseChromcloud_sums=sum(abs(DensenoiseChromcloud2),2); DensenoiseChromcloud_sums(DensenoiseChromcloud_sums < 1)=1;
+g_strctParadigm.DensenoiseChromcloud_DKlspace=DensenoiseChromcloud2./[DensenoiseChromcloud_sums,DensenoiseChromcloud_sums,DensenoiseChromcloud_sums];
+DensenoiseChromcloud3=round(255.*ldrgyv2rgb(g_strctParadigm.DensenoiseChromcloud_DKlspace(:,1)',g_strctParadigm.DensenoiseChromcloud_DKlspace(:,2)',g_strctParadigm.DensenoiseChromcloud_DKlspace(:,3)'));
+g_strctParadigm.DensenoiseChromcloud=reshape(DensenoiseChromcloud3',25,25,g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+g_strctParadigm.DensenoiseChromcloud_DKlspace=reshape(g_strctParadigm.DensenoiseChromcloud_DKlspace',25,25,g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+%}
+        %toc
+fnInitializeChromCloudTextures(g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeChromCloudTextures', g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud);
+%}
+
+load([g_strctParadigm.NoiseStimDir '\' sprintf('Cloudstims_Chrom_size%d_scale%d_%02d.mat', cloudpix, g_strctParadigm.DensenoiseScale, 1)], 'DensenoiseChromcloud');
+g_strctParadigm.DensenoiseChromcloud = DensenoiseChromcloud; clearvars DensenoiseChromcloud
+fnInitializeChromCloudTextures(g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeChromCloudTextures', g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud);
+
+g_strctParadigm.DensenoiseChromcloud_stimseqs=randi(g_strctParadigm.Dualstim_pregen_chromcloud_n,g_strctParadigm.DensenoiseBlockSize,ceil(g_strctParadigm.DensenoiseTrialLength/2));
+g_strctParadigm.DensenoiseChromcloud_trialindex = [randperm(g_strctParadigm.DensenoiseBlockSize),randperm(g_strctParadigm.DensenoiseBlockSize)];
+g_strctParadigm.DensenoiseChromcloudBlocknum=1;
+g_strctParadigm.DensenoiseChromcloudTrialnum=1;
+
+g_strctParadigm.DualstimChromcloud_stimseqs=randi(g_strctParadigm.Dualstim_pregen_chromcloud_n,g_strctParadigm.DualstimBlockSize,ceil(g_strctParadigm.DualstimTrialLength/2));
+g_strctParadigm.DualstimChromcloud_trialindex = [randperm(g_strctParadigm.DualstimBlockSize),randperm(g_strctParadigm.DualstimBlockSize)];
+g_strctParadigm.DualstimChromcloudBlocknum=1;
+g_strctParadigm.DualstimChromcloudTrialnum=1;
+%}
+
+%old code for the same thing:
+%{ 
+% % this is the old, long way (but hey, it worked)
+
+%g_strctParadigm.DensenoiseChromcloud = 2*(mk_spatialcloudRGB(25, 25, g_strctParadigm.Dualstim_pregen_chromcloud_n, 4)-.5);
+g_strctParadigm.Dualstim_pregen_chromcloud_n=1000;
+g_strctParadigm.Cur_Cloud_loaded = 'randgen';
+g_strctParadigm.DensenoiseChromcloud = (mk_spatialcloudRGB(25, 25, g_strctParadigm.Dualstim_pregen_chromcloud_n, 4));
+g_strctParadigm.DKLref_colcloud=[];
+lvinds=[-0.6 -0.3 0 0.3 0.6];
+rgyvinds=[-1 -0.6 -0.3 0 0.3 0.6 1];
+for lvch=lvinds
+    for rgch=rgyvinds
+        for yvch=rgyvinds
+            g_strctParadigm.DKLref_colcloud=[g_strctParadigm.DKLref_colcloud, [lvch;rgch;yvch]];
+        end
+    end
+end
+
+g_strctParadigm.DKLclut_colcloud=round(255*ldrgyv2rgb(g_strctParadigm.DKLref_colcloud(1,:), g_strctParadigm.DKLref_colcloud(2,:), g_strctParadigm.DKLref_colcloud(3,:))');
+
+lv_in=g_strctParadigm.DensenoiseChromcloud(:,:,:,1);
+[~,lv_bin]=histc(g_strctParadigm.DensenoiseChromcloud(:,:,:,1),[-1, -.45, -.15, .15, .45, 1]);
+for bb=1:5; lv_in(lv_bin==bb)=lvinds(bb); end
+
+rg_in=g_strctParadigm.DensenoiseChromcloud(:,:,:,2);
+[~,rg_bin]=histc(g_strctParadigm.DensenoiseChromcloud(:,:,:,2),[-1, -.75, -.45, -.15, .15, .45, .75, 1]);
+for bb=1:7; rg_in(rg_bin==bb)=rgyvinds(bb); end
+
+yv_in=g_strctParadigm.DensenoiseChromcloud(:,:,:,3);
+[~,yv_bin]=histc(g_strctParadigm.DensenoiseChromcloud(:,:,:,3),[-1, -.75, -.45, -.15, .15, .45, .75, 1]);
+for bb=1:7; yv_in(yv_bin==bb)=rgyvinds(bb); end
+
+g_strctParadigm.DensenoiseChromcloud = shiftdim(reshape(ldrgyv2rgb(lv_in(:)',rg_in(:)',yv_in(:)'),3,25,25,g_strctParadigm.Dualstim_pregen_chromcloud_n),1).*255;	
+%[~,g_strctParadigm.DensenoiseChromcloud_binned] = histc(g_strctParadigm.DensenoiseChromcloud,linspace(0,255,256));
+
+g_strctParadigm.DensenoiseChromcloud_binned=[lv_in(:),rg_in(:),yv_in(:)];
+for bb=1:length(g_strctParadigm.DKLref_colcloud)
+    [~,index]=ismember(g_strctParadigm.DensenoiseChromcloud_binned, g_strctParadigm.DKLref_colcloud(:,bb)','rows');
+    g_strctParadigm.DensenoiseChromcloud_binned(find(index),:)=bb+8; %adjust for color offset
+end
+g_strctParadigm.DensenoiseChromcloud_binned = reshape(g_strctParadigm.DensenoiseChromcloud_binned,25,25,g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+
+%}
+%{
+g_strctParadigm.Cur_CCloud_expt=1;
+%g_strctParadigm.Cur_CCloud_loaded=['Z:\StimulusSet\NTlab_cis\' sprintf('Cloudstims_size25scale2v2_%02d.mat',g_strctParadigm.Cur_Cloud_expt)];
+g_strctParadigm.Cur_CCloud_loaded=['Z:\StimulusSet\NTlab_cis\' sprintf('Cloudstims_size25scale2_%02d.mat',g_strctParadigm.Cur_CCloud_expt)];
+load(g_strctParadigm.Cur_CCloud_loaded)
+g_strctParadigm.Dualstim_pregen_chromcloud_n = length(cloudstim_disp);
+
+g_strctParadigm.ColCloudOffset=0;
+
+g_strctParadigm.DensenoiseChromcloud_binned = cloudstim_disp+g_strctParadigm.ColCloudOffset;
+g_strctParadigm.DensenoiseChromcloud = 255*((cloudstim_local+1)./2);
+g_strctParadigm.DKLref_colcloud = cloudstim_dklrefLUT';
+g_strctParadigm.DKLclut_colcloud = round(255.*ldrgyv2rgb(g_strctParadigm.DKLref_colcloud(:,1)', g_strctParadigm.DKLref_colcloud(:,2)', g_strctParadigm.DKLref_colcloud(:,3)')');
+
+fnInitializeChromCloudTextures(g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud_binned) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeChromCloudTextures', g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud_binned);
+%}
+
+% load bar stimulus textures
+g_strctParadigm.barstims_base=load('Z:\StimulusSet\NTlab_cis\barstims_base25.mat');
+g_strctParadigm.Dualstim_pregen_chrombar_n =  g_strctParadigm.m_fInitial_DualstimPregen_chrombars_n;
+g_strctParadigm.barprobs=[.2 .2 .2 .1 .1 .1 .1];
+g_strctParadigm.barprobs_lum = [.34 .33 .33 0 0 0 0];
+g_strctParadigm.barcolsDKL = [0 0 0; -1 0 0; 1 0 0; 0 1 0; 0 -1 0; 0 0 1; 0 0 -1];
+g_strctParadigm.barcolsRGB = [127 127 127; 0 0 0; 255 255 255; g_strctParadigm.m_cPresetColors{4,3}'; g_strctParadigm.m_cPresetColors{4,7}'; g_strctParadigm.m_cPresetColors{4,1}'; g_strctParadigm.m_cPresetColors{4,5}'];
+
+
+g_strctParadigm.barcolsDKLCLUT = zeros(256,3);
+g_strctParadigm.barcolsDKLCLUT(1,:) = (65535/255)*[127 127 127];%strctTrial.m_afBackgroundColor;
+g_strctParadigm.barcolsDKLCLUT(3,:) = (65535/255)*[255 255 255];
+g_strctParadigm.barcolsDKLCLUT(4,:) = (65535/255)*g_strctParadigm.m_cPresetColors{4,3};
+g_strctParadigm.barcolsDKLCLUT(5,:) = (65535/255)*g_strctParadigm.m_cPresetColors{4,7};
+g_strctParadigm.barcolsDKLCLUT(6,:) = (65535/255)*g_strctParadigm.m_cPresetColors{4,1};
+g_strctParadigm.barcolsDKLCLUT(7,:) = (65535/255)*g_strctParadigm.m_cPresetColors{4,5};
+
+% pregen bar stimuli - old version commented out for time
+%{
+%tic
+cur_ori=0; cur_oribin=floor(cur_ori./15)+1;
+
+DensenoiseChromBar=reshape(repmat(squeeze(g_strctParadigm.barstims_base.barmat_n50s2(cur_oribin,:,:)),1,1,g_strctParadigm.Dualstim_pregen_chrombar_n),50*50,g_strctParadigm.Dualstim_pregen_chrombar_n);
+nbars=25;
+randseed=rand(g_strctParadigm.Dualstim_pregen_chrombar_n, nbars);
+g_strctParadigm.chrombarmat = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n, nbars);
+pvec_edges=[0 cumsum(g_strctParadigm.barprobs)];
+for pp=1:7
+    g_strctParadigm.chrombarmat(randseed>pvec_edges(pp) & randseed<pvec_edges(pp+1))=pp;
+end
+
+for ff=1:g_strctParadigm.Dualstim_pregen_chrombar_n
+    g_strctParadigm.DensenoiseChromBar(find(DensenoiseChromBar(:,ff)==0),ff,1:3)=repmat(g_strctParadigm.barcolsRGB(1,:),length(find(DensenoiseChromBar(:,ff)==0)),1);
+    for pp=1:7
+        curbars=find(g_strctParadigm.chrombarmat(ff,:)==pp);
+        g_strctParadigm.DensenoiseChromBar(find(ismember(DensenoiseChromBar(:,ff),curbars)),ff,1:3)=repmat(g_strctParadigm.barcolsRGB(pp,:),length(find(ismember(DensenoiseChromBar(:,ff),curbars))),1);
+    end
+end
+g_strctParadigm.DensenoiseChromBar=reshape(g_strctParadigm.DensenoiseChromBar,50,50,g_strctParadigm.Dualstim_pregen_chrombar_n,3);
+%toc
+
+fnInitializeChromBarTextures(g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBar) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeChromBarTextures', g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBar);
+%}
+
+% pregen bar stimuli to only use simple textures
+%/{
+cur_ori=0; cur_oribin=floor(cur_ori./15)+1;
+
+DensenoiseChromBar=reshape(repmat(squeeze(g_strctParadigm.barstims_base.barmat_n50s2(cur_oribin,:,:)),1,1,g_strctParadigm.Dualstim_pregen_chrombar_n),50*50,g_strctParadigm.Dualstim_pregen_chrombar_n);
+nbars=25;
+randseed=rand(g_strctParadigm.Dualstim_pregen_chrombar_n, nbars);
+g_strctParadigm.chrombarmat = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n, nbars);
+pvec_edges=[0 cumsum(g_strctParadigm.barprobs)];
+for pp=1:7
+    g_strctParadigm.chrombarmat(randseed>pvec_edges(pp) & randseed<pvec_edges(pp+1))=pp;
+end
+
+for ff=1:g_strctParadigm.Dualstim_pregen_chrombar_n
+    g_strctParadigm.DensenoiseChromBar(find(DensenoiseChromBar(:,ff)==0),ff,1:3)=repmat(g_strctParadigm.barcolsRGB(1,:),length(find(DensenoiseChromBar(:,ff)==0)),1);
+    for pp=1:7
+        curbars=find(g_strctParadigm.chrombarmat(ff,:)==pp);
+        g_strctParadigm.DensenoiseChromBar(find(ismember(DensenoiseChromBar(:,ff),curbars)),ff,1:3)=repmat(g_strctParadigm.barcolsRGB(pp,:),length(find(ismember(DensenoiseChromBar(:,ff),curbars))),1);
+    end
+end
+g_strctParadigm.DensenoiseChromBar=reshape(g_strctParadigm.DensenoiseChromBar,50,50,g_strctParadigm.Dualstim_pregen_chrombar_n,3);
+g_strctParadigm.DensenoiseChromBarbase=permute(g_strctParadigm.barstims_base.barmat_n50s2+1,[2 3 1]);
+g_strctParadigm.DensenoiseChromBarbase=g_strctParadigm.DensenoiseChromBarbase(:,:,[1 12:-1:2]);
+
+fnInitializeChromBarTextures(g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBarbase) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeChromBarTextures', g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBarbase);
+%}
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimPrimaryuseRGBCloud', g_strctParadigm.m_fInitial_DualstimPrimaryuseRBGCloud, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusArea', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusArea, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimScale', g_strctParadigm.m_fInitial_DualstimPrimaryCloudScale, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimWidth', g_strctParadigm.m_fInitial_MovingBarWidth, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimLength', g_strctParadigm.m_fInitial_MovingBarLength, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimOrientation', g_strctParadigm.m_fInitial_MovingBarOrientation, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimNSminus', g_strctParadigm.m_fInitial_DualstimNSminus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimNSplus', g_strctParadigm.m_fInitial_DualstimNSplus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimNMminus', g_strctParadigm.m_fInitial_DualstimNMminus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimNMplus', g_strctParadigm.m_fInitial_DualstimNMplus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimNLminus', g_strctParadigm.m_fInitial_DualstimNLminus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimNLplus', g_strctParadigm.m_fInitial_DualstimNLplus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimNumberOfBars', g_strctParadigm.m_fInitial_DualstimNumberOfBars, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimSecondaryUseCloud', g_strctParadigm.m_fInitial_DualstimSecondaryUseCloud, iSmallBuffer); % formerly used g_strctParadigm.m_fInitial_MovingBarStimulusArea as width
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimSecondaryStimulusArea', g_strctParadigm.m_fInitial_DualstimSecondaryStimulusArea, iSmallBuffer); % formerly used g_strctParadigm.m_fInitial_MovingBarStimulusArea as width
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimSecondaryBarWidth', g_strctParadigm.m_fInitial_DualstimSecondaryBarWidth , iSmallBuffer); % formerly used g_strctParadigm.m_fInitial_MovingBarWidth as width
+%g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimSecondaryWidth', 256, iSmallBuffer); % formerly used g_strctParadigm.m_fInitial_MovingBarWidth as width
+%g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimSecondaryLength', 256, iSmallBuffer); % formerly used g_strctParadigm.m_fInitial_MovingBarLength 
+
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimMoveDistance', g_strctParadigm.m_fInitial_MovingBarMoveDistance, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimMoveSpeed', g_strctParadigm.m_fInitial_MovingBarMoveSpeed, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusArea', g_strctParadigm.m_fInitial_MovingBarStimulusArea, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimSecondaryStimulusArea', g_strctParadigm.m_fInitial_MovingBarStimulusArea, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusArea', g_strctParadigm.m_fInitial_MovingBarStimulusArea, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusRed', g_strctParadigm.m_fInitial_MovingBarStimulusRed, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusGreen', g_strctParadigm.m_fInitial_MovingBarStimulusGreen, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusBlue', g_strctParadigm.m_fInitial_MovingBarStimulusBlue, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBackgroundRed', g_strctParadigm.m_fInitial_MovingBarBackgroundRed, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBackgroundGreen', g_strctParadigm.m_fInitial_MovingBarBackgroundGreen, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBackgroundBlue', g_strctParadigm.m_fInitial_MovingBarBackgroundBlue, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBlur', g_strctParadigm.m_fInitial_MovingBarBlur, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBlurSteps', g_strctParadigm.m_fInitial_MovingBarBlurSteps, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusOffTime', g_strctParadigm.m_fInitial_MovingBarStimulusOffTime, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusOnTime', g_strctParadigm.m_fInitial_MovingBarStimulusOffTime, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBackgroundRed', g_strctParadigm.m_fInitial_DualstimBackgroundRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBackgroundGreen', g_strctParadigm.m_fInitial_DualstimBackgroundGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBackgroundBlue', g_strctParadigm.m_fInitial_DualstimBackgroundBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBlur', g_strctParadigm.m_fInitial_DualstimBlur, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimBlurSteps', g_strctParadigm.m_fInitial_DualstimBlurSteps, iSmallBuffer);
+%g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimPrimaryStimulusOffTime', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusOffTime , iSmallBuffer);
+%g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimPrimaryStimulusOnTime', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusOnTime, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusOffTime', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusOffTime , iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusOnTime', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusOnTime , iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusPresetColor', g_strctParadigm.m_fInitial_MovingBarStimulusPresetColor, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimCurrentVariableModifySpeedHz', g_strctParadigm.m_fInitial_CurrentVariableModifySpeedHz, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimCurrentVariableModifyRange', g_strctParadigm.m_fInitial_CurrentVariableModifyRange, iSmallBuffer);
 
+toc
+% dbstop if warning
+% warning('stop')
+%% CI handmapper
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperStimulusArea', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusArea, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperWidth', g_strctParadigm.m_fInitial_MovingBarWidth, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperLength', g_strctParadigm.m_fInitial_MovingBarLength, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperOrientation', g_strctParadigm.m_fInitial_MovingBarOrientation, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperNSminus', g_strctParadigm.m_fInitial_DualstimNSminus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperNSplus', g_strctParadigm.m_fInitial_DualstimNSplus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperNMminus', g_strctParadigm.m_fInitial_DualstimNMminus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperNMplus', g_strctParadigm.m_fInitial_DualstimNMplus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperNLminus', g_strctParadigm.m_fInitial_DualstimNLminus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperNLplus', g_strctParadigm.m_fInitial_DualstimNLplus, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperNumberOfBars', g_strctParadigm.m_fInitial_MovingBarNumberOfBars, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperMoveDistance', g_strctParadigm.m_fInitial_MovingBarMoveDistance, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperMoveSpeed', g_strctParadigm.m_fInitial_MovingBarMoveSpeed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperStimulusRed', g_strctParadigm.m_fInitial_MovingBarStimulusRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperStimulusGreen', g_strctParadigm.m_fInitial_MovingBarStimulusGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperStimulusBlue', g_strctParadigm.m_fInitial_MovingBarStimulusBlue, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperStimulusIndex', 17, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperBackgroundIndex', 1, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperBackgroundRed', g_strctParadigm.m_fInitial_DualstimBackgroundRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperBackgroundGreen', g_strctParadigm.m_fInitial_DualstimBackgroundGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperBackgroundBlue', g_strctParadigm.m_fInitial_DualstimBackgroundBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperBlur', g_strctParadigm.m_fInitial_DualstimBlur, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperBlurSteps', g_strctParadigm.m_fInitial_DualstimBlurSteps, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperStimulusOffTime', g_strctParadigm.m_fInitial_MovingBarStimulusOffTime, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CIHandmapperStimulusOnTime', g_strctParadigm.m_fInitial_MovingBarStimulusOnTime, iSmallBuffer);
+
+%% Ground truth
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthStimulusArea', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusArea, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthWidth', g_strctParadigm.m_fInitial_GroundtruthWidth, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthLength', g_strctParadigm.m_fInitial_GroundtruthLength, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthOffset', g_strctParadigm.m_fInitial_GroundtruthOffset, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthOrientation', g_strctParadigm.m_fInitial_MovingBarOrientation, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthNumberOfBars', g_strctParadigm.m_fInitial_GroundtruthNumberOfBars, iSmallBuffer);
+%g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthCISonly', g_strctParadigm.m_fInitial_GroundtruthCISonly, iSmallBuffer); % formerly used g_strctParadigm.m_fInitial_MovingBarStimulusArea as width
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthMoveDistance', g_strctParadigm.m_fInitial_MovingBarMoveDistance, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthMoveSpeed', g_strctParadigm.m_fInitial_MovingBarMoveSpeed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthStimulusRed', g_strctParadigm.m_fInitial_MovingBarStimulusRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthStimulusGreen', g_strctParadigm.m_fInitial_MovingBarStimulusGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthStimulusBlue', g_strctParadigm.m_fInitial_MovingBarStimulusBlue, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthBackgroundRed', g_strctParadigm.m_fInitial_DualstimBackgroundRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthBackgroundGreen', g_strctParadigm.m_fInitial_DualstimBackgroundGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthBackgroundBlue', g_strctParadigm.m_fInitial_DualstimBackgroundBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthBlur', g_strctParadigm.m_fInitial_DualstimBlur, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthBlurSteps', g_strctParadigm.m_fInitial_DualstimBlurSteps, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthStimulusOffTime', g_strctParadigm.m_fInitial_GroundtruthStimulusOffTime , iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthStimulusOnTime', g_strctParadigm.m_fInitial_GroundtruthStimulusOnTime, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthStimulusPresetColor', g_strctParadigm.m_fInitial_PlainBarStimulusPresetColor, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthCurrentVariableModifySpeedHz', g_strctParadigm.m_fInitial_CurrentVariableModifySpeedHz, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GroundtruthCurrentVariableModifyRange', g_strctParadigm.m_fInitial_CurrentVariableModifyRange, iSmallBuffer);
+
+%% Dense noise
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoisePrimaryuseRGBCloud', g_strctParadigm.m_fInitial_DualstimPrimaryuseRBGCloud, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseStimulusArea', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusArea, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseScale', g_strctParadigm.m_fInitial_DualstimPrimaryCloudScale, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseWidth', g_strctParadigm.m_fInitial_MovingBarWidth, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseLength', g_strctParadigm.m_fInitial_MovingBarLength, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseStimulusOffTime', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusOffTime , iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseStimulusOnTime', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusOnTime, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseOrientation', g_strctParadigm.m_fInitial_PlainBarOrientation, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseMoveDistance', g_strctParadigm.m_fInitial_PlainBarMoveDistance, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseStimulusArea', g_strctParadigm.m_fInitial_PlainBarStimulusArea, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseStimulusRed', g_strctParadigm.m_fInitial_PlainBarStimulusRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseStimulusGreen', g_strctParadigm.m_fInitial_PlainBarStimulusGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseStimulusBlue', g_strctParadigm.m_fInitial_PlainBarStimulusBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseBackgroundRed', g_strctParadigm.m_fInitial_PlainBarBackgroundRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseBackgroundGreen', g_strctParadigm.m_fInitial_PlainBarBackgroundGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseBackgroundBlue', g_strctParadigm.m_fInitial_PlainBarBackgroundBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseBlur', g_strctParadigm.m_fInitial_PlainBarBlur, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseBlurSteps', g_strctParadigm.m_fInitial_PlainBarBlurSteps, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseMoveSpeed', g_strctParadigm.m_fInitial_PlainBarMoveSpeed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseStimulusPresetColor', g_strctParadigm.m_fInitial_PlainBarStimulusPresetColor, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseCurrentVariableModifySpeedHz', g_strctParadigm.m_fInitial_CurrentVariableModifySpeedHz, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DensenoiseCurrentVariableModifyRange', g_strctParadigm.m_fInitial_CurrentVariableModifyRange, iSmallBuffer);
+
+%% 1D noise
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseDistType', 1, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseStimulusArea', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusArea, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseNumberofBars', 25, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseScale', g_strctParadigm.m_fInitial_DualstimSecondaryBarWidth, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseWidth', g_strctParadigm.m_fInitial_MovingBarWidth, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseLength', g_strctParadigm.m_fInitial_MovingBarLength, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseOrientation', g_strctParadigm.m_fInitial_PlainBarOrientation, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseStimulusOffTime', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusOffTime , iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseStimulusOnTime', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusOnTime, iSmallBuffer);
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseStimulusArea', g_strctParadigm.m_fInitial_PlainBarStimulusArea, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseStimulusRed', g_strctParadigm.m_fInitial_PlainBarStimulusRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseStimulusGreen', g_strctParadigm.m_fInitial_PlainBarStimulusGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseStimulusBlue', g_strctParadigm.m_fInitial_PlainBarStimulusBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseBackgroundRed', g_strctParadigm.m_fInitial_PlainBarBackgroundRed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseBackgroundGreen', g_strctParadigm.m_fInitial_PlainBarBackgroundGreen, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseBackgroundBlue', g_strctParadigm.m_fInitial_PlainBarBackgroundBlue, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseStimulusPresetColor', g_strctParadigm.m_fInitial_PlainBarStimulusPresetColor, iSmallBuffer);
+
+% only included for continuity
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseBlur', g_strctParadigm.m_fInitial_PlainBarBlur, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseBlurSteps', g_strctParadigm.m_fInitial_PlainBarBlurSteps, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseMoveSpeed', g_strctParadigm.m_fInitial_PlainBarMoveSpeed, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseMoveDistance', g_strctParadigm.m_fInitial_PlainBarMoveDistance, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseCurrentVariableModifySpeedHz', g_strctParadigm.m_fInitial_CurrentVariableModifySpeedHz, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'OneDnoiseCurrentVariableModifyRange', g_strctParadigm.m_fInitial_CurrentVariableModifyRange, iSmallBuffer);
 
 %% two bar
 
@@ -570,7 +1132,7 @@ g_strctParadigm.m_strctMRIStim.m_bForceMatchImageSizes = g_strctParadigm.m_fInit
 g_strctParadigm.m_strctMRIStim.m_bMatchToMinimumImageSize = true;
 g_strctParadigm.m_strctMRIStim.m_bMatchToMaximumImageSize = false;
 
-% For Movies
+%% For Movies
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MovieWidth', g_strctParadigm.m_fInitial_MovieWidth, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MovieLength', g_strctParadigm.m_fInitial_MovieLength, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MovieOrientation', g_strctParadigm.m_fInitial_MovieOrientation, iSmallBuffer);
@@ -601,31 +1163,9 @@ g_strctParadigm.m_strctMovieStim.m_bLoadOnTheFly = true;
 g_strctParadigm.m_strctMovieStim.m_bContinueInMovieListWhenComplete = true;
 g_strctParadigm.m_iCurrentlyPlayingMovieList = 1;
 g_strctParadigm.m_iCurrentlyPlayingMovieListID = 1;
-% For discs
-g_strctParadigm.m_strctHandMappingParams.m_bPerfectCircles = 1;
 
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscNumberOfDiscs', g_strctParadigm.m_fInitial_DiscNumberOfDiscs, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscDiameter', g_strctParadigm.m_fInitial_DiscDiameter, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscOrientation', g_strctParadigm.m_fInitial_DiscOrientation, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscMoveDistance', g_strctParadigm.m_fInitial_DiscMoveDistance, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscMoveSpeed', g_strctParadigm.m_fInitial_DiscMoveSpeed, iSmallBuffer);
 
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusArea', g_strctParadigm.m_fInitial_DiscStimulusArea, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusRed', g_strctParadigm.m_fInitial_DiscStimulusRed, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusGreen', g_strctParadigm.m_fInitial_DiscStimulusGreen, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusBlue', g_strctParadigm.m_fInitial_DiscStimulusBlue, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBackgroundRed', g_strctParadigm.m_fInitial_DiscBackgroundRed, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBackgroundGreen', g_strctParadigm.m_fInitial_DiscBackgroundGreen, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBackgroundBlue', g_strctParadigm.m_fInitial_DiscBackgroundBlue, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBlur', g_strctParadigm.m_fInitial_DiscBlur, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscBlurSteps', g_strctParadigm.m_fInitial_DiscBlurSteps, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusOffTime', g_strctParadigm.m_fInitial_DiscStimulusOffTime, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusOnTime', g_strctParadigm.m_fInitial_DiscStimulusOnTime, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DiscStimulusPresetColor', g_strctParadigm.m_fInitial_DiscStimulusPresetColor, iSmallBuffer);
-g_strctParadigm.m_strctHandMappingParameters.m_bDiscRandomStimulusOrientation = 0;
-g_strctParadigm.m_bRandomDiscStimulusPosition = 0;
-g_strctParadigm.m_bUseDiscPresetColors = 0;
-
+%%
 %{
 g_strctParadigm.m_strctGaborParams.m_afDestinationRectangle = [g_strctParadigm.m_afInitial_StimulusPosition(1) - g_strctParadigm.m_fInitial_StimulusArea,...
 																g_strctParadigm.m_afInitial_StimulusPosition(2) - g_strctParadigm.m_fInitial_StimulusArea,...
@@ -753,6 +1293,7 @@ g_strctParadigm.m_strctStatServerComm.m_bToggleSpeedPlot = 0;
 g_strctParadigm.m_strctStatServerComm.m_bToggleImagePlot = 0;
 g_strctParadigm.m_strctStatServerComm.m_bClearImageBuffer = 0;
 g_strctParadigm.m_strctStatServerComm.m_bPrintStatFigure = 0;
+g_strctParadigm.m_strctStatServerComm.m_bDebugStatServer = 0;
 
 g_strctPlexon.m_afRollingSpikeBuffer.Buf = zeros(50000,4);
 g_strctPlexon.m_afRollingSpikeBuffer.BufID = 0;
@@ -792,8 +1333,10 @@ g_strctPTB.m_variableUpdating = false;
 g_strctPTB.g_strctStimulusServer.m_RefreshRateMS = fnParadigmToKofikoComm('GetRefreshRate');
 g_strctPTB.m_strctControlInputs.m_bLastStimulusPositionCheck = 0;
 
-g_strctParadigm.m_aiCenterOfSecondaryStimulus(1) = g_strctStimulusServer.m_aiScreenSize(3)/4;
-g_strctParadigm.m_aiCenterOfSecondaryStimulus(2) = g_strctStimulusServer.m_aiScreenSize(4)/4;
+% g_strctParadigm.m_aiCenterOfSecondaryStimulus(1) = g_strctStimulusServer.m_aiScreenSize(3)/4;
+% g_strctParadigm.m_aiCenterOfSecondaryStimulus(2) = g_strctStimulusServer.m_aiScreenSize(4)/4;
+g_strctParadigm.m_aiCenterOfSecondaryStimulus(1) = g_strctParadigm.SecondaryStimulusPosition.Buffer(1,1,1);
+g_strctParadigm.m_aiCenterOfSecondaryStimulus(2) = g_strctParadigm.SecondaryStimulusPosition.Buffer(1,2,1);
 g_strctParadigm.g_strctStimulusServer.m_aiSecondaryScreenSize = g_strctStimulusServer.m_aiScreenSize;
 
 g_strctParadigm.m_aiSecondaryStimulusRect(1) = g_strctParadigm.m_aiCenterOfSecondaryStimulus(1)-(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));
@@ -801,6 +1344,15 @@ g_strctParadigm.m_aiSecondaryStimulusRect(2) = g_strctParadigm.m_aiCenterOfSecon
 g_strctParadigm.m_aiSecondaryStimulusRect(3) = g_strctParadigm.m_aiCenterOfSecondaryStimulus(1)+(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));
 g_strctParadigm.m_aiSecondaryStimulusRect(4) = g_strctParadigm.m_aiCenterOfSecondaryStimulus(2)+(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));
  
+g_strctParadigm.m_aiCenterOfTertiaryStimulus(1) = 3*(g_strctStimulusServer.m_aiScreenSize(3)/4);
+g_strctParadigm.m_aiCenterOfTertiaryStimulus(2) = 3*(g_strctStimulusServer.m_aiScreenSize(4)/4);
+g_strctParadigm.g_strctStimulusServer.m_aiTertiaryScreenSize = g_strctStimulusServer.m_aiScreenSize;
+
+g_strctParadigm.m_aiTertiaryStimulusRect(1) = g_strctParadigm.m_aiCenterOfTertiaryStimulus(1)-(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));
+g_strctParadigm.m_aiTertiaryStimulusRect(2) = g_strctParadigm.m_aiCenterOfTertiaryStimulus(2)-(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));
+g_strctParadigm.m_aiTertiaryStimulusRect(3) = g_strctParadigm.m_aiCenterOfTertiaryStimulus(1)+(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));
+g_strctParadigm.m_aiTertiaryStimulusRect(4) = g_strctParadigm.m_aiCenterOfTertiaryStimulus(2)+(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));
+
 % primary stimulus info
 % Start the object at the fovea (center of screen). This is handled separately from the other variables during the paradigm
 g_strctParadigm.m_aiCenterOfStimulus(1) = g_strctStimulusServer.m_aiScreenSize(3)/2;
@@ -815,8 +1367,11 @@ g_strctParadigm.m_aiStimulusRect(4) = g_strctParadigm.m_aiCenterOfStimulus(2)+(s
 
 g_strctPTB.m_stimulusAreaUpdating = false;
 
-g_strctParadigm.m_bRandomStimulusPosition = false;
+g_strctParadigm.m_bRandomStimulusPosition = true; %felix added - changed default to true
 g_strctParadigm.m_bRandomStimulusOrientation = false;
+g_strctParadigm.m_bStimulusCollisions = 0; 
+g_strctParadigm.m_bRandPosEachFrame = true;
+g_strctParadigm.m_bGroundtruthCISonly = 0;
 
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MicroStimulationAmplitude', 0, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MicrostimDelayMS', 0, iSmallBuffer);
@@ -995,10 +1550,12 @@ if ~isempty(g_strctParadigm.m_strInitial_DefaultImageList) && exist(g_strctParad
     end
    end
 else
-   % g_strctParadigm.m_strctDesign = [];
+    % Felix uncommented
+    % g_strctParadigm.m_strctDesign = [];
 end;
 
 acFavoriteLists = {'HandMapper','Images','Movies'};
+% felix comment - what does this even do?
 g_strctParadigm.m_strctHandMappingDesignBackup = g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder;
 g_strctParadigm.m_strWhatToReset = 'Unit';
 fnInitializeHandMappingCommandStructure();
@@ -1037,4 +1594,4 @@ for i = 1:numel(fieldsToRM)
 	g_strctParadigm.m_strctInitialValues.(fieldsToRM{i}) = g_strctParadigm.(fieldsToRM{i});
 end
 g_strctParadigm = rmfield(g_strctParadigm,fieldsToRM);
-return;
+return;manag

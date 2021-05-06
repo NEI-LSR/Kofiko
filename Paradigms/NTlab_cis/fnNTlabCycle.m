@@ -73,6 +73,12 @@ fnVariableUpdateCheck();
 % Update the stimulus rectangle
 currentBlockStimAreaVariable = [g_strctParadigm.m_strCurrentlySelectedBlock,'StimulusArea'];
 
+%{
+g_strctParadigm.m_aiStimulusRect(1) = round(g_strctParadigm.m_aiCenterOfStimulus(1)-(squeeze(g_strctParadigm.StimulusArea.Buffer(1,:,g_strctParadigm.StimulusArea.BufferIdx)/2)));
+g_strctParadigm.m_aiStimulusRect(2) = round((g_strctParadigm.m_aiCenterOfStimulus(2)- .75 * (squeeze(g_strctParadigm.StimulusArea.Buffer(1,:,g_strctParadigm.StimulusArea.BufferIdx)/2))));
+g_strctParadigm.m_aiStimulusRect(3) = round(g_strctParadigm.m_aiCenterOfStimulus(1)+(squeeze(g_strctParadigm.StimulusArea.Buffer(1,:,g_strctParadigm.StimulusArea.BufferIdx)/2)));
+g_strctParadigm.m_aiStimulusRect(4) = round((g_strctParadigm.m_aiCenterOfStimulus(2)+ .75 * (squeeze(g_strctParadigm.StimulusArea.Buffer(1,:,g_strctParadigm.StimulusArea.BufferIdx)/2))));
+%}
 g_strctParadigm.m_aiStimulusRect(1) = round(g_strctParadigm.m_aiCenterOfStimulus(1)-(squeeze(g_strctParadigm.(currentBlockStimAreaVariable).Buffer(1,:,g_strctParadigm.(currentBlockStimAreaVariable).BufferIdx)/2)));
 g_strctParadigm.m_aiStimulusRect(2) = round((g_strctParadigm.m_aiCenterOfStimulus(2)- .75 * (squeeze(g_strctParadigm.(currentBlockStimAreaVariable).Buffer(1,:,g_strctParadigm.(currentBlockStimAreaVariable).BufferIdx)/2))));
 g_strctParadigm.m_aiStimulusRect(3) = round(g_strctParadigm.m_aiCenterOfStimulus(1)+(squeeze(g_strctParadigm.(currentBlockStimAreaVariable).Buffer(1,:,g_strctParadigm.(currentBlockStimAreaVariable).BufferIdx)/2)));
@@ -80,18 +86,19 @@ g_strctParadigm.m_aiStimulusRect(4) = round((g_strctParadigm.m_aiCenterOfStimulu
 
 if isfield(g_strctParadigm, 'm_strTrialType') && ~isempty(g_strctParadigm.m_strTrialType) && strcmp(g_strctParadigm.m_strTrialType, 'Dual Stim')
 currentBlockStimAreaVariable = ['DualstimSecondaryStimulusArea'];
-g_strctParadigm.m_aiSecondaryStimulusRect(1) = round(g_strctParadigm.m_aiCenterOfSecondaryStimulus(1)-(squeeze(g_strctParadigm.(currentBlockStimAreaVariable).Buffer(1,:,g_strctParadigm.(currentBlockStimAreaVariable).BufferIdx)/2)));
-g_strctParadigm.m_aiSecondaryStimulusRect(2) = round((g_strctParadigm.m_aiCenterOfSecondaryStimulus(2)- .75 * (squeeze(g_strctParadigm.(currentBlockStimAreaVariable).Buffer(1,:,g_strctParadigm.(currentBlockStimAreaVariable).BufferIdx)/2))));
-g_strctParadigm.m_aiSecondaryStimulusRect(3) = round(g_strctParadigm.m_aiCenterOfSecondaryStimulus(1)+(squeeze(g_strctParadigm.(currentBlockStimAreaVariable).Buffer(1,:,g_strctParadigm.(currentBlockStimAreaVariable).BufferIdx)/2)));
-g_strctParadigm.m_aiSecondaryStimulusRect(4) = round((g_strctParadigm.m_aiCenterOfSecondaryStimulus(2)+ .75 * (squeeze(g_strctParadigm.(currentBlockStimAreaVariable).Buffer(1,:,g_strctParadigm.(currentBlockStimAreaVariable).BufferIdx)/2))));
+cur_secondarystimarea=fnTsGetVar('g_strctParadigm','DualstimSecondaryStimulusArea')/2;
+g_strctParadigm.m_aiSecondaryStimulusRect(1) = round(g_strctParadigm.m_aiCenterOfSecondaryStimulus(1)- cur_secondarystimarea);
+g_strctParadigm.m_aiSecondaryStimulusRect(2) = round(g_strctParadigm.m_aiCenterOfSecondaryStimulus(2)- cur_secondarystimarea);
+g_strctParadigm.m_aiSecondaryStimulusRect(3) = round(g_strctParadigm.m_aiCenterOfSecondaryStimulus(1)+ cur_secondarystimarea);
+g_strctParadigm.m_aiSecondaryStimulusRect(4) = round(g_strctParadigm.m_aiCenterOfSecondaryStimulus(2)+ cur_secondarystimarea);
+
+g_strctParadigm.m_aiTertiaryStimulusRect(1) = round(g_strctParadigm.m_aiCenterOfTertiaryStimulus(1)- cur_secondarystimarea);
+g_strctParadigm.m_aiTertiaryStimulusRect(2) = round(g_strctParadigm.m_aiCenterOfTertiaryStimulus(2)- cur_secondarystimarea);
+g_strctParadigm.m_aiTertiaryStimulusRect(3) = round(g_strctParadigm.m_aiCenterOfTertiaryStimulus(1)+ cur_secondarystimarea);
+g_strctParadigm.m_aiTertiaryStimulusRect(4) = round(g_strctParadigm.m_aiCenterOfTertiaryStimulus(2)+ cur_secondarystimarea);
 end
 
-%{
-g_strctParadigm.m_aiStimulusRect(1) = round(g_strctParadigm.m_aiCenterOfStimulus(1)-(squeeze(g_strctParadigm.StimulusArea.Buffer(1,:,g_strctParadigm.StimulusArea.BufferIdx)/2)));
-g_strctParadigm.m_aiStimulusRect(2) = round((g_strctParadigm.m_aiCenterOfStimulus(2)- .75 * (squeeze(g_strctParadigm.StimulusArea.Buffer(1,:,g_strctParadigm.StimulusArea.BufferIdx)/2))));
-g_strctParadigm.m_aiStimulusRect(3) = round(g_strctParadigm.m_aiCenterOfStimulus(1)+(squeeze(g_strctParadigm.StimulusArea.Buffer(1,:,g_strctParadigm.StimulusArea.BufferIdx)/2)));
-g_strctParadigm.m_aiStimulusRect(4) = round((g_strctParadigm.m_aiCenterOfStimulus(2)+ .75 * (squeeze(g_strctParadigm.StimulusArea.Buffer(1,:,g_strctParadigm.StimulusArea.BufferIdx)/2))));
-%}
+
 
 % Handle micro stim events (per block mode)
 %{
@@ -159,8 +166,10 @@ switch g_strctParadigm.m_iMachineState
             end
             if g_strctParadigm.m_bPlanTrialsInAdvance
                 g_strctParadigm.m_strctCurrentTrial = g_strctParadigm.m_strctAllPlannedTrials(1).trial ;
+                testvar=1;
             else
                g_strctParadigm.m_strctCurrentTrial = g_strctParadigm.m_strctAllPlannedTrials.trial;
+               testvar=2;
             end
 			
         end
@@ -217,12 +226,16 @@ switch g_strctParadigm.m_iMachineState
 			%g_strctParadigm.m_bCheckStimServerForDisplayedTrials = false;
 		else
 			
-			
+			try
 			fnParadigmToStimulusServer('ShowTrial',g_strctParadigm.m_strctAllPlannedTrials);
+            catch
+            fnParadigmToStimulusServer('ForceMessage','ShowTrial',g_strctParadigm.m_strctAllPlannedTrials);
+            end
 			g_strctParadigm.m_bLastShownTrialCheckSent = false;
 			g_strctParadigm.m_bCheckStimServerForDisplayedTrials = false;
         end
-        %fnParadigmToStimulusServer('ShowTrial',g_strctParadigm.m_strctCurrentTrial);
+%        fnParadigmToStimulusServer('ShowTrial',g_strctParadigm.m_strctCurrentTrial); %Felix note: was previous commented out
+        
         g_strctParadigm.m_strctCurrentTrial.m_fSentMessageTimer = GetSecs();
         
         g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter = 1;
@@ -645,6 +658,7 @@ for iTrialsDisplayed = 1:g_strctParadigm.m_iLastShownTrialID
         g_strctParadigm.m_iLocalExperimentIter = g_strctParadigm.m_iLocalExperimentIter +1;
     end
 end
+
 %{
    
    if ~isempty(g_strctParadigm.m_strctCurrentTrial.m_fImageFlipON_TS_StimulusServer) &&...
@@ -850,6 +864,14 @@ if g_strctParadigm.m_strctStatServerComm.m_bPrintStatFigure
     g_strctParadigm.m_strctStatServerComm.m_bPrintStatFigure = 0;
     
 end
+if g_strctParadigm.m_strctStatServerComm.m_bDebugStatServer
+    g_strctParadigm.m_strHandMappingCommandToStatServer(iCommandsInBuffer).cmd = {'DebugMode'};
+    iCommandsInBuffer = iCommandsInBuffer+1;
+    g_strctParadigm.m_strctStatServerComm.m_bDebugStatServer = 0;
+    
+end
+
+
 g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 0;
 
 

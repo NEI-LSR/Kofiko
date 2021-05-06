@@ -22,36 +22,36 @@ end
 %disp(sprintf('callbacks function called %s', strCallback))
 
 switch strCallback
-
-	case 'CycleToNextMovieList'
-	
-		numMovieLists = numel(g_strctParadigm.m_strctMRIStim.m_acMRIStimPaths);
-		CurrentlySelectedMovieLists = get(g_strctParadigm.m_strctControllers.m_hBlockLists, 'value');
-		g_strctParadigm.m_iCurrentlyPlayingMovieListID = g_strctParadigm.m_iCurrentlyPlayingMovieListID + 1;
-		if g_strctParadigm.m_iCurrentlyPlayingMovieListID > numel(CurrentlySelectedMovieLists)
-			%g_strctParadigm.m_iCurrentlyPlayingMovieListID = CurrentlySelectedMovieLists(1);
-			g_strctParadigm.m_iCurrentlyPlayingMovieListID = 1;
-		else
-		g_strctParadigm.m_iCurrentlyPlayingMovieList = CurrentlySelectedMovieLists(g_strctParadigm.m_iCurrentlyPlayingMovieListID);
+    
+    case 'CycleToNextMovieList'
+        
+        numMovieLists = numel(g_strctParadigm.m_strctMRIStim.m_acMRIStimPaths);
+        CurrentlySelectedMovieLists = get(g_strctParadigm.m_strctControllers.m_hBlockLists, 'value');
+        g_strctParadigm.m_iCurrentlyPlayingMovieListID = g_strctParadigm.m_iCurrentlyPlayingMovieListID + 1;
+        if g_strctParadigm.m_iCurrentlyPlayingMovieListID > numel(CurrentlySelectedMovieLists)
+            %g_strctParadigm.m_iCurrentlyPlayingMovieListID = CurrentlySelectedMovieLists(1);
+            g_strctParadigm.m_iCurrentlyPlayingMovieListID = 1;
+        else
+            g_strctParadigm.m_iCurrentlyPlayingMovieList = CurrentlySelectedMovieLists(g_strctParadigm.m_iCurrentlyPlayingMovieListID);
         end
         aStrMovieListNames = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'string');
         %aStrMovieListNames(g_strctParadigm.m_iCurrentlyPlayingMovieList)
-		strSelectedImageList = deblank(aStrMovieListNames(g_strctParadigm.m_iCurrentlyPlayingMovieList,:));
-		if ~g_strctParadigm.m_strctMovieStim.m_bLoadOnTheFly
-                    
-			[g_strctParadigm.m_strctMovieStim.m_ahMovieHandles, g_strctParadigm.m_strctMovieStim.m_acMovieData,...
-				g_strctParadigm.m_strctMovieStim.m_abIsMovie, g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths] = ...
-				fnLoadImageSet({'LoadMovieSet'},g_strctParadigm.m_strMovieListDirectoryPath,strSelectedImageList);
-		else
-			[g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths] = ...
-				fnLoadImageSet({'GetMovieFilePaths'}, g_strctParadigm.m_strMovieListDirectoryPath, strSelectedImageList);
-		end
-		g_strctParadigm.m_strctMovieStim.m_iDisplayCount = zeros(numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths),1);
-				g_strctParadigm.m_strctMovieStim.m_iNumMoviesInThisBlock = numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths);
-		%set(g_strctParadigm.m_strctControllers.m_hBlockLists, 'value', g_strctParadigm.m_iCurrentBlockIndexInOrderList)
-		%feval(g_strctParadigm.m_strCallbacks,'JumpToBlock')
-		fnResumeParadigm();
-	%{
+        strSelectedImageList = deblank(aStrMovieListNames(g_strctParadigm.m_iCurrentlyPlayingMovieList,:));
+        if ~g_strctParadigm.m_strctMovieStim.m_bLoadOnTheFly
+            
+            [g_strctParadigm.m_strctMovieStim.m_ahMovieHandles, g_strctParadigm.m_strctMovieStim.m_acMovieData,...
+                g_strctParadigm.m_strctMovieStim.m_abIsMovie, g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths] = ...
+                fnLoadImageSet({'LoadMovieSet'},g_strctParadigm.m_strMovieListDirectoryPath,strSelectedImageList);
+        else
+            [g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths] = ...
+                fnLoadImageSet({'GetMovieFilePaths'}, g_strctParadigm.m_strMovieListDirectoryPath, strSelectedImageList);
+        end
+        g_strctParadigm.m_strctMovieStim.m_iDisplayCount = zeros(numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths),1);
+        g_strctParadigm.m_strctMovieStim.m_iNumMoviesInThisBlock = numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths);
+        %set(g_strctParadigm.m_strctControllers.m_hBlockLists, 'value', g_strctParadigm.m_iCurrentBlockIndexInOrderList)
+        %feval(g_strctParadigm.m_strCallbacks,'JumpToBlock')
+        fnResumeParadigm();
+        %{
 		                 %g_strctParadigm.m_iCurrentBlockIndexInOrderList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
                 g_strctParadigm.m_iCurrentlySelectedBlocksInOrderList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
                % g_strctParadigm.m_iCurrentMediaIndexInBlockList = 1;
@@ -76,33 +76,33 @@ switch strCallback
 				
 				
 				
-%}
-	
-	case 'ReverseMovieDisplayOrder'
-	
-		g_strctParadigm.m_strctMovieStim.m_bReverseOrder = ~g_strctParadigm.m_strctMovieStim.m_bReverseOrder;
-	
+        %}
+        
+    case 'ReverseMovieDisplayOrder'
+        
+        g_strctParadigm.m_strctMovieStim.m_bReverseOrder = ~g_strctParadigm.m_strctMovieStim.m_bReverseOrder;
+        
     case 'LockMovieAspectRatio'
         g_strctParadigm.m_strctMovieStim.m_bLockAspectRatio = ~g_strctParadigm.m_strctMovieStim.m_bLockAspectRatio;
         
         
-	case 'ForceMatchImageSizes'
-		g_strctParadigm.m_strctMRIStim.m_bForceMatchImageSizes = ~g_strctParadigm.m_strctMRIStim.m_bForceMatchImageSizes;
-		
-	case 'MatchToMaximumImageSize'
-		g_strctParadigm.m_strctMRIStim.m_bMatchToMaximumImageSize = ~g_strctParadigm.m_strctMRIStim.m_bMatchToMaximumImageSize;
-
-	case 'MatchToMinimumImageSize'
-		g_strctParadigm.m_strctMRIStim.m_bMatchToMinimumImageSize = ~g_strctParadigm.m_strctMRIStim.m_bMatchToMinimumImageSize;
-	
-	
-
+    case 'ForceMatchImageSizes'
+        g_strctParadigm.m_strctMRIStim.m_bForceMatchImageSizes = ~g_strctParadigm.m_strctMRIStim.m_bForceMatchImageSizes;
+        
+    case 'MatchToMaximumImageSize'
+        g_strctParadigm.m_strctMRIStim.m_bMatchToMaximumImageSize = ~g_strctParadigm.m_strctMRIStim.m_bMatchToMaximumImageSize;
+        
+    case 'MatchToMinimumImageSize'
+        g_strctParadigm.m_strctMRIStim.m_bMatchToMinimumImageSize = ~g_strctParadigm.m_strctMRIStim.m_bMatchToMinimumImageSize;
+        
+        
+        
     case 'RandomMovieDisplayOrder'
-         g_strctParadigm.m_strctMovieStim.m_bRandomOrder =  ~g_strctParadigm.m_strctMovieStim.m_bRandomOrder;
-	
-	case 'FitDisplayAreaToMovieSize'
-		g_strctParadigm.m_strctMovieStim.m_bFitDisplayAreaToMovieSize = ~g_strctParadigm.m_strctMovieStim.m_bFitDisplayAreaToMovieSize;
-	
+        g_strctParadigm.m_strctMovieStim.m_bRandomOrder =  ~g_strctParadigm.m_strctMovieStim.m_bRandomOrder;
+        
+    case 'FitDisplayAreaToMovieSize'
+        g_strctParadigm.m_strctMovieStim.m_bFitDisplayAreaToMovieSize = ~g_strctParadigm.m_strctMovieStim.m_bFitDisplayAreaToMovieSize;
+        
     case 'LoadOnTheFly'
         g_strctParadigm.m_strctMovieStim.m_bLoadOnTheFly = ~g_strctParadigm.m_strctMovieStim.m_bLoadOnTheFly;
         
@@ -199,66 +199,62 @@ switch strCallback
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
         
     case 'flushorientationspikebuffer'
-        %fnParadigmToStatServerComm('send', 'ClearOrientationBuffer')
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
         g_strctParadigm.m_strctStatServerComm.m_bClearOrientationBuffer = 1;
-        %g_strctParadigm.m_strHandMappingCommandToStatServer = [g_strctParadigm.m_strHandMappingCommandToStatServer,'flushorientationspikebuffer'];
-        %fnParadigmToStatServerComm('Send','flushorientationspikebuffer');
+
         
     case 'flushcolorspikebuffer'
-        %fnParadigmToStatServerComm('Send','FlushColorBuffer');
-        %g_strctParadigm.m_strHandMappingCommandToStatServer = [g_strctParadigm.m_strHandMappingCommandToStatServer,'flushcolorspikebuffer'];
+
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
         g_strctParadigm.m_strctStatServerComm.m_bClearColorBuffer = 1;
         
-	case 'flushimagespikebuffer'
-        %fnParadigmToStatServerComm('Send','FlushColorBuffer');
-        %g_strctParadigm.m_strHandMappingCommandToStatServer = [g_strctParadigm.m_strHandMappingCommandToStatServer,'flushcolorspikebuffer'];
-        g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
-        g_strctParadigm.m_strctStatServerComm.m_bClearImageBuffer = 1;	
-		
-	case 'printstatfigure'
-		 g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
-        g_strctParadigm.m_strctStatServerComm.m_bPrintStatFigure = 1;	
-		
+    case 'flushimagespikebuffer'
 
-		
+        g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
+        g_strctParadigm.m_strctStatServerComm.m_bClearImageBuffer = 1;
+        
+    case 'printstatfigure'
+        g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
+        g_strctParadigm.m_strctStatServerComm.m_bPrintStatFigure = 1;
+	
+	case 'debugstatserver'
+		g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
+        g_strctParadigm.m_strctStatServerComm.m_bDebugStatServer = 1;
 		
     case 'togglepsthplot'
-        %g_strctParadigm.m_strHandMappingCommandToStatServer = [g_strctParadigm.m_strHandMappingCommandToStatServer,'togglepsthplot'];
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
         g_strctParadigm.m_strctStatServerComm.m_bTogglePsthPlot = 1;
         
-	case 'togglewidthplot'
-		g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
+    case 'togglewidthplot'
+        g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
         g_strctParadigm.m_strctStatServerComm.m_bToggleWidthPlot = 1;
-		
-	 case 'flushwidthspikebuffer'
+        
+    case 'flushwidthspikebuffer'
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
-        g_strctParadigm.m_strctStatServerComm.m_bClearWidthBuffer = 1;	
-		
-	case 'togglelengthplot'
-		g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
+        g_strctParadigm.m_strctStatServerComm.m_bClearWidthBuffer = 1;
+        
+    case 'togglelengthplot'
+        g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
         g_strctParadigm.m_strctStatServerComm.m_bToggleLengthPlot = 1;
-		
-	case 'flushlengthspikebuffer'
+        
+    case 'flushlengthspikebuffer'
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
-        g_strctParadigm.m_strctStatServerComm.m_bClearLengthBuffer = 1;		
-		
-	case 'togglespeedplot'
-		g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
+        g_strctParadigm.m_strctStatServerComm.m_bClearLengthBuffer = 1;
+        
+    case 'togglespeedplot'
+        g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
         g_strctParadigm.m_strctStatServerComm.m_bToggleSpeedPlot = 1;
-		
-	 case 'flushspeedspikebuffer'
+        
+    case 'flushspeedspikebuffer'
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
-        g_strctParadigm.m_strctStatServerComm.m_bClearSpeedBuffer = 1;	
-		
-	 
-			
-	case 'toggleimageplot'
-		g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
-        g_strctParadigm.m_strctStatServerComm.m_bToggleImagePlot = 1;		
-		
+        g_strctParadigm.m_strctStatServerComm.m_bClearSpeedBuffer = 1;
+        
+        
+        
+    case 'toggleimageplot'
+        g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
+        g_strctParadigm.m_strctStatServerComm.m_bToggleImagePlot = 1;
+        
     case 'toggleorientationpolar'
         %g_strctParadigm.m_strHandMappingCommandToStatServer = [g_strctParadigm.m_strHandMappingCommandToStatServer,'toggleorientationpolar'];
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
@@ -268,12 +264,12 @@ switch strCallback
         %g_strctParadigm.m_strHandMappingCommandToStatServer = [g_strctParadigm.m_strHandMappingCommandToStatServer,'toggleisiplot'];
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
         g_strctParadigm.m_strctStatServerComm.m_bToggleISIPlot = 1;
-		
-	 case 'flushisispikebuffer'
-        g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
-        g_strctParadigm.m_strctStatServerComm.m_bClearISIBuffer = 1;	
         
-		
+    case 'flushisispikebuffer'
+        g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
+        g_strctParadigm.m_strctStatServerComm.m_bClearISIBuffer = 1;
+        
+        
     case 'togglepositionplot'
         %g_strctParadigm.m_strHandMappingCommandToStatServer = [g_strctParadigm.m_strHandMappingCommandToStatServer,'toggleisiplot'];
         g_strctParadigm.m_strctStatServerComm.m_bUpdateRequested = 1;
@@ -324,9 +320,9 @@ switch strCallback
         
     case 'ResetHandMapper'
         
-	case 'ContinueInMovieListWhenComplete'
-		g_strctParadigm.m_strctMovieStim.m_bContinueInMovieListWhenComplete = ~g_strctParadigm.m_strctMovieStim.m_bContinueInMovieListWhenComplete;
-		
+    case 'ContinueInMovieListWhenComplete'
+        g_strctParadigm.m_strctMovieStim.m_bContinueInMovieListWhenComplete = ~g_strctParadigm.m_strctMovieStim.m_bContinueInMovieListWhenComplete;
+        
         
     case 'UseCartesianCoordinates'
         g_strctParadigm.m_bUseCartesianCoordinates = ~g_strctParadigm.m_bUseCartesianCoordinates;
@@ -402,11 +398,11 @@ switch strCallback
                     g_strctParadigm.m_acstrSaturationsLookup{iSelectedColorList(iSize)};
                 
             end
-		else 
-			g_strctParadigm.m_iSelectedColorList = 1;
-			g_strctParadigm.m_strctCurrentSaturation = g_strctParadigm.m_strctMasterColorTable.(g_strctParadigm.m_strctMasterColorTableLookup{g_strctParadigm.m_iSelectedColorList});
-			g_strctParadigm.m_strctCurrentSaturationLookup = {g_strctParadigm.m_strctMasterColorTableLookup{g_strctParadigm.m_iSelectedColorList}};
-			set(g_strctParadigm.m_strctControllers.m_hColorLists,'value', g_strctParadigm.m_iSelectedColorList);
+        else
+            g_strctParadigm.m_iSelectedColorList = 1;
+            g_strctParadigm.m_strctCurrentSaturation = g_strctParadigm.m_strctMasterColorTable.(g_strctParadigm.m_strctMasterColorTableLookup{g_strctParadigm.m_iSelectedColorList});
+            g_strctParadigm.m_strctCurrentSaturationLookup = {g_strctParadigm.m_strctMasterColorTableLookup{g_strctParadigm.m_iSelectedColorList}};
+            set(g_strctParadigm.m_strctControllers.m_hColorLists,'value', g_strctParadigm.m_iSelectedColorList);
         end
     case 'RandStimulusLocation'
         g_strctParadigm.m_bRandomStimulusPosition = ~g_strctParadigm.m_bRandomStimulusPosition;
@@ -414,6 +410,17 @@ switch strCallback
     case 'RandStimulusOrientation'
         g_strctParadigm.m_bRandomStimulusOrientation = ~g_strctParadigm.m_bRandomStimulusOrientation;
         
+        %felix Added callbcks for pushbuttons
+    case 'StimulusCollisions'
+        g_strctParadigm.m_bStimulusCollisions = ~g_strctParadigm.m_bStimulusCollisions;
+        
+    case 'RandPosEachFrame'
+        g_strctParadigm.m_bRandPosEachFrame = ~g_strctParadigm.m_bRandPosEachFrame;
+ 
+    case 'GroundtruthCISonly'
+        g_strctParadigm.m_bGroundtruthCISonly = ~g_strctParadigm.m_bGroundtruthCISonly;
+        % end Felix added callbacks
+  
     case 'DiscRandStimulusOrientation'
         g_strctParadigm.m_strctHandMappingParameters.m_bDiscRandomStimulusOrientation = ~g_strctParadigm.m_strctHandMappingParameters.m_bDiscRandomStimulusOrientation;
         
@@ -504,6 +511,7 @@ switch strCallback
         fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hNumberOfBarsSlider, iNewNumberOfBars);
         set(g_strctParadigm.m_strctControllers.m_hNumberOfBarsEdit,'String',num2str(iNewNumberOfBars));
         varargout{1} = iNewNumberOfBars;
+        
     case 'Orientation'
         g_strctParadigm.m_strCurrentlySelectedVariable = 'Orientation';
         iNewStimulusOrientation = g_strctParadigm.Orientation.Buffer(g_strctParadigm.Orientation.BufferIdx);
@@ -585,10 +593,764 @@ switch strCallback
         
     case 'UpdateStimulusPosition'
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
-    
+        
+        %Felix added
     case 'UpdateSecondaryStimulusPosition'
         g_strctParadigm.m_strCurrentlySelectedVariable = 'SecondaryStimulusPosition';
+        
+    case 'UpdateTertiaryStimulusPosition'
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'TertiaryStimulusPosition';
+
+    case 'ContinuousDisplay'
+        ContinuousDisplay=fnTsGetVar('g_strctParadigm' ,'ContinuousDisplay');
+
+        if ContinuousDisplay == 0;
+            fnTsSetVarParadigm('ContinuousDisplay',1);
+        else
+            fnTsSetVarParadigm('ContinuousDisplay',0);
+        end
+        
+    case 'CSDtrigframe'
+        ContinuousDisplay=fnTsGetVar('g_strctParadigm' ,'CSDtrigframe');
+
+        if ContinuousDisplay == 0;
+            fnTsSetVarParadigm('CSDtrigframe',1);
+        else
+            fnTsSetVarParadigm('CSDtrigframe',0);
+        end
+            
+    case 'PregenACloudStimuli'
+        WaitSecs(1)
+        spatialscale=fnTsGetVar('g_strctParadigm' ,'DensenoiseScale');
+        cloudpix=fnTsGetVar('g_strctParadigm' ,'cloudpix');
+        %g_strctParadigm.DensenoiseAchromcloud = round((mk_spatialcloud(cloudpix,cloudpix, g_strctParadigm.Dualstim_pregen_achromcloud_n, spatialscale)./2 +.5).*255);
+        %[~,g_strctParadigm.DensenoiseAchromcloud_binned] = histc(g_strctParadigm.DensenoiseAchromcloud,linspace(0,255,256));
+        load([g_strctParadigm.NoiseStimDir '\' sprintf('Cloudstims_Achrom_size%d_scale%d_%02d.mat', cloudpix, spatialscale, 1)],'DensenoiseAchromcloud_binned');
+        g_strctParadigm.DensenoiseAchromcloud_binned = DensenoiseAchromcloud_binned; clearvars DensenoiseAchromcloud_binned
+
+        fnInitializeAchromCloudTextures(g_strctParadigm.Dualstim_pregen_achromcloud_n, 0, g_strctParadigm.DensenoiseAchromcloud_binned, g_strctParadigm.DensenoiseAchromcloud_binned) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+        fnParadigmToStimulusServer('ForceMessage', 'InitializeAchromCloudTextures', g_strctParadigm.Dualstim_pregen_achromcloud_n, 0, g_strctParadigm.DensenoiseAchromcloud_binned, g_strctParadigm.DensenoiseAchromcloud_binned);
+       
+    case 'PregenCCloudStimuli'
+        WaitSecs(1)
+%                Screen('Close',g_strctParadigm.chromcloud_local);
+        g_strctParadigm.Cur_CCloud_loaded = g_strctParadigm.NoiseStimDir;%'randpregen';
+        spatialscale=fnTsGetVar('g_strctParadigm' ,'DensenoiseScale');
+        cloudpix=fnTsGetVar('g_strctParadigm' ,'cloudpix');
+        %{
+%        DensenoiseChromcloud1 = (mk_spatialcloudRGB(25, 25, g_strctParadigm.Dualstim_pregen_chromcloud_n, spatialscale));
+%        DensenoiseChromcloud2=reshape(DensenoiseChromcloud1,25*25*g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+%         DensenoiseChromcloud2=reshape(mk_spatialcloudRGB(25, 25, g_strctParadigm.Dualstim_pregen_chromcloud_n, spatialscale),25*25*g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+%         DensenoiseChromcloud_sums=sum(abs(DensenoiseChromcloud2),2); DensenoiseChromcloud_sums(DensenoiseChromcloud_sums < 1)=1;
+%         g_strctParadigm.DensenoiseChromcloud_DKlspace=DensenoiseChromcloud2./[DensenoiseChromcloud_sums,DensenoiseChromcloud_sums,DensenoiseChromcloud_sums];
+%         DensenoiseChromcloud3=round(255.*ldrgyv2rgb(g_strctParadigm.DensenoiseChromcloud_DKlspace(:,1)',g_strctParadigm.DensenoiseChromcloud_DKlspace(:,2)',g_strctParadigm.DensenoiseChromcloud_DKlspace(:,3)'));
+%         g_strctParadigm.DensenoiseChromcloud=reshape(DensenoiseChromcloud3',25,25,g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+%         g_strctParadigm.DensenoiseChromcloud_DKlspace=reshape(g_strctParadigm.DensenoiseChromcloud_DKlspace',25,25,g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+        g_strctParadigm.DensenoiseChromcloud_DKlspace=reshape(mk_spatialcloudRGB(cloudpix, cloudpix, g_strctParadigm.Dualstim_pregen_chromcloud_n, spatialscale),cloudpix*cloudpix*g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+        DensenoiseChromcloud_sums=sum(abs(g_strctParadigm.DensenoiseChromcloud_DKlspace),2); DensenoiseChromcloud_sums(DensenoiseChromcloud_sums < 1)=1;
+        g_strctParadigm.DensenoiseChromcloud_DKlspace=g_strctParadigm.DensenoiseChromcloud_DKlspace./[DensenoiseChromcloud_sums,DensenoiseChromcloud_sums,DensenoiseChromcloud_sums];
+        g_strctParadigm.DensenoiseChromcloud=reshape(round(255.*ldrgyv2rgb(g_strctParadigm.DensenoiseChromcloud_DKlspace(:,1)',g_strctParadigm.DensenoiseChromcloud_DKlspace(:,2)',g_strctParadigm.DensenoiseChromcloud_DKlspace(:,3)'))',cloudpix,cloudpix,g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+        g_strctParadigm.DensenoiseChromcloud_DKlspace=reshape(g_strctParadigm.DensenoiseChromcloud_DKlspace,cloudpix,cloudpix,g_strctParadigm.Dualstim_pregen_chromcloud_n,3);
+
+        fnInitializeChromCloudTextures(g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+        fnParadigmToStimulusServer('ForceMessage', 'InitializeChromCloudTextures', g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud);
+        %}
+        
+        load([g_strctParadigm.NoiseStimDir '\' sprintf('Cloudstims_Chrom_size%d_scale%d_%02d.mat', cloudpix, spatialscale, 1)], 'DensenoiseChromcloud');
+        g_strctParadigm.DensenoiseChromcloud = DensenoiseChromcloud; clearvars DensenoiseChromcloud
+        fnInitializeChromCloudTextures(g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+        fnParadigmToStimulusServer('ForceMessage', 'InitializeChromCloudTextures', g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud);
+
+    case 'PregenBarStimuli'
+%        Screen('Close')
+        WaitSecs(1)
+        %{
+        cur_ori=fnTsGetVar('g_strctParadigm' ,'DensenoiseOrientation'); 
+        cur_oribin=floor(cur_ori./15)+1;
+
+        DensenoiseChromBar=reshape(repmat(squeeze(g_strctParadigm.barstims_base.barmat_n50s2(cur_oribin,:,:)),1,1,g_strctParadigm.Dualstim_pregen_chrombar_n),50*50,g_strctParadigm.Dualstim_pregen_chrombar_n);
+        nbars=25;
+        randseed=rand(g_strctParadigm.Dualstim_pregen_chrombar_n, nbars);
+        g_strctParadigm.chrombarmat = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n, nbars);
+        pvec_edges=[0 cumsum(g_strctParadigm.barprobs)];
+        for pp=1:7
+            g_strctParadigm.chrombarmat(randseed>pvec_edges(pp) & randseed<pvec_edges(pp+1))=pp;
+        end
+
+        for ff=1:g_strctParadigm.Dualstim_pregen_chrombar_n
+            g_strctParadigm.DensenoiseChromBar(find(DensenoiseChromBar(:,ff)==0),ff,1:3)=repmat(g_strctParadigm.barcolsRGB(1,:),length(find(DensenoiseChromBar(:,ff)==0)),1);
+            for pp=1:7
+                curbars=find(g_strctParadigm.chrombarmat(ff,:)==pp);
+                g_strctParadigm.DensenoiseChromBar(find(ismember(DensenoiseChromBar(:,ff),curbars)),ff,1:3)=repmat(g_strctParadigm.barcolsRGB(pp,:),length(find(ismember(DensenoiseChromBar(:,ff),curbars))),1);
+            end
+        end
+        g_strctParadigm.DensenoiseChromBar=reshape(g_strctParadigm.DensenoiseChromBar,50,50,g_strctParadigm.Dualstim_pregen_chrombar_n,3);
+        %toc
+        fnInitializeChromBarTextures(g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBar) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+        fnParadigmToStimulusServer('ForceMessage', 'InitializeChromBarTextures', g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBar);
+%}
+fnInitializeChromBarTextures(g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBarbase) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeChromBarTextures', g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBarbase);
+
+    fnInitializeHartleyTextures('Z:\StimulusSet\NTlab_cis\hartleys_50_wbins.mat', 7)
+    fnParadigmToStimulusServer('ForceMessage', 'InitializeHartleyTextures', 'Z:\StimulusSet\NTlab_cis\hartleys_50_wbins.mat', 7);
+
+    case 'EyeTrace'
+      if g_strctParadigm.m_bShowEyeTraces
+          g_strctParadigm.m_bShowEyeTraces = false;
+          set(g_strctParadigm.m_strctControllers.m_hEyeTraceButton,'fontweight','normal');
+          fnParadigmToKofikoComm('HideEyeTraces');
+          fnParadigmToKofikoComm('ClearEyeTraces');
+      else
+          g_strctParadigm.m_bShowEyeTraces = true;
+          set(g_strctParadigm.m_strctControllers.m_hEyeTraceButton,'fontweight','bold');
+          fnParadigmToKofikoComm('ShowEyeTraces');
+      end;
     
+    case 'DiscDiameter'
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'DiscDiameter';
+        iNewDiscDiameter = g_strctParadigm.DiscDiameter.Buffer(g_strctParadigm.DiscDiameter.BufferIdx);
+        fnTsSetVarParadigm('DiscDiameter',iNewDiscDiameter);
+        fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hDiscDiameterSlider, iNewDiscDiameter);
+        set(g_strctParadigm.m_strctControllers.m_hDiscDiameterEdit,'String',num2str(iNewDiscDiameter));
+        varargout{1} = iNewDiscDiameter;
+        
+    case 'DiscStimulusOnTime'
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'DiscStimulusOnTime';
+        iNewDiscStimulusOnTime = g_strctParadigm.DiscStimulusOnTime.Buffer(g_strctParadigm.DiscStimulusOnTime.BufferIdx);
+        fnTsSetVarParadigm('DiscStimulusOnTime',iNewDiscStimulusOnTime);
+        fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hDiscStimulusOnTimeSlider, iNewDiscStimulusOnTime);
+        set(g_strctParadigm.m_strctControllers.m_hDiscStimulusOnTimeEdit,'String',num2str(iNewDiscStimulusOnTime));
+        varargout{1} = iNewDiscStimulusOnTime;
+        
+    case 'DiscStimulusOffTime'
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'DiscStimulusOffTime';
+        iNewDiscStimulusOffTime = g_strctParadigm.DiscStimulusOffTime.Buffer(g_strctParadigm.DiscStimulusOffTime.BufferIdx);
+        fnTsSetVarParadigm('DiscStimulusOffTime',iNewDiscStimulusOffTime);
+        fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hDiscStimulusOffTimeSlider, iNewDiscStimulusOffTime);
+        set(g_strctParadigm.m_strctControllers.m_hDiscStimulusOffTimeEdit,'String',num2str(iNewDiscStimulusOffTime));
+        varargout{1} = iNewDiscStimulusOffTime;
+
+    case 'DiscProbeDiameter'
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'DiscProbeDiameter';
+        iNewDiscDiameter = g_strctParadigm.DiscProbeDiameter.Buffer(g_strctParadigm.DiscProbeDiameter.BufferIdx);
+        fnTsSetVarParadigm('DiscProbeDiameter',iNewDiscDiameter);
+        fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hDiscProbeDiameterSlider, iNewDiscDiameter);
+        set(g_strctParadigm.m_strctControllers.m_hDiscProbeDiameterEdit,'String',num2str(iNewDiscDiameter));
+        varargout{1} = iNewDiscDiameter;
+        
+    case 'DiscProbeStimulusOnTime'
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'DiscProbeStimulusOnTime';
+        iNewDiscStimulusOnTime = g_strctParadigm.DiscProbeStimulusOnTime.Buffer(g_strctParadigm.DiscProbeStimulusOnTime.BufferIdx);
+        fnTsSetVarParadigm('DiscProbeStimulusOnTime',iNewDiscStimulusOnTime);
+        fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hDiscProbeStimulusOnTimeSlider, iNewDiscStimulusOnTime);
+        set(g_strctParadigm.m_strctControllers.m_hDiscProbeStimulusOnTimeEdit,'String',num2str(iNewDiscStimulusOnTime));
+        varargout{1} = iNewDiscStimulusOnTime;
+        
+    case 'DiscProbeStimulusOffTime'
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'DiscProbeStimulusOffTime';
+        iNewDiscStimulusOffTime = g_strctParadigm.DiscProbeStimulusOffTime.Buffer(g_strctParadigm.DiscProbeStimulusOffTime.BufferIdx);
+        fnTsSetVarParadigm('DiscProbeStimulusOffTime',iNewDiscStimulusOffTime);
+        fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hDiscProbeStimulusOffTimeSlider, iNewDiscStimulusOffTime);
+        set(g_strctParadigm.m_strctControllers.m_hDiscProbeStimulusOffTimeEdit,'String',num2str(iNewDiscStimulusOffTime));
+        varargout{1} = iNewDiscStimulusOffTime;
+        
+    case 'UseCenterSurroundProbe'
+        UseCenterSurroundProbe=fnTsGetVar('g_strctParadigm' ,'UseCenterSurroundProbe');
+
+        if UseCenterSurroundProbe == 0;
+            fnTsSetVarParadigm('UseCenterSurroundProbe',1);
+        else
+            fnTsSetVarParadigm('UseCenterSurroundProbe',0);
+        end
+        
+    case {'CIHandmapperStimulusArea', 'DualstimStimulusArea','GroundtruthStimulusArea','DensenoiseStimulusArea', 'MovingbarStimulusArea', 'OneDnoiseStimulusArea' } %'PlainbarStimulusArea'
+        currentBlockStimAreaVariable = [g_strctParadigm.m_strCurrentlySelectedBlock,'StimulusArea'];
+        g_strctParadigm.m_strCurrentlySelectedVariable = currentBlockStimAreaVariable;
+        iNewStimulusArea = g_strctParadigm.(currentBlockStimAreaVariable).Buffer(g_strctParadigm.(currentBlockStimAreaVariable).BufferIdx);
+        fnTsSetVarParadigm('CIHandmapperStimulusArea',iNewStimulusArea);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusAreaSlider, iNewStimulusArea);
+            set(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusAreaEdit,'String',num2str(iNewStimulusArea));
+        fnTsSetVarParadigm('DualstimStimulusArea',iNewStimulusArea);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hDualstimStimulusAreaSlider, iNewStimulusArea);
+            set(g_strctParadigm.m_strctControllers.m_hDualstimStimulusAreaEdit,'String',num2str(iNewStimulusArea));
+        fnTsSetVarParadigm('GroundtruthStimulusArea',iNewStimulusArea);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hGroundtruthStimulusAreaSlider, iNewStimulusArea);
+            set(g_strctParadigm.m_strctControllers.m_hGroundtruthStimulusAreaEdit,'String',num2str(iNewStimulusArea));
+        fnTsSetVarParadigm('DensenoiseStimulusArea',iNewStimulusArea);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hDensenoiseStimulusAreaSlider, iNewStimulusArea);
+            set(g_strctParadigm.m_strctControllers.m_hDensenoiseStimulusAreaEdit,'String',num2str(iNewStimulusArea));
+        fnTsSetVarParadigm('MovingBarStimulusArea',iNewStimulusArea);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hMovingBarStimulusAreaSlider, iNewStimulusArea);
+            set(g_strctParadigm.m_strctControllers.m_hMovingBarStimulusAreaEdit,'String',num2str(iNewStimulusArea));
+        fnTsSetVarParadigm('OneDnoiseStimulusArea',iNewStimulusArea);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hOneDnoiseStimulusAreaSlider, iNewStimulusArea);
+            set(g_strctParadigm.m_strctControllers.m_hOneDnoiseStimulusAreaEdit,'String',num2str(iNewStimulusArea));
+			
+    case 'SetBG_w'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundRedSlider, 255);
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, 255);
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundBlueSlider, 255);
+            
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',16);
+            
+        fnTsSetVarParadigm('PlainBarBackgroundRed',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundRedSlider, 255);
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, 255);
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundBlueSlider, 255);
+    case 'SetFG_w'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, 255);
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, 255);
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, 255);
+            
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',16);
+            
+        fnTsSetVarParadigm('PlainBarStimulusRed',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, 255);
+        fnTsSetVarParadigm('PlainBarStimulusGreen',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, 255);
+        fnTsSetVarParadigm('PlainBarStimulusBlue',255);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, 255);  
+
+    case 'SetBG_g'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundRedSlider, 128);
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, 128);
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundBlueSlider, 128);
+            
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',1);
+        
+        fnTsSetVarParadigm('PlainBarBackgroundRed',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundRedSlider, 128);
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, 128);
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundBlueSlider, 128);
+    case 'SetFG_g'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, 128);
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, 128);
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, 128);
+    
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',1);
+        
+        fnTsSetVarParadigm('PlainBarStimulusRed',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, 128);
+        fnTsSetVarParadigm('PlainBarStimulusGreen',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, 128);
+        fnTsSetVarParadigm('PlainBarStimulusBlue',128);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, 128);  
+            
+    case 'SetBG_k'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundRedSlider, 0);
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, 0);
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundBlueSlider, 0);
+               
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',0);
+        
+        fnTsSetVarParadigm('PlainBarBackgroundRed',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundRedSlider, 0);
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, 0);
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundBlueSlider, 0);
+    case 'SetFG_k'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, 0);
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, 0);
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, 0);
+            
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',0);
+        
+        fnTsSetVarParadigm('PlainBarStimulusRed',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, 0);
+        fnTsSetVarParadigm('PlainBarStimulusGreen',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, 0);
+        fnTsSetVarParadigm('PlainBarStimulusBlue',0);
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, 0);  
+
+                
+    case 'SetBG_Sminus'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{1,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundRedSlider, g_strctParadigm.m_cPresetColors{1,1}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{1,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{1,1}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{1,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundBlueSlider, g_strctParadigm.m_cPresetColors{1,1}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',2);
+        
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{1,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundRedSlider, g_strctParadigm.m_cPresetColors{1,1}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{1,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{1,1}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{1,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundBlueSlider, g_strctParadigm.m_cPresetColors{1,1}(3));
+    case 'SetFG_Sminus'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{1,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{1,1}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{1,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{1,1}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{1,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{1,1}(3));
+           
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',2);
+        
+                fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{1,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{1,1}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{1,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{1,1}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{1,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{1,1}(3));
+    
+    case 'SetBG_Splus'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{1,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundRedSlider, g_strctParadigm.m_cPresetColors{1,2}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{1,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{1,2}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{1,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundBlueSlider, g_strctParadigm.m_cPresetColors{1,2}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',3);
+        
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{1,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundRedSlider, g_strctParadigm.m_cPresetColors{1,2}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{1,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{1,2}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{1,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundBlueSlider, g_strctParadigm.m_cPresetColors{1,2}(3));
+    case 'SetFG_Splus'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{1,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{1,2}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{1,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{1,2}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{1,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{1,2}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',3);
+        
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{1,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{1,2}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{1,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{1,2}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{1,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{1,2}(3));
+    
+    case 'SetBG_Mminus'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{2,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundRedSlider, g_strctParadigm.m_cPresetColors{2,1}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{2,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{2,1}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{2,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundBlueSlider, g_strctParadigm.m_cPresetColors{2,1}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',4);
+        
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{2,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundRedSlider, g_strctParadigm.m_cPresetColors{2,1}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{2,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{2,1}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{2,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundBlueSlider, g_strctParadigm.m_cPresetColors{2,1}(3));
+    case 'SetFG_Mminus'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{2,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{2,1}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{2,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{2,1}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{2,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{2,1}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',4);
+        
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{2,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{2,1}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{2,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{2,1}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{2,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{2,1}(3));
+ 
+    case 'SetBG_Mplus'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{2,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{2,2}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{2,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{2,2}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{2,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{2,2}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',5);
+        
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{2,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{2,2}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{2,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{2,2}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{2,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{2,2}(3));
+    case 'SetFG_Mplus'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{2,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{2,2}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{2,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{2,2}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{2,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{2,2}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',5);
+        
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{2,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{2,2}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{2,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{2,2}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{2,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{2,2}(3));
+            
+    case 'SetBG_Lminus'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{3,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{3,1}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{3,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{3,1}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{3,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{3,1}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',6);
+        
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{3,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{3,1}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{3,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{3,1}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{3,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{3,1}(3));
+    case 'SetFG_Lminus'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{3,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{3,1}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{3,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{3,1}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{3,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{3,1}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',6);
+        
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{3,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{3,1}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{3,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{3,1}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{3,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{3,1}(3));
+    
+    case 'SetBG_Lplus'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{3,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{3,2}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{3,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{3,2}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{3,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{3,2}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',7);
+        
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{3,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{3,2}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{3,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{3,2}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{3,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{3,2}(3));
+    case 'SetFG_Lplus'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{3,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{3,2}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{3,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{3,2}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{3,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{3,2}(3));
+                
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',7);
+        
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{3,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{3,2}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{3,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{3,2}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{3,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{3,2}(3));  
+
+    case 'SetBG_DKL0'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{4,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,1}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{4,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,1}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{4,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,1}(3));
+
+            fnTsSetVarParadigm('CIHandmapperBackgroundIndex',8);
+             
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{4,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,1}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{4,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,1}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{4,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,1}(3));
+    case 'SetFG_DKL0'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{4,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,1}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{4,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,1}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{4,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,1}(3));
+            
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',8);
+ 
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{4,1}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,1}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{4,1}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,1}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{4,1}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,1}(3));  
+
+    case 'SetBG_DKL45'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{4,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,2}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{4,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,2}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{4,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,2}(3));
+
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',9);
+             
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{4,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,2}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{4,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,2}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{4,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,2}(3));
+    case 'SetFG_DKL45'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{4,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,2}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{4,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,2}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{4,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,2}(3));
+
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',9);
+
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{4,2}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,2}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{4,2}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,2}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{4,2}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,2}(3));  
+
+    case 'SetBG_DKL90'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{4,3}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,3}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{4,3}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,3}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{4,3}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,3}(3));
+
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',10);
+
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{4,3}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,3}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{4,3}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,3}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{4,3}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,3}(3));
+    case 'SetFG_DKL90'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{4,3}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,3}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{4,3}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,3}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{4,3}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,3}(3));
+
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',10);
+
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{4,3}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,3}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{4,3}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,3}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{4,3}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,3}(3));  
+
+    case 'SetBG_DKL135'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{4,4}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,4}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{4,4}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,4}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{4,4}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,4}(3));
+
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',11);
+
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{4,4}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,4}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{4,4}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,4}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{4,4}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,4}(3));
+    case 'SetFG_DKL135'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{4,4}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,4}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{4,4}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,4}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{4,4}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,4}(3));
+
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',11);
+
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{4,4}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,4}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{4,4}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,4}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{4,4}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,4}(3));  
+
+    case 'SetBG_DKL180'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{4,5}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,5}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{4,5}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,5}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{4,5}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,5}(3));
+
+        fnTsSetVarParadigm('CIHandmapperBackroundIndex',12);
+
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{4,5}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,5}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{4,5}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,5}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{4,5}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,5}(3));
+    case 'SetFG_DKL180'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{4,5}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,5}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{4,5}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,5}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{4,5}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,5}(3));
+
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',12);
+
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{4,5}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,5}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{4,5}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,5}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{4,5}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,5}(3));  
+
+    case 'SetBG_DKL225'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{4,6}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,6}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{4,6}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,6}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{4,6}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,6}(3));
+
+        fnTsSetVarParadigm('CIHandmapperbackgroundIndex',13);
+
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{4,6}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,6}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{4,6}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,6}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{4,6}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,6}(3));
+    case 'SetFG_DKL225'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{4,6}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,6}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{4,6}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,6}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{4,6}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,6}(3));
+
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',13);
+
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{4,6}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,6}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{4,6}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,6}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{4,6}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,6}(3));  
+
+    case 'SetBG_DKL270'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{4,7}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,7}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{4,7}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,7}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{4,7}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,7}(3));
+
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',14);
+
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{4,7}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,7}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{4,7}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,7}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{4,7}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,7}(3));
+    case 'SetFG_DKL270'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{4,7}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,7}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{4,7}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,7}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{4,7}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,7}(3));
+
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',14);
+
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{4,7}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,7}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{4,7}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,7}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{4,7}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,7}(3));  
+
+    case 'SetBG_DKL315'
+        fnTsSetVarParadigm('CIHandmapperBackgroundRed',g_strctParadigm.m_cPresetColors{4,8}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,8}(1));
+        fnTsSetVarParadigm('CIHandmapperBackgroundGreen',g_strctParadigm.m_cPresetColors{4,8}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,8}(2));
+        fnTsSetVarParadigm('CIHandmapperBackgroundBlue',g_strctParadigm.m_cPresetColors{4,8}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,8}(3));
+
+        fnTsSetVarParadigm('CIHandmapperBackgroundIndex',15);
+
+        fnTsSetVarParadigm('PlainBarBackgroundRed',g_strctParadigm.m_cPresetColors{4,8}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,8}(1));
+        fnTsSetVarParadigm('PlainBarBackgroundGreen',g_strctParadigm.m_cPresetColors{4,8}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarBackgroundGreenSlider, g_strctParadigm.m_cPresetColors{4,8}(2));
+        fnTsSetVarParadigm('PlainBarBackgroundBlue',g_strctParadigm.m_cPresetColors{4,8}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,8}(3));
+    case 'SetFG_DKL315'
+        fnTsSetVarParadigm('CIHandmapperStimulusRed',g_strctParadigm.m_cPresetColors{4,8}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,8}(1));
+        fnTsSetVarParadigm('CIHandmapperStimulusGreen',g_strctParadigm.m_cPresetColors{4,8}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,8}(2));
+        fnTsSetVarParadigm('CIHandmapperStimulusBlue',g_strctParadigm.m_cPresetColors{4,8}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hCIHandmapperStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,8}(3));
+
+        fnTsSetVarParadigm('CIHandmapperStimulusIndex',15);
+
+        fnTsSetVarParadigm('PlainBarStimulusRed',g_strctParadigm.m_cPresetColors{4,8}(1));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusRedSlider, g_strctParadigm.m_cPresetColors{4,8}(1));
+        fnTsSetVarParadigm('PlainBarStimulusGreen',g_strctParadigm.m_cPresetColors{4,8}(2));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusGreenSlider, g_strctParadigm.m_cPresetColors{4,8}(2));
+        fnTsSetVarParadigm('PlainBarStimulusBlue',g_strctParadigm.m_cPresetColors{4,8}(3));
+            fnUpdateSlider(g_strctParadigm.m_strctControllers.m_hPlainBarStimulusBlueSlider, g_strctParadigm.m_cPresetColors{4,8}(3));  
+
+
+
     case 'SetDynamicTrialMode'
         g_strctParadigm.m_bSetDynamicTrialMode = ~g_strctParadigm.m_bSetDynamicTrialMode;
         if g_strctRealTimeStatServer.m_bConnected
@@ -633,7 +1395,7 @@ switch strCallback
         end
     case 'LoadImageSet'
         fnPauseParadigm();
-		fnParadigmToStimulusServer('LoadDefaultClut');
+        fnParadigmToStimulusServer('LoadDefaultClut');
         fnParadigmToStimulusServer('LoadDefaultBlendFunction');
         Screen('BlendFunction', g_strctPTB.m_hWindow, GL_ONE, GL_ZERO);
         
@@ -641,26 +1403,26 @@ switch strCallback
         Screen('Flip', g_strctPTB.m_hWindow, 0, 0, 2);
         % wait for the screen to update so it doesnt crash in the main cycle
         WaitSecs(.3);
-         try
-                	for iTextures = 1:numel(g_strctParadigm.m_strctMRIStim.ahTextures)
-                    % free up texture memory just in case
-                    	Screen('Close',g_strctParadigm.m_strctMRIStim.ahTextures(iTextures));
-                    
-                	end
-                end
+        try
+            for iTextures = 1:numel(g_strctParadigm.m_strctMRIStim.ahTextures)
+                % free up texture memory just in case
+                Screen('Close',g_strctParadigm.m_strctMRIStim.ahTextures(iTextures));
+                
+            end
+        end
         aStrImageListNames = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'string');
-                %iSelectedImageList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
+        %iSelectedImageList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
         strSelectedImageList = deblank(aStrImageListNames(g_strctParadigm.m_iCurrentBlockIndexInOrderList,:));
-		[g_strctParadigm.m_strctMRIStim.ahTextures,g_strctParadigm.m_strctMRIStim.a2iTextureSize,...
-			g_strctParadigm.m_strctMRIStim.abIsMovie,g_strctParadigm.m_strctMRIStim.aiApproxNumFrames,...
-			g_strctParadigm.m_strctMRIStim.afMovieLengthSec,g_strctParadigm.m_strctMRIStim.acImages] = ...
-			fnInitializeHandMappingTextures(g_strctParadigm.m_strImageListDirectoryPath, strSelectedImageList);
-		fnParadigmToStimulusServer('ForceMessage','LoadImageSetHandMapping', g_strctParadigm.m_strImageListDirectoryPath, strSelectedImageList);
+        [g_strctParadigm.m_strctMRIStim.ahTextures,g_strctParadigm.m_strctMRIStim.a2iTextureSize,...
+            g_strctParadigm.m_strctMRIStim.abIsMovie,g_strctParadigm.m_strctMRIStim.aiApproxNumFrames,...
+            g_strctParadigm.m_strctMRIStim.afMovieLengthSec,g_strctParadigm.m_strctMRIStim.acImages] = ...
+            fnInitializeHandMappingTextures(g_strctParadigm.m_strImageListDirectoryPath, strSelectedImageList);
+        fnParadigmToStimulusServer('ForceMessage','LoadImageSetHandMapping', g_strctParadigm.m_strImageListDirectoryPath, strSelectedImageList);
         
         g_strctParadigm.m_strCurrentlySelectedBlock = 'Image';
         g_strctParadigm.m_strctMRIStim.m_strCurrentlySelectedStimset = strSelectedImageList;
-		        setStimulusPanelButton('Image',g_strctParadigm.m_strCurrentlySelectedBlock);
-
+        setStimulusPanelButton('Image',g_strctParadigm.m_strCurrentlySelectedBlock);
+        
         
     case 'LoadFavoriteList'
         % fnParadigmToKofikoComm('SafeCallback','LoadFavoriteListSafe');
@@ -669,7 +1431,7 @@ switch strCallback
         cImageListNames = get(g_strctParadigm.m_strctControllers.m_hFavoriteLists,'string');
         g_strctParadigm.m_iCurrentBlockIndexInOrderList = 1;
         set(g_strctParadigm.m_strctControllers.m_hBlockLists, 'value', 1);
-		
+        
         
         switch deblank(cImageListNames(iSelectedImageList,:))
             case 'HandMapper'
@@ -706,11 +1468,11 @@ switch strCallback
                 set(g_strctParadigm.m_strctControllers.m_hBlockLists, 'string', g_strctParadigm.m_strctMRIStim.m_acMRIStimPaths);
                 aStrImageListNames = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'string');
                 %iSelectedImageList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
-				for iLists = 1:numel(g_strctParadigm.m_iCurrentBlockIndexInOrderList)
+                for iLists = 1:numel(g_strctParadigm.m_iCurrentBlockIndexInOrderList)
                     strSelectedImageList{iLists} = deblank(aStrImageListNames{g_strctParadigm.m_iCurrentBlockIndexInOrderList(iLists)});
-
+                    
                 end
-               % strSelectedImageList = deblank(aStrImageListNames(g_strctParadigm.m_iCurrentBlockIndexInOrderList,:));
+                % strSelectedImageList = deblank(aStrImageListNames(g_strctParadigm.m_iCurrentBlockIndexInOrderList,:));
                 
                 %{
                 [g_strctParadigm.m_strctMRIStim.ahTextures,g_strctParadigm.m_strctMRIStim.a2iTextureSize,...
@@ -718,7 +1480,7 @@ switch strCallback
                     g_strctParadigm.m_strctMRIStim.afMovieLengthSec,g_strctParadigm.m_strctMRIStim.acImages] = ...
                     fnInitializeHandMappingTextures(g_strctParadigm.m_strImageListDirectoryPath, strSelectedImageList);
                 fnParadigmToStimulusServer('ForceMessage','LoadImageSetHandMapping', g_strctParadigm.m_strImageListDirectoryPath, strSelectedImageList);
-				%}
+                %}
                 %acBlockNames = {g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder.m_astrctBlocks.m_strBlockName};
                 %acBlockNames = acBlockNames(g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder.m_astrctBlockOrder(1).m_aiBlockIndexOrder);
                 %setStimulusPanelButton('Image',g_strctParadigm.m_strCurrentlySelectedBlock);
@@ -726,7 +1488,7 @@ switch strCallback
                 %feval(g_strctParadigm.m_strCallbacks,'ImagePanel');
                 %feval(g_strctParadigm.m_strCallbacks,'DesignPanel')
             case 'Movies'
-
+                
                 g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder.m_astrctBlockOrder.m_strOrderName = 'Default Order';
                 g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder.m_astrctBlockOrder.m_aiBlockIndexOrder = [1:numel(g_strctParadigm.m_strctMRIStim.m_acMRIStimPaths)];
                 g_strctParadigm.m_strctDesign.m_strctBlocksAndOrder.m_astrctBlockOrder.m_aiBlockRepitition = ones(numel(g_strctParadigm.m_strctMRIStim.m_acMRIStimPaths));
@@ -744,15 +1506,15 @@ switch strCallback
                 
                 g_strctParadigm.m_strctMovieStim.m_acMovieStimPaths = fnLoadImageSet({'FindImageSets'},g_strctParadigm.m_strMovieListDirectoryPath);
                 set(g_strctParadigm.m_strctControllers.m_hBlockLists, 'string', g_strctParadigm.m_strctMovieStim.m_acMovieStimPaths);
-                 
+                
                 
                 
                 setStimulusPanelButton('Movie',g_strctParadigm.m_strCurrentlySelectedBlock);
                 g_strctParadigm.m_strCurrentlySelectedBlock = 'Movie';
                 aStrMovieListNames = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'string');
-				strSelectedImageList = deblank(aStrMovieListNames(g_strctParadigm.m_iCurrentBlockIndexInOrderList,:));
+                strSelectedImageList = deblank(aStrMovieListNames(g_strctParadigm.m_iCurrentBlockIndexInOrderList,:));
                 [g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths] = ...
-                        fnLoadImageSet({'GetMovieFilePaths'}, g_strctParadigm.m_strMovieListDirectoryPath, strSelectedImageList);
+                    fnLoadImageSet({'GetMovieFilePaths'}, g_strctParadigm.m_strMovieListDirectoryPath, strSelectedImageList);
                 
                 
                 
@@ -763,8 +1525,8 @@ switch strCallback
         %   case {'StaticBarPanel','MovingBarPanel','TwoBarPanel','GaborPanel','DiscPanel'}
         %       return;
     case 'JumpToBlock'
-		%g_strctParadigm.m_iCurrentBlockIndexInOrderList = set(g_strctParadigm.m_strctControllers.m_hBlockLists, 'value', 1);
-         fnPauseParadigm();
+        %g_strctParadigm.m_iCurrentBlockIndexInOrderList = set(g_strctParadigm.m_strctControllers.m_hBlockLists, 'value', 1);
+        fnPauseParadigm();
         g_strctParadigm.m_iCurrentMediaIndexInBlockList = 1;
         if isempty(g_strctParadigm.m_strctDesign)
             return;
@@ -773,9 +1535,10 @@ switch strCallback
         cImageListNames = get(g_strctParadigm.m_strctControllers.m_hFavoriteLists,'string');
         switch deblank(cImageListNames(iSelectedImageList,:))
             case 'HandMapper'
-               
-
+                
+                
                 fnParadigmToStimulusServer('LoadDefaultClut');
+                
                 g_strctParadigm.m_iNumTimesBlockShown = 0;
                 g_strctParadigm.m_iCurrentBlockIndexInOrderList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
                 g_strctParadigm.m_iCurrentMediaIndexInBlockList = 1;
@@ -788,9 +1551,27 @@ switch strCallback
                         
                     case 'moving bar'
                         feval(g_strctParadigm.m_strCallbacks,'MovingBarPanel');
+                     
+                    case 'fivedot'
+                        feval(g_strctParadigm.m_strCallbacks,'FivedotPanel');
                         
                     case 'dual stim'
                         feval(g_strctParadigm.m_strCallbacks,'DualstimPanel');
+                    
+                    case 'ci handmapper'
+                        feval(g_strctParadigm.m_strCallbacks,'CIHandmapperPanel');
+                        
+                    case 'ground truth'
+                        feval(g_strctParadigm.m_strCallbacks,'GroundtruthPanel');
+                        
+                    case 'dense noise'
+                        feval(g_strctParadigm.m_strCallbacks,'DensenoisePanel');
+                    
+                    case 'oned noise'
+                        feval(g_strctParadigm.m_strCallbacks,'OneDnoisePanel');
+                    
+                    case 'disc probe'
+                        feval(g_strctParadigm.m_strCallbacks,'DiscProbePanel');
                     
                     case 'two bar'
                         feval(g_strctParadigm.m_strCallbacks,'TwoBarPanel');
@@ -800,18 +1581,25 @@ switch strCallback
                         
                     case 'moving dots'
                         feval(g_strctParadigm.m_strCallbacks,'DiscPanel');
-						
+                        
                     case 'many bar'
                         feval(g_strctParadigm.m_strCallbacks,'ManyBarPanel');
+                        
                 end
-                 fnParadigmToStimulusServer('LoadDefaultClut');
-        fnParadigmToStimulusServer('LoadDefaultBlendFunction');
-        Screen('BlendFunction', g_strctPTB.m_hWindow, GL_ONE, GL_ZERO);
-        
-        g_strctParadigm.m_strctGaborParams.m_bGaborsInitialized = 0;
-        Screen('Flip', g_strctPTB.m_hWindow, 0, 0, 2);
-        % wait for the screen to update so it doesnt crash in the main cycle
-        WaitSecs(.3);
+                
+                % felix added
+                fnTsSetVar('g_strctParadigm','FixationSpotPix',g_strctParadigm.initFixationSpotPix.Buffer(1,:,g_strctParadigm.initFixationSpotPix.BufferIdx));
+
+                
+                fnParadigmToStimulusServer('LoadDefaultClut');
+                fnParadigmToStimulusServer('LoadDefaultBlendFunction');
+                Screen('BlendFunction', g_strctPTB.m_hWindow, GL_ONE, GL_ZERO);
+                
+                g_strctParadigm.m_strctGaborParams.m_bGaborsInitialized = 0;
+                Screen('Flip', g_strctPTB.m_hWindow, 0, 0, 2);
+                % wait for the screen to update so it doesnt crash in the main cycle
+                WaitSecs(.3);
+                
             case 'Images'
                 g_strctParadigm.m_strctMRIStim.m_strCurrentlySelectedStimset = [];
                 %disp('loading beginning')
@@ -827,18 +1615,17 @@ switch strCallback
                 g_strctParadigm.m_iPreviousBlockIndexInOrderList = g_strctParadigm.m_iCurrentBlockIndexInOrderList;
                 
                 g_strctParadigm.m_iCurrentBlockIndexInOrderList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
-               % g_strctParadigm.m_iCurrentMediaIndexInBlockList = 1;
+                % g_strctParadigm.m_iCurrentMediaIndexInBlockList = 1;
                 
                 aStrImageListNames = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'string');
                 %iSelectedImageList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
                 for iLists = 1:numel(g_strctParadigm.m_iCurrentBlockIndexInOrderList)
                     strSelectedImageList{iLists} = deblank(aStrImageListNames{g_strctParadigm.m_iCurrentBlockIndexInOrderList(iLists)});
-
+                    
                 end
                 %{
                 fnParadigmToStimulusServer('ForceMessage','LoadImageSetHandMapping', g_strctParadigm.m_strImageListDirectoryPath, strSelectedImageList);
 
-                
                 [g_strctParadigm.m_strctMRIStim.ahTextures,g_strctParadigm.m_strctMRIStim.a2iTextureSize,...
                     g_strctParadigm.m_strctMRIStim.abIsMovie,g_strctParadigm.m_strctMRIStim.aiApproxNumFrames,...
                     g_strctParadigm.m_strctMRIStim.afMovieLengthSec,g_strctParadigm.m_strctMRIStim.acImages] = ...
@@ -847,7 +1634,7 @@ switch strCallback
                 if isempty(g_strctParadigm.m_strctMRIStim.ahTextures)
                     
                     strSelectedImageList = deblank(aStrImageListNames(g_strctParadigm.m_iPreviousBlockIndexInOrderList,:));
-                    fnParadigmToStimulusServer('ForceMessage','LoadImageSetHandMapping', g_strctParadigm.m_strImageListDirectoryPath, strSelectedImageList);                   
+                    fnParadigmToStimulusServer('ForceMessage','LoadImageSetHandMapping', g_strctParadigm.m_strImageListDirectoryPath, strSelectedImageList);
                     
                     [g_strctParadigm.m_strctMRIStim.ahTextures,g_strctParadigm.m_strctMRIStim.a2iTextureSize,...
                         g_strctParadigm.m_strctMRIStim.abIsMovie,g_strctParadigm.m_strctMRIStim.aiApproxNumFrames,...
@@ -862,16 +1649,16 @@ switch strCallback
                 end
                 %}
             case 'Movies'
-               % g_strctParadigm.m_iPreviousBlockIndexInOrderList = g_strctParadigm.m_iCurrentBlockIndexInOrderList;
+                % g_strctParadigm.m_iPreviousBlockIndexInOrderList = g_strctParadigm.m_iCurrentBlockIndexInOrderList;
                 fnPauseParadigm();
-
+                
                 %g_strctParadigm.m_iCurrentBlockIndexInOrderList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
                 g_strctParadigm.m_iCurrentlySelectedBlocksInOrderList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
-               % g_strctParadigm.m_iCurrentMediaIndexInBlockList = 1;
+                % g_strctParadigm.m_iCurrentMediaIndexInBlockList = 1;
                 g_strctParadigm.m_iCurrentlyPlayingMovieList = g_strctParadigm.m_iCurrentlySelectedBlocksInOrderList(g_strctParadigm.m_iCurrentlyPlayingMovieListID);
                 aStrMovieListNames = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'string');
                 %iSelectedImageList = get(g_strctParadigm.m_strctControllers.m_hBlockLists,'value');
-               % strSelectedImageList = deblank(aStrMovieListNames(g_strctParadigm.m_iCurrentBlockIndexInOrderList,:));
+                % strSelectedImageList = deblank(aStrMovieListNames(g_strctParadigm.m_iCurrentBlockIndexInOrderList,:));
                 strSelectedImageList = deblank(aStrMovieListNames(g_strctParadigm.m_iCurrentlyPlayingMovieList,:));
                 fnParadigmToStimulusServer('ForceMessage','LoadMovieSet', g_strctParadigm.m_strMovieListDirectoryPath,...
                     strSelectedImageList,	g_strctParadigm.m_strctMovieStim.m_bLoadOnTheFly);
@@ -884,23 +1671,23 @@ switch strCallback
                     [g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths] = ...
                         fnLoadImageSet({'GetMovieFilePaths'}, g_strctParadigm.m_strMovieListDirectoryPath, strSelectedImageList);
                 end
-				g_strctParadigm.m_strctMovieStim.m_iDisplayCount = zeros(numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths),1);
-				g_strctParadigm.m_strctMovieStim.m_iNumMoviesInThisBlock = numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths);
-				 fnParadigmToStimulusServer('LoadDefaultClut');
-        fnParadigmToStimulusServer('LoadDefaultBlendFunction');
-        Screen('BlendFunction', g_strctPTB.m_hWindow, GL_ONE, GL_ZERO);
-        
-        g_strctParadigm.m_strctGaborParams.m_bGaborsInitialized = 0;
-        Screen('Flip', g_strctPTB.m_hWindow, 0, 0, 2);
-        % wait for the screen to update so it doesnt crash in the main cycle
-        WaitSecs(.3);
+                g_strctParadigm.m_strctMovieStim.m_iDisplayCount = zeros(numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths),1);
+                g_strctParadigm.m_strctMovieStim.m_iNumMoviesInThisBlock = numel(g_strctParadigm.m_strctMovieStim.m_acMovieFilePaths);
+                fnParadigmToStimulusServer('LoadDefaultClut');
+                fnParadigmToStimulusServer('LoadDefaultBlendFunction');
+                Screen('BlendFunction', g_strctPTB.m_hWindow, GL_ONE, GL_ZERO);
+                
+                g_strctParadigm.m_strctGaborParams.m_bGaborsInitialized = 0;
+                Screen('Flip', g_strctPTB.m_hWindow, 0, 0, 2);
+                % wait for the screen to update so it doesnt crash in the main cycle
+                WaitSecs(.3);
                 %feval(g_strctParadigm.m_strCallbacks,'MoviePanel');
         end
         
         
         % default blend functions, in case we're switching from the gabor mode to something else
         %disp('blend function loaded')
-       
+        
         % disp('loading finished')
         %{
 		% gray out the controllers for the stimuli we arent using
@@ -986,9 +1773,26 @@ switch strCallback
         strctStimulation.m_fDelayToTrigMS = 0;
         fnParadigmToKofikoComm('MultiChannelStimulation', strctStimulation);
         
+
+    case {'DesignPanel', 'StatisticsPanel', 'JuicePanel', 'ColorPanel', 'PlainBarPanel',...
+            'MovingBarPanel', 'TwoBarPanel', 'GaborPanel', 'DiscPanel', 'ImagePanel', 'MoviePanel',...
+            'DualstimPanel', 'CIHandmapperPanel', 'GroundtruthPanel', 'DensenoisePanel','OneDnoisePanel','FivedotPanel','DiscProbePanel' }
+        
+        setStimulusPanelButton(strCallback(1:end-5),g_strctParadigm.m_strCurrentlySelectedBlock)
+        panelID = find(~cellfun(@isempty, strfind(g_strctParadigm.m_strctControllers.m_ahStimuliControllerButtonsStrLookup,strCallback)));
+        for iPanels = 1:numel(g_strctParadigm.m_strctControllers.m_hSubPanels)
+            if iPanels == panelID
+                set(g_strctParadigm.m_strctControllers.m_hSubPanels(panelID),'visible','on');
+            else
+                set(g_strctParadigm.m_strctControllers.m_hSubPanels(iPanels),'visible','off');
+                %set(g_strctParadigm.m_strctControllers.m_hSubPanels(1:panelID - 1, panelID + 1:end),'visible','off');
+            end
+        end
+        return;
+
     case 'DesignPanel'
-       % setStimulusPanelButton('Design',g_strctParadigm.m_strCurrentlySelectedBlock)
-       % g_strctParadigm.m_strCurrentlySelectedBlock = 'Gabor';
+        % setStimulusPanelButton('Design',g_strctParadigm.m_strCurrentlySelectedBlock)
+        % g_strctParadigm.m_strCurrentlySelectedBlock = 'Gabor';
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','on');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
@@ -1000,13 +1804,19 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'StatisticsPanel'
         %setStimulusPanelButton('Statistics',g_strctParadigm.m_strCurrentlySelectedBlock)
-      %  g_strctParadigm.m_strCurrentlySelectedBlock = 'Gabor';
+        %  g_strctParadigm.m_strCurrentlySelectedBlock = 'Gabor';
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','on');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
@@ -1018,13 +1828,19 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'JuicePanel'
-       % setStimulusPanelButton('Juice',g_strctParadigm.m_strCurrentlySelectedBlock)
-       % g_strctParadigm.m_strCurrentlySelectedBlock = 'Gabor';
+        % setStimulusPanelButton('Juice',g_strctParadigm.m_strCurrentlySelectedBlock)
+        % g_strctParadigm.m_strCurrentlySelectedBlock = 'Gabor';
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','on');
@@ -1036,13 +1852,19 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'ColorPanel'
-       % setStimulusPanelButton('Color',g_strctParadigm.m_strCurrentlySelectedBlock)
-       % g_strctParadigm.m_strCurrentlySelectedBlock = 'Gabor';
+        % setStimulusPanelButton('Color',g_strctParadigm.m_strCurrentlySelectedBlock)
+        % g_strctParadigm.m_strCurrentlySelectedBlock = 'Gabor';
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
@@ -1054,8 +1876,14 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'PlainBarPanel'
@@ -1072,8 +1900,14 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'MovingBarPanel'
@@ -1090,8 +1924,14 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-		     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
-             set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'DualstimPanel'
@@ -1108,10 +1948,164 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-		     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','on');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
-            
+    
+    case 'FivedotPanel'
+        setStimulusPanelButton('Dualstim',g_strctParadigm.m_strCurrentlySelectedBlock)
+        g_strctParadigm.m_strCurrentlySelectedBlock = 'Fivedot';
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(4),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(5),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(6),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(7),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(8),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','on');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
+        
+    case 'CIHandmapperPanel'
+        setStimulusPanelButton('CIHandmapper',g_strctParadigm.m_strCurrentlySelectedBlock)
+        g_strctParadigm.m_strCurrentlySelectedBlock = 'CIHandmapper';
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(4),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(5),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(6),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(7),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(8),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','on');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
+%         dbstop if warning
+%         warning('stop')
+
+    case 'GroundtruthPanel'
+        setStimulusPanelButton('Ground Truth',g_strctParadigm.m_strCurrentlySelectedBlock)
+        g_strctParadigm.m_strCurrentlySelectedBlock = 'Groundtruth';
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(4),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(5),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(6),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(7),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(8),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','on');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
+%         dbstop if warning
+%         warning('stop')
+
+    case 'DensenoisePanel'
+        setStimulusPanelButton('Dense Noise',g_strctParadigm.m_strCurrentlySelectedBlock)
+        g_strctParadigm.m_strCurrentlySelectedBlock = 'Densenoise';
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(4),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(5),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(6),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(7),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(8),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','on');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
+
+    case 'OneDnoisePanel'
+        setStimulusPanelButton('OneD Noise',g_strctParadigm.m_strCurrentlySelectedBlock)
+        g_strctParadigm.m_strCurrentlySelectedBlock = 'OneDnoise';
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(4),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(5),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(6),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(7),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(8),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','on');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
+        
+    case 'DiscProbePanel'
+        setStimulusPanelButton('Disc Probe',g_strctParadigm.m_strCurrentlySelectedBlock)
+        g_strctParadigm.m_strCurrentlySelectedBlock = 'DiscProbe';
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(4),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(5),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(6),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(7),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(8),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','on');
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
+        
     case 'TwoBarPanel'
         setStimulusPanelButton('TwoBar',g_strctParadigm.m_strCurrentlySelectedBlock)
         g_strctParadigm.m_strCurrentlySelectedBlock = 'TwoBar';
@@ -1127,8 +2121,14 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'GaborPanel'
@@ -1145,8 +2145,14 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'DiscPanel'
@@ -1163,9 +2169,15 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','on');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
         
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'ImagePanel'
@@ -1182,8 +2194,14 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','on');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
     case 'MoviePanel'
@@ -1200,15 +2218,21 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','on');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
         g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
         
-        case 'ManyBarPanel'
-             setStimulusPanelButton('ManyBar',g_strctParadigm.m_strCurrentlySelectedBlock)
-             g_strctParadigm.m_strCurrentlySelectedBlock = 'ManyBar';
-			 
-			         set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
+    case 'ManyBarPanel'
+        setStimulusPanelButton('ManyBar',g_strctParadigm.m_strCurrentlySelectedBlock)
+        g_strctParadigm.m_strCurrentlySelectedBlock = 'ManyBar';
+        
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(1),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(2),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(3),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(4),'visible','off');
@@ -1219,34 +2243,40 @@ switch strCallback
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(9),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(10),'visible','off');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(11),'visible','off');
-				     set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','on');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(12),'visible','on');
         set(g_strctParadigm.m_strctControllers.m_hSubPanels(13),'visible','off');
-             g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
-                        
-        case 'ManyBarSelectedBar'
-			for iBar = 0:fnTsGetVar('g_strctParadigm','ManyBarNumberOfBarsSelected')% 'ManyBarNumberOfBars'
-				if iBar == fnTsGetVar('g_strctParadigm','ManyBarSelectedBar')
-					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'visible','on')
-% % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'enable','on')
-% % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'visible','on')
-% % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'enable','on')
-
-% handleArray = [handles.editText, handles.pushbutton, handles.listbox];
-% % Set them all disabled.
-% set(handlesArray, 'Enable', 'off');
-
-set( findall(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, '-property', 'Enable'), 'Enable', 'on')
-
-				else
-					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'visible','off')
-% % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'enable','off')
-% % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'visible','off')
-% % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'enable','off')
-set( findall(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, '-property', 'Enable'), 'Enable', 'on')
-
-				end
-		end
-		
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(14),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(15),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(16),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(17),'visible','off');
+		set(g_strctParadigm.m_strctControllers.m_hSubPanels(18),'visible','off');
+        set(g_strctParadigm.m_strctControllers.m_hSubPanels(19),'visible','off');
+        g_strctParadigm.m_strCurrentlySelectedVariable = 'StimulusPosition';
+        
+    case 'ManyBarSelectedBar'
+        for iBar = 0:fnTsGetVar('g_strctParadigm','ManyBarNumberOfBarsSelected')% 'ManyBarNumberOfBars'
+            if iBar == fnTsGetVar('g_strctParadigm','ManyBarSelectedBar')
+                set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'visible','on')
+                % % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'enable','on')
+                % % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'visible','on')
+                % % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'enable','on')
+                
+                % handleArray = [handles.editText, handles.pushbutton, handles.listbox];
+                % % Set them all disabled.
+                % set(handlesArray, 'Enable', 'off');
+                
+                set( findall(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, '-property', 'Enable'), 'Enable', 'on')
+                
+            else
+                set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'visible','off')
+                % % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'enable','off')
+                % % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'visible','off')
+                % % % % % 					set(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, 'enable','off')
+                set( findall(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctManyBarSubControllers(iBar+1).m_hPanel, '-property', 'Enable'), 'Enable', 'on')
+                
+            end
+        end
+        
     case 'FixationSizePix'
         
         
@@ -1581,7 +2611,16 @@ set( findall(g_strctParadigm.m_strctControllers.strctManyBarControllers.strctMan
         set(g_strctParadigm.m_strctControllers.m_hForceStereoOnMonocularLists,'value',bForceStereo);
     case 'DrawAttentionEvent'
         g_strctParadigm.m_iMachineState = 1;
-        
+        %{
+    case {'DualstimStimulusOffTime','DualstimStimulusOnTime'}
+        varargout{1} = fnDynamicCallback(strCallback);
+        fnTsGetVar('g_strctParadigm',strCallback)
+        DualstimStimulusOnTime = fnTsGetVar('g_strctParadigm',strCallback);
+        handMapperStimulusOnTime = fnTsGetVar('g_strctParadigm',strCallback);
+       % dbstop if warning
+        %warning('stop')
+               % varargout{1} = fnDynamicCallback(strCallback);
+%}
     otherwise
         varargout{1} = fnDynamicCallback(strCallback);
         % fnParadigmToKofikoComm('DisplayMessage', [strCallback,' not handeled']);
@@ -1630,16 +2669,11 @@ if strFile(1) ~= 0
     
 end;
 
-
+return;
 
 
 function setStimulusPanelButton(StimName,previousStimName)
 global g_strctParadigm
-
-
-
-
-
 
 % find the appropriate entry in the stimulus button controllers list
 StimName = StimName(~isspace(StimName));

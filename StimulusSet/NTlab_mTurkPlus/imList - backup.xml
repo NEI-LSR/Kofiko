@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Config>
+   <Media>
+      <Image Attr="Color4;sat85" FileName="Z:\stimulusSet\AFC\c1.mat" Name="c1.mat"/>
+      <Image Attr="Color4;sat75" FileName="Z:\stimulusSet\AFC\c2.mat" Name="c2.mat"/>
+      <Image Attr="Color4;sat65" FileName="Z:\stimulusSet\AFC\c3.mat" Name="c3.mat"/>
+      <Image Attr="Color4;sat55" FileName="Z:\stimulusSet\AFC\c4.mat" Name="c4.mat"/>
+      <Image Attr="Color4;sat45" FileName="Z:\stimulusSet\AFC\c5.mat" Name="c5.mat"/>
+      <Image Attr="Color4;sat35" FileName="Z:\stimulusSet\AFC\c6.mat" Name="c6.mat"/>
+      <Image Attr="Color8;sat85" FileName="Z:\stimulusSet\AFC\c7.mat" Name="c7.mat"/>
+      <Image Attr="Color8;sat75" FileName="Z:\stimulusSet\AFC\c8.mat" Name="c8.mat"/>
+      <Image Attr="Color8;sat65" FileName="Z:\stimulusSet\AFC\c9.mat" Name="c9.mat"/>
+      <Image Attr="Color8;sat55" FileName="Z:\stimulusSet\AFC\c10.mat" Name="c10.mat"/>
+      <Image Attr="Color8;sat45" FileName="Z:\stimulusSet\AFC\c11.mat" Name="c11.mat"/>
+      <Image Attr="Color8;sat35" FileName="Z:\stimulusSet\AFC\c12.mat" Name="c12.mat"/>
+	  <Image Attr="Color12;sat85" FileName="Z:\stimulusSet\AFC\c13.mat" Name="c13.mat"/>
+      <Image Attr="Color12;sat75" FileName="Z:\stimulusSet\AFC\c14.mat" Name="c14.mat"/>
+      <Image Attr="Color12;sat65" FileName="Z:\stimulusSet\AFC\c15.mat" Name="c15.mat"/>
+      <Image Attr="Color12;sat55" FileName="Z:\stimulusSet\AFC\c16.mat" Name="c16.mat"/>
+      <Image Attr="Color12;sat45" FileName="Z:\stimulusSet\AFC\c17.mat" Name="c17.mat"/>
+      <Image Attr="Color12;sat35" FileName="Z:\stimulusSet\AFC\c18.mat" Name="c18.mat"/>
+	  <Image Attr="Color16;sat85" FileName="Z:\stimulusSet\AFC\c19.mat" Name="c19.mat"/>
+      <Image Attr="Color16;sat75" FileName="Z:\stimulusSet\AFC\c20.mat" Name="c20.mat"/>
+      <Image Attr="Color16;sat65" FileName="Z:\stimulusSet\AFC\c21.mat" Name="c21.mat"/>
+      <Image Attr="Color16;sat55" FileName="Z:\stimulusSet\AFC\c22.mat" Name="c22.mat"/>
+      <Image Attr="Color16;sat45" FileName="Z:\stimulusSet\AFC\c23.mat" Name="c23.mat"/>
+      <Image Attr="Color16;sat35" FileName="Z:\stimulusSet\AFC\c24.mat" Name="c24.mat"/>
+      <Image Attr="ChoiceColor4;sat85" FileName="Z:\stimulusSet\AFC\choice1.mat" Name="choice1.mat"/>
+      <Image Attr="ChoiceColor8;sat85" FileName="Z:\stimulusSet\AFC\choice2.mat" Name="choice2.mat"/>
+      <Image Attr="ChoiceColor12;sat85" FileName="Z:\stimulusSet\AFC\choice3.mat" Name="choice3.mat"/>
+      <Image Attr="ChoiceColor16;sat85" FileName="Z:\stimulusSet\AFC\choice4.mat" Name="choice4.mat"/>
+   </Media>
+   <TrialTypes>
+      <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="Color_4-8_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color12;Color16" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color4;Color8;sat85;sat75;sat65" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor4;ChoiceColor8" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor4" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>      
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="Color_4-12_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color8;Color16" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color4;Color12;sat85;sat75;sat65;" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor4;ChoiceColor12" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor4" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>      
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="Color_4-16_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color12;Color8" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color4;Color16;sat85;sat75;sat65;" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor4;ChoiceColor16" InvalidAttributes="ChoiceColor16" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor4" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>  
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="Color_8-4_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color12;Color16" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color4;Color8;sat85;sat75;sat65;" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor8;ChoiceColor4" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor8" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>    
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="Color_8-12_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color4;Color16" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color12;Color8;sat85;sat75;sat65;" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor8;ChoiceColor12" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor8" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>      
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="color_8-16_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color14;Color12" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color8;Color16;sat85;sat75;sat65;" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor8;ChoiceColor16" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor8" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>
+      <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="color_12-16_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color4;Color8" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color12;Color16;sat85;sat75;sat65" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor12;ChoiceColor16" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor12" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="color_12-4_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color16;Color8" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color12;Color4;sat85;sat75;sat65" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor12;ChoiceColor4" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor12" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="color_12-8_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color4;Color16" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color12;Color8;sat85;sat75;sat65" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor12;ChoiceColor8" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor12" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>	 
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="color_16-4_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color8;Color12" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color16;Color4;sat85;sat75;sat65" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor16;ChoiceColor4" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor16" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>	  
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="color_16-8_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color4;Color12" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color16;Color8;sat85;sat75;sat65" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor16;ChoiceColor8" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor16" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>	 
+	  <Trial>
+         <TrialParams ChoicesType="random" CueType="Random" JuiceMS="60" MultipleSaccades="0" Name="color_16-12_easy" ProbWeight="1" TrialTimeoutMS="1500"/>
+         <PreCueFixation BackgroundColor="1 1 1" FixationRegion="50" FixationSpotSize="30" FixationSpotType="disc" PreCueFixationPeriodMS="0"/>
+         <Cue CueInvalidAttributes="Color4;Color8" CueMedia="random" CuePeriodMS="1000" CueValidAttributes="Color16;Color12;sat85;sat75;sat65" DisplayCue="1" OverlayFixation="1"/>
+         <MemoryPeriod AbortTrialIfBreakFixation="0" BackgroundColor="1 1 1" MemoryPeriodMS="0" ShowFixationSpot="0"/>
+         <PostChoice ExtinguishNonSelectedChoicesAfterChoice="0" IncorrectTrialPunishmentDelayMS="3000" InterTrialIntervalMaxSec="3" InterTrialIntervalMinSec="0" RetainSelectedChoicePeriodMS="0"/>
+         <Choices>
+			<ChoicesParam ValidAttributes="ChoiceColor16;ChoiceColor12" InvalidAttributes="" NumChoices="2" IncludeCueAsChoice="0" ValidAttributesForJuiceReward="ChoiceColor16" Arrangement="leftright" SizePix="30"/>
+         </Choices>
+      </Trial>
+   </TrialTypes>
+   <TrialOrder>
+      <Block NumTrials="1000" RepeatIncorrect="0" Types="color_4-8_easy;color_4-12_easy;color_4-16_easy;color_8-4_easy;color_8-12_easy;color_8-16_easy;color_12-4_easy;color_12-8_easy;color_12-16_easy;color_16-4_easy;color_16-8_easy;color_16-12_easy"/>
+      <Block NumTrials="1000" RepeatIncorrect="0" Types="block1_down_correct"/>
+      <Block NumTrials="1000" RepeatIncorrect="0" Types="block2_down_correct"/>
+      <Block NumTrials="1000" RepeatIncorrect="0" Types="block3_down_correct"/>
+      <Block NumTrials="1000" RepeatIncorrect="0" Types="block4_up_correct"/>
+      <Block NumTrials="1000" RepeatIncorrect="0" Types="block5_up_correct"/>
+      <Block NumTrials="1000" RepeatIncorrect="0" Types="block6_up_correct"/>
+
+
+   </TrialOrder>
+</Config>

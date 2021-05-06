@@ -121,7 +121,18 @@ if ~isempty(g_strctParadigm.m_strctCurrentTrial) && g_strctParadigm.m_bStimulusD
 			fnDisplayMovingBarLocally(); 
         case 'Dual Stim'
             fnDisplayDualstimLocally();
-            
+        case 'Fivedot'
+            fnDisplayFivedotLocally();
+        case 'CI Handmapper'
+            fnDisplayCIHandmapperLocally();
+        case 'Ground Truth'
+            fnDisplayGroundtruthLocally();  
+        case 'Dense Noise'
+            fnDisplayDensenoiseLocally();  
+        case 'OneD Noise'
+            fnDisplayOneDnoiseLocally(); 
+        case 'Disc Probe'
+            fnDisplayDiscProbeLocally()
         otherwise
             assert(false);
    % end
@@ -141,9 +152,23 @@ if ~isempty(g_strctParadigm.m_strctCurrentTrial) && ~strcmp(g_strctParadigm.m_st
         Screen('FillRect', g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, g_strctParadigm.m_strctCurrentTrial.m_aiNonStimulusAreas);
         
     end
-    Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255], g_strctParadigm.m_aiStimulusRect', 3)
-    if strcmp(g_strctParadigm.m_strctCurrentTrial.m_strTrialType,'Dual Stim'); Screen('FrameRect', g_strctPTB.m_hWindow, [0 0 0], g_strctParadigm.m_aiSecondaryStimulusRect', 3); end
+    
+Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255],  g_strctPTB.m_fScale *g_strctParadigm.m_aiStimulusRect', 3);
+
+if strcmp(g_strctParadigm.m_strctCurrentTrial.m_strTrialType,'Dual Stim'); 
+Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255],  g_strctPTB.m_fScale *g_strctParadigm.m_aiSecondaryStimulusRect', 4); 
+Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255],  g_strctPTB.m_fScale *g_strctParadigm.m_aiTertiaryStimulusRect', 5); 
+end 
+% Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255], g_strctPTB.m_fScale * g_strctParadigm.m_strctCurrentTrial.m_aiStimulusRect', 3); %Felix Test
+% if strcmp(g_strctParadigm.m_strctCurrentTrial.m_strTrialType,'Dual Stim'); 
+% Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255], g_strctPTB.m_fScale * g_strctParadigm.m_strctCurrentTrial.secondarystim_bar_rect', 2); 
+% Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255], g_strctPTB.m_fScale * g_strctParadigm.m_strctCurrentTrial.tertiarystim_bar_rect', 4); 
+% end
+
 end
+
+
+
 %% Photodiode Crap
 if bShowPhotodiodeRect && ~isempty(g_strctParadigm.m_strctCurrentTrial) && ...
         isfield(g_strctParadigm.m_strctCurrentTrial,'m_bIsMovie') && ~g_strctParadigm.m_strctCurrentTrial.m_bIsMovie
@@ -161,13 +186,17 @@ if bShowPhotodiodeRect && ~isempty(g_strctParadigm.m_strctCurrentTrial) && ...
 end
 
 %% Draw Fixation Rect and Reward Rect and Stimulus Rect
-aiFixationRect = [pt2iFixationSpot-fFixationSizePix, pt2iFixationSpot+fFixationSizePix];
-aiRewardRect = [pt2iFixationSpot-fGazeBoxPix,pt2iFixationSpot+fGazeBoxPix];
-aiStimulusRect = aiStimulusScreenSize;
+if ~isempty(g_strctParadigm.m_strctCurrentTrial)
+    if ~strcmp(g_strctParadigm.m_strctCurrentTrial.m_strTrialType,'Fivedot')
+    aiFixationRect = [pt2iFixationSpot-fFixationSizePix, pt2iFixationSpot+fFixationSizePix];
+    aiRewardRect = [pt2iFixationSpot-fGazeBoxPix,pt2iFixationSpot+fGazeBoxPix];
+    aiStimulusRect = aiStimulusScreenSize;
 
-Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], g_strctPTB.m_fScale * aiFixationRect,0,360);
-Screen('FrameRect',g_strctPTB.m_hWindow,[255 0 0], g_strctPTB.m_fScale * aiRewardRect);
-Screen('FrameRect',g_strctPTB.m_hWindow,[255 255 0], g_strctPTB.m_fScale * aiStimulusRect);
+    Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], g_strctPTB.m_fScale * aiFixationRect,0,360);
+    Screen('FrameRect',g_strctPTB.m_hWindow,[255 0 0], g_strctPTB.m_fScale * aiRewardRect);
+    end
+end
+%Screen('FrameRect',g_strctPTB.m_hWindow,[255 255 0], g_strctPTB.m_fScale * aiStimulusRect);
 
 
 %% Juice Related drawing
@@ -209,8 +238,6 @@ if g_strctParadigm.m_bUseCartesianCoordinates
 														g_strctParadigm.m_strctColorPicker.m_afColorPickerScreenCoordinates(2) - 5,...
 														g_strctParadigm.m_strctColorPicker.m_afColorPickerScreenCoordinates(1) + 5,...
 														g_strctParadigm.m_strctColorPicker.m_afColorPickerScreenCoordinates(2) + 5]);
-    
-    
 end
 
 
@@ -584,19 +611,19 @@ StimServerScreenRect = [0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusS
 Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
 
 if g_strctParadigm.m_strctCurrentTrial.m_iMoveDistance
-    Screen('DrawLine',g_strctPTB.m_hWindow, [255 255 255], g_strctParadigm.m_strctCurrentTrial.m_iLineBegin(1),g_strctParadigm.m_strctCurrentTrial.m_iLineBegin(2),...
-        g_strctParadigm.m_strctCurrentTrial.m_iLineEnd(1),g_strctParadigm.m_strctCurrentTrial.m_iLineEnd(2));
+    Screen('DrawLine',g_strctPTB.m_hWindow, [255 255 255], g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_iLineBegin(1),g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_iLineBegin(2),...
+        g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_iLineEnd(1),g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_iLineEnd(2));
     
 end
 if ~g_strctParadigm.m_strctCurrentTrial.m_bBlur
     Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.BarColor,...
-        horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,1),g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,1)),0)
+        g_strctPTB.m_fScale*horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,1),g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,1)),0)
 else
     for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
         for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
             
             Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep),...
-                horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,1,iNumOfBars,iBlurStep),...
+                g_strctPTB.m_fScale*horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,1,iNumOfBars,iBlurStep),...
                 g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,1,iNumOfBars,iBlurStep)),0)
             
             
@@ -627,25 +654,24 @@ global g_strctParadigm g_strctPTB
 StimServerScreenRect = [0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
     g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)];
 
-    %
-    
 %else
     %Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
 %end
-if 	g_strctParadigm.m_strctCurrentTrial.m_bFlipForegroundBackground
+    if 	g_strctParadigm.m_strctCurrentTrial.m_bFlipForegroundBackground
 		if g_strctParadigm.m_strctCurrentTrial.m_bUseGaussianPulses
 			Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,:),...
-																																			StimServerScreenRect);
+																																			g_strctPTB.m_fScale * StimServerScreenRect);
 		else
-			Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
+			Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, g_strctPTB.m_fScale * StimServerScreenRect);
 
 		end
-	end
-if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter > g_strctParadigm.m_strctCurrentTrial.numFrames  %#ok<OR2>
-	
-	% Trial's over, or we've somehow gone over the number of frames in the trial. Bail out.
-    return;
-end
+    end
+    
+    if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter > g_strctParadigm.m_strctCurrentTrial.numFrames  %#ok<OR2>
+
+        % Trial's over, or we've somehow gone over the number of frames in the trial. Bail out.
+        return;
+    end
 %{
 if ~g_strctParadigm.m_strctCurrentTrial.m_bBlur
     for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
@@ -669,11 +695,11 @@ if g_strctParadigm.m_strctCurrentTrial.m_bUseGaussianPulses
 		if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
             if ~g_strctParadigm.m_strctCurrentTrial.m_bUseBitsPlusPlus
                 Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),...
-                    horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                    g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
                     g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
             else
                 Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),...
-                    horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                    g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
                     g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
                 
             end
@@ -689,11 +715,11 @@ else
                     if ~g_strctParadigm.m_strctCurrentTrial.m_bUseBitsPlusPlus
                         
                         Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep),...
-                            horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                            g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
                             g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
                     else
                         Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep),...
-                            horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                            g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
                             g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
                         
                     end
@@ -706,12 +732,12 @@ else
                     
                         Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,...
                             g_strctParadigm.m_strctCurrentTrial.m_iBlurStepIDX(iNumOfBars,1)+iBlurStep),...
-                            horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                            g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
                             g_strctParadigm.m_strctCurrentTrial.coordinatesY(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
                     else
                         Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,...
                             g_strctParadigm.m_strctCurrentTrial.m_iBlurStepIDX(iNumOfBars,1)+iBlurStep),...
-                            horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                            g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
                             g_strctParadigm.m_strctCurrentTrial.coordinatesY(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
                         
                     end
@@ -721,128 +747,542 @@ else
     end
     
 end
+
 return;
 
-% Felix add
-function fnDisplayDualstimLocally();
+
+
+% Felix added
+
+function fnDisplayFivedotLocally()
 global g_strctParadigm g_strctPTB
-% previously plain bar stimulus - draw first so movingbar stuff draws on top of this on in case there's location conflict
-% ID-10-T error on Felix's part: not presentation rect, but full frame rect
 
-% StimServerSecondaryScreenRect = [0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiSecondaryScreenSize(3),...
-%     g_strctParadigm.g_strctStimulusServer.m_aiSecondaryScreenSize(4)];
-% 
-% Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerSecondaryScreenRect);
+%{
+afBackgroundColor = squeeze(g_strctParadigm.BackgroundColor.Buffer(1,:,g_strctParadigm.BackgroundColor.BufferIdx));
+pt2fFixationSpotPix = g_strctParadigm.FixationSpotPix.Buffer(1,:,g_strctParadigm.FixationSpotPix.BufferIdx);
+fFixationSizePix = g_strctParadigm.FixationSizePix.Buffer(1,:,g_strctParadigm.FixationSizePix.BufferIdx);
 
-% if g_strctParadigm.m_strctCurrentTrial.m_iMoveDistance
-%     Screen('DrawLine',g_strctPTB.m_hWindow, [255 255 255], g_strctParadigm.m_strctCurrentTrial.m_iLineBegin(1),g_strctParadigm.m_strctCurrentTrial.m_iLineBegin(2),...
-%         g_strctParadigm.m_strctCurrentTrial.m_iLineEnd(1),g_strctParadigm.m_strctCurrentTrial.m_iLineEnd(2));
-%     
-% end
-% 
-% if ~g_strctParadigm.m_strctCurrentTrial.m_bBlur
-%     Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.BarColor,...
-%         horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,1),g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,1)),0)
-% else
-%     for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
-%         for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
-%             
-%             Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep),...
-%                 horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,1,iNumOfBars,iBlurStep),...
-%                 g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,1,iNumOfBars,iBlurStep)),0)
-%             
-%         end
-%     end
-% end
+Screen('FillRect',g_strctPTB.m_hWindow, afBackgroundColor, g_strctPTB.m_aiRect);
+aiFixationSpot =  g_strctPTB.m_fScale*[...
+    pt2fFixationSpotPix(1) - fFixationSizePix,...
+    pt2fFixationSpotPix(2) - fFixationSizePix,...
+    pt2fFixationSpotPix(1) + fFixationSizePix,...
+    pt2fFixationSpotPix(2) + fFixationSizePix];
 
-% alternative: use variation of below code to draw bars with Mack/Conde function
-[cur_peristim, ~]=GenerateTernaryStim(.25, 1, 0); 
-hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  cur_peristim);
-fRotationAngle=0;
-if exist('g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter', 'var') && mod(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,2); fRotationAngle=90; else; fRotationAngle=0; end
-Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctParadigm.m_aiSecondaryStimulusRect, fRotationAngle);
-%Screen('Close',hImageID);
+Screen(g_strctPTB.m_hWindow,'FillArc',[255 255 255], aiFixationSpot,0,360);
 
+aiStimulusScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
+pt2iCenter = aiStimulusScreenSize(3:4)/2;
+
+fSpreadPix = g_strctParadigm.SpreadPix.Buffer(1,:,g_strctParadigm.SpreadPix.BufferIdx);
+
+apt2iFixationSpots =  [pt2iCenter;
+    pt2iCenter + [-fSpreadPix,-fSpreadPix];
+    pt2iCenter + [fSpreadPix,-fSpreadPix];
+    pt2iCenter + [-fSpreadPix,fSpreadPix];
+    pt2iCenter + [fSpreadPix,fSpreadPix]; ];
+
+for k=1:5
+    pt2iFixationPosTmp = apt2iFixationSpots(k,:);
+    % Draw fixation spot
+    aiFixationSpot =  g_strctPTB.m_fScale *[...
+        pt2iFixationPosTmp(1) - fFixationSizePix,...
+        pt2iFixationPosTmp(2) - fFixationSizePix,...
+        pt2iFixationPosTmp(1) + fFixationSizePix,...
+        pt2iFixationPosTmp(2) + fFixationSizePix];
+    Screen(g_strctPTB.m_hWindow,'DrawArc',[0 100 100], aiFixationSpot,0,360);
+end
+%}
+
+pt2fFixationSpotPix = g_strctParadigm.m_strctCurrentTrial.pt2fFixationSpotPix;
+fFixationSizePix = g_strctParadigm.m_strctCurrentTrial.fFixationSizePix;
+
+%Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127], g_strctPTB.m_aiRect);
+%Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afBackgroundColor, g_strctPTB.m_aiRect);
+
+aiFixationSpot =  g_strctPTB.m_fScale*[...
+    pt2fFixationSpotPix(1) - fFixationSizePix,...
+    pt2fFixationSpotPix(2) - fFixationSizePix,...
+    pt2fFixationSpotPix(1) + fFixationSizePix,...
+    pt2fFixationSpotPix(2) + fFixationSizePix];
+Screen(g_strctPTB.m_hWindow,'FillArc',[255 255 255], aiFixationSpot,0,360);
+
+for k=1:5
+    pt2iFixationPosTmp = g_strctParadigm.m_strctCurrentTrial.apt2iFixationSpots(k,:);
+    % Draw fixation spot
+    aiFixationSpot =  g_strctPTB.m_fScale *[...
+        pt2iFixationPosTmp(1) - fFixationSizePix,...
+        pt2iFixationPosTmp(2) - fFixationSizePix,...
+        pt2iFixationPosTmp(1) + fFixationSizePix,...
+        pt2iFixationPosTmp(2) + fFixationSizePix];
+    Screen(g_strctPTB.m_hWindow,'DrawArc',[0 100 100], aiFixationSpot,0,360);
+end
+
+fGazeBoxPix = g_strctParadigm.GazeBoxPix.Buffer(1,:,g_strctParadigm.GazeBoxPix.BufferIdx);
+
+aiGazeRect =  [pt2fFixationSpotPix(1)-fGazeBoxPix,...
+    pt2fFixationSpotPix(2)-fGazeBoxPix,...
+    pt2fFixationSpotPix(1)+fGazeBoxPix,...
+    pt2fFixationSpotPix(2)+fGazeBoxPix];
+
+pt2iFixationSpot = g_strctParadigm.m_strctCurrentTrial.m_pt2iFixationSpot;
+fFixationSizePix = g_strctParadigm.m_strctCurrentTrial.fFixationSizePix;
+
+aiFixationRect = [pt2iFixationSpot-fFixationSizePix, pt2iFixationSpot+fFixationSizePix];
+%aiRewardRect = [pt2iFixationSpot-fGazeBoxPix,pt2iFixationSpot+fGazeBoxPix];
+
+% aiStimulusScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
+% aiStimulusRect = aiStimulusScreenSize;
+
+Screen('FrameRect',g_strctPTB.m_hWindow,[255 0 0], g_strctPTB.m_fScale * aiGazeRect);
+Screen('FillArc',g_strctPTB.m_hWindow,[255 255 255], g_strctPTB.m_fScale * aiFixationRect,0,360);
+%Screen('FrameRect',g_strctPTB.m_hWindow,[255 0 0], g_strctPTB.m_fScale * aiRewardRect);
+
+return
+
+%{
+function fnDisplayDualstimLocally()
+global g_strctParadigm g_strctPTB
+
+StimServerScreenRect = round([0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
+     g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)]);
+
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
 
 % primary stim starts here
-    % previously moving bar stimulus
-
-StimServerScreenRect = [0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
-    g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)];
-    
-if 	g_strctParadigm.m_strctCurrentTrial.m_bFlipForegroundBackground
-		if g_strctParadigm.m_strctCurrentTrial.m_bUseGaussianPulses
-			Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,:),...
-																																			StimServerScreenRect);
-		else
-			Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
-
-		end
-	end
+    % adapted from moving bar stimulus
 if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter > g_strctParadigm.m_strctCurrentTrial.numFrames  %#ok<OR2>
-	
 	% Trial's over, or we've somehow gone over the number of frames in the trial. Bail out.
     return;
 end
-if g_strctParadigm.m_strctCurrentTrial.m_bUseGaussianPulses
+
+%hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow, squeeze(g_strctParadigm.m_strctCurrentTrial.Densenoisestim(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,:)));
+%hImageID = g_strctParadigm.hartleys_local(randi(1188));
+
+if g_strctParadigm.m_strctCurrentTrial.DualstimSecondaryUseCloud==1 % achromatic cloud
+    hImageID = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+elseif g_strctParadigm.m_strctCurrentTrial.DualstimSecondaryUseCloud==2 %color cloud
+    hImageID = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+% elseif g_strctParadigm.m_strctCurrentTrial.DualstimSecondaryUseCloud<=2 %bar stimuli
+%     hImageID = g_strctParadigm.chrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+% elseif g_strctParadigm.m_strctCurrentTrial.DualstimSecondaryUseCloud>=3 & g_strctParadigm.m_strctCurrentTrial.DualstimSecondaryUseCloud<=6 %achromatic hartleys
+%     hImageID = g_strctParadigm.hartleys_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+%     g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+end
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0,0); % dont rotate cloud stimulus
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0,0); % dont rotate cloud stimulus
+%Screen('Close',hImageID);
+
+if g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud==0
     for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
-        for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
-		if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
-            if ~g_strctParadigm.m_strctCurrentTrial.m_bUseBitsPlusPlus
-                Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),...
-                    horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
-                    g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
-            else
-                Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),...
-                    horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
-                    g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
-                
+        for iBlurStep = 1%:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
+            if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
+                Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iNumOfBars,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),... %,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)],...
+                    round(g_strctPTB.m_fScale*horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                    g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))),0)
             end
-          end  
         end
     end
+elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud==1 % achromatic cloud
+    hImageID = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud==2 %color cloud
+    hImageID = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+
+% elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud<=2 %bar stimuli
+%     hImageID = g_strctParadigm.chrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+% elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud>=3 & g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud<=6 %achromatic hartleys
+%     hImageID = g_strctParadigm.hartleys_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+%     g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+end
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect, g_strctParadigm.m_strctCurrentTrial.cur_ori,0,0);
+
+    %{
+% StimServerScreenRect = [0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiSecondaryScreenSize(3),...
+%     g_strctParadigm.g_strctStimulusServer.m_aiSecondaryScreenSize(4)];
+StimServerScreenRect = round([0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
+     g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)]);
+
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
+
+% Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255], g_strctParadigm.m_aiSecondaryStimulusRect', 3); 
+% Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255], g_strctParadigm.m_aiTertiaryStimulusRect', 3); 
+
+%[cur_peristim, ~]=GenerateTernaryStim(.25, 1, 0); 
+%hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  cur_peristim);
+%fRotationAngle=0;
+if g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==1
+    hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  g_strctParadigm.m_strctCurrentTrial.DualStimSecondary(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0); % dont rotate cloud stimulus
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
+    Screen('Close',hImageID);
+elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)>=3
+    hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow, squeeze(g_strctParadigm.m_strctCurrentTrial.DualStimSecondary(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,:)));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect, g_strctParadigm.m_strctCurrentTrial.DualStimSecondaryori(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),0);
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect, g_strctParadigm.m_strctCurrentTrial.DualStimSecondaryori(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),0);
+    Screen('Close',hImageID);     
 else
-    for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
-        if ~strcmp(g_strctParadigm.m_strctCurrentTrial.m_strTrialType, 'Many Bar')
+    hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  g_strctParadigm.m_strctCurrentTrial.DualStimSecondary(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect, g_strctParadigm.m_strctCurrentTrial.DualStimSecondaryori(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),0);
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect, g_strctParadigm.m_strctCurrentTrial.DualStimSecondaryori(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),0);
+    Screen('Close',hImageID);
+end
+
+%if exist('g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter', 'var') && mod(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,2); fRotationAngle=90; else; fRotationAngle=0; end
+%Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctParadigm.m_aiSecondaryStimulusRect, fRotationAngle);
+%Screen('Close',hImageID);
+
+% primary stim starts here
+    % adapted from moving bar stimulus
+if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter > g_strctParadigm.m_strctCurrentTrial.numFrames  %#ok<OR2>
+	% Trial's over, or we've somehow gone over the number of frames in the trial. Bail out.
+    return;
+end
+
+%g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud = g_strctParadigm.DualstimPrimaryuseRGBCloud.Buffer(1,:,g_strctParadigm.DualstimPrimaryuseRGBCloud.BufferIdx);
+if g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud==1
+    hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow, squeeze(g_strctParadigm.m_strctCurrentTrial.DualStimPrimaryCloud(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,:)));
+%    hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow, rgb2ldrgyv(squeeze(g_strctParadigm.m_strctCurrentTrial.DualStimPrimaryCloud(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,:))));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect,0);
+    Screen('Close',hImageID);
+else
+    
+    iNumOfBars=1;
+    for iColOfBars = g_strctParadigm.m_strctCurrentTrial.m_iBarPresentationOrder; % 1:g_strctParadigm.m_strctCurrentTrial.m_iActiveStimulusBars    
+        if g_strctParadigm.m_strctCurrentTrial.numofeachCIS(iColOfBars)>0
+            for inumCisBars=1:g_strctParadigm.m_strctCurrentTrial.numofeachCIS(iColOfBars) %Felix note: not yet finished!!!
+                for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
+                    if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
+                        Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iColOfBars,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),... %,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)],...
+                            round(g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                            g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))),0)
+                    end
+                end
+            iNumOfBars=iNumOfBars+1;
+            end
+        end
+%        lololol=crashvec(1);
+    end
+%{
+    % if g_strctParadigm.m_strctCurrentTrial.m_bUseGaussianPulses
+%     for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
+%         for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
+% 		if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
+%             if ~g_strctParadigm.m_strctCurrentTrial.m_bUseBitsPlusPlus
+%                 Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),...
+%                     g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+%                     g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
+%             else
+%                 Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),...
+%                     g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+%                     g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
+%                 
+%             end
+%           end  
+%         end
+%     end
+% else
+        for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
+%         if ~strcmp(g_strctParadigm.m_strctCurrentTrial.m_strTrialType, 'Many Bar')
             for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
                 
-                if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
-                    if ~g_strctParadigm.m_strctCurrentTrial.m_bUseBitsPlusPlus
-                        
-                        Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep),...
-                            horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
-                            g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
-                    else
-                        Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep),...
-                            horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
-                            g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
-                        
-                    end
-                end
+%                if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
+%                    if ~g_strctParadigm.m_strctCurrentTrial.m_bUseBitsPlusPlus
+%                        
+%                         Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep),...
+%                             g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+%                             g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
+%                    else
+%                         Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep),...
+%                             g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+%                             g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
+
             end
-        else
-            for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps(iNumOfBars)
-                if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
-                    if ~g_strctParadigm.m_strctCurrentTrial.m_bUseBitsPlusPlus
-                    
-                        Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,...
-                            g_strctParadigm.m_strctCurrentTrial.m_iBlurStepIDX(iNumOfBars,1)+iBlurStep),...
-                            horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
-                            g_strctParadigm.m_strctCurrentTrial.coordinatesY(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
-                    else
-                        Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,...
-                            g_strctParadigm.m_strctCurrentTrial.m_iBlurStepIDX(iNumOfBars,1)+iBlurStep),...
-                            horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
-                            g_strctParadigm.m_strctCurrentTrial.coordinatesY(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
-                        
+    end
+%         else
+
+%             for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps(iNumOfBars)
+%                 if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
+%                     if ~g_strctParadigm.m_strctCurrentTrial.m_bUseBitsPlusPlus
+%                     
+%                         Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,...
+%                             g_strctParadigm.m_strctCurrentTrial.m_iBlurStepIDX(iNumOfBars,1)+iBlurStep),...
+%                             g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+%                             g_strctParadigm.m_strctCurrentTrial.coordinatesY(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
+%                     else
+%                         Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,...
+%                             g_strctParadigm.m_strctCurrentTrial.m_iBlurStepIDX(iNumOfBars,1)+iBlurStep),...
+%                             g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+%                             g_strctParadigm.m_strctCurrentTrial.coordinatesY(iNumOfBars).Coords(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0)
+%                         
+%                     end
+%                 end
+%             end
+%             crashvar = lololol(15);
+%        end
+%     end
+%     
+% Screen('Close',hImageID); %Felix added: close texture to get it out of memory
+    %}
+
+
+end
+%}
+return;
+%}
+function fnDisplayDualstimLocally()
+global g_strctParadigm g_strctPTB
+% previously plain bar stimulus - draw first so movingbar stuff draws on top of this on in case there's location conflict
+
+StimServerScreenRect = round([0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
+     g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)]);
+
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
+
+% primary stim starts here
+    % adapted from moving bar stimulus
+if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter > g_strctParadigm.m_strctCurrentTrial.numFrames  %#ok<OR2>
+	% Trial's over, or we've somehow gone over the number of frames in the trial. Bail out.
+    return;
+end
+
+%hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow, squeeze(g_strctParadigm.m_strctCurrentTrial.Densenoisestim(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,:)));
+%hImageID = g_strctParadigm.hartleys_local(randi(1188));
+if g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud==0 % ground truth stimuli
+    %{
+    iNumOfBars=1;
+    for iColOfBars = g_strctParadigm.m_strctCurrentTrial.m_iBarPresentationOrder; % 1:g_strctParadigm.m_strctCurrentTrial.m_iActiveStimulusBars    
+        if g_strctParadigm.m_strctCurrentTrial.numofeachCIS(iColOfBars)>0
+            for inumCisBars=1:g_strctParadigm.m_strctCurrentTrial.numofeachCIS(iColOfBars) %Felix note: not yet finished!!!
+                for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
+                    if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
+                        Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iColOfBars,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),... %,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)],...
+                            round(g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                            g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))),0)
                     end
                 end
+            iNumOfBars=iNumOfBars+1;
             end
         end
+%        lololol=crashvec(1);
     end
-    
+    %}
+    iBlurStep=1;
+    for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
+        if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
+            Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iBlurStep,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),...
+                g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep)),0);
+        end  
+    end
+elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud>=1 & g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud<=2 %bar stimuli
+    hImageID = g_strctParadigm.chrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect, g_strctParadigm.m_strctCurrentTrial.cur_ori,0);
+elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud>=3 & g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud<=6 %achromatic hartleys
+    hImageID = g_strctParadigm.hartleys_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect, g_strctParadigm.m_strctCurrentTrial.cur_ori,0);
+elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud==7 % achromatic cloud
+    hImageID = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect, g_strctParadigm.m_strctCurrentTrial.cur_ori,0);
+elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud==8 %color cloud
+    hImageID = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect, g_strctParadigm.m_strctCurrentTrial.cur_ori,0);
 end
+%Screen('Close',hImageID);
+
+if g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==0
+%     hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  g_strctParadigm.m_strctCurrentTrial.DualStimSecondary(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+%     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect, g_strctParadigm.m_strctCurrentTrial.DualStimSecondaryori(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),0);
+%     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect, g_strctParadigm.m_strctCurrentTrial.DualStimSecondaryori(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),0);
+%     Screen('Close',hImageID);
+elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==1
+    hImageID = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);     
+elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==2
+    hImageID = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+end
+
+if g_strctParadigm.m_strctCurrentTrial.CSDtrigframe && g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter==1
+    Screen('FillRect',g_strctPTB.m_hWindow, [256 256 256], g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect);
+end
+
+return
+
+function fnDisplayCIHandmapperLocally()
+global g_strctParadigm g_strctPTB
+
+StimServerScreenRect = round([0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
+     g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)]);
+
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
+
+% primary stim starts here
+    % adapted from moving bar stimulus
+if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter > g_strctParadigm.m_strctCurrentTrial.numFrames  %#ok<OR2>
+	% Trial's over, or we've somehow gone over the number of frames in the trial. Bail out.
+    return;
+end
+    
+for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
+    for iBlurStep = 1:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
+        if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
+            Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,1,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),... %,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)],...
+                round(g_strctPTB.m_fScale*horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))),0)
+        end
+    end
+%   lololol=crashvec(1);
+end
+% dbstop if warning
+% warning(stop)
 return;
+
+function fnDisplayGroundtruthLocally()
+global g_strctParadigm g_strctPTB
+
+StimServerScreenRect = round([0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
+     g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)]);
+
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
+
+% primary stim starts here
+    % adapted from moving bar stimulus
+if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter > g_strctParadigm.m_strctCurrentTrial.numFrames  %#ok<OR2>
+	% Trial's over, or we've somehow gone over the number of frames in the trial. Bail out.
+    return;
+end
+    
+for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_iNumberOfBars
+    for iBlurStep = 1%:g_strctParadigm.m_strctCurrentTrial.numberBlurSteps
+        if any(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))
+            Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalBlurStepHolder(:,iNumOfBars,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),... %,g_strctDraw.m_strctTrial.m_aiBlurStepHolder(2,iBlurStep),g_strctDraw.m_strctTrial.m_aiBlurStepHolder(3,iBlurStep)],...
+                round(g_strctPTB.m_fScale*horzcat(g_strctParadigm.m_strctCurrentTrial.coordinatesX(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep),...
+                g_strctParadigm.m_strctCurrentTrial.coordinatesY(1:4,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,iNumOfBars,iBlurStep))),0)
+        end
+    end
+%   lololol=crashvec(1);
+end
+% dbstop if warning
+% warning(stop)
+return;
+
+function fnDisplayDensenoiseLocally()
+global g_strctParadigm g_strctPTB
+% previously plain bar stimulus - draw first so movingbar stuff draws on top of this on in case there's location conflict
+
+StimServerScreenRect = round([0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
+     g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)]);
+
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
+
+% primary stim starts here
+    % adapted from moving bar stimulus
+if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter > g_strctParadigm.m_strctCurrentTrial.numFrames  %#ok<OR2>
+	% Trial's over, or we've somehow gone over the number of frames in the trial. Bail out.
+    return;
+end
+
+%hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow, squeeze(g_strctParadigm.m_strctCurrentTrial.Densenoisestim(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter,:)));
+%hImageID = g_strctParadigm.hartleys_local(randi(1188));
+if g_strctParadigm.m_strctCurrentTrial.DensenoisePrimaryuseRGBCloud<=2 %bar stimuli
+    hImageID = g_strctParadigm.chrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+elseif g_strctParadigm.m_strctCurrentTrial.DensenoisePrimaryuseRGBCloud>=3 & g_strctParadigm.m_strctCurrentTrial.DensenoisePrimaryuseRGBCloud<=6 %achromatic hartleys
+    hImageID = g_strctParadigm.hartleys_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+elseif g_strctParadigm.m_strctCurrentTrial.DensenoisePrimaryuseRGBCloud==7 % achromatic cloud
+    hImageID = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+elseif g_strctParadigm.m_strctCurrentTrial.DensenoisePrimaryuseRGBCloud==8 %color cloud
+    hImageID = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
+end
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect, g_strctParadigm.m_strctCurrentTrial.cur_ori,0);
+%Screen('Close',hImageID);
+    
+if g_strctParadigm.m_strctCurrentTrial.CSDtrigframe && g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter==1
+    Screen('FillRect',g_strctPTB.m_hWindow, [256 256 256], g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect);
+end
+
+return
+
+function fnDisplayOneDnoiseLocally()
+global g_strctParadigm g_strctPTB
+% previously plain bar stimulus - draw first so movingbar stuff draws on top of this on in case there's location conflict
+%Screen('Close')
+
+StimServerScreenRect = round([0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
+     g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)]);
+
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor, StimServerScreenRect);
+
+% primary stim starts here
+if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter > g_strctParadigm.m_strctCurrentTrial.numFrames  %#ok<OR2>
+	% Trial's over, or we've somehow gone over the number of frames in the trial. Bail out.
+    return;
+end
+
+%hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow, squeeze(g_strctParadigm.m_strctCurrentTrial.stimuli_RGB(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),:,:,:)));
+%Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect,g_strctParadigm.m_strctCurrentTrial.orientation,0);
+%Screen('Close',hImageID);
+Screen('DrawTexture', g_strctPTB.m_hWindow, g_strctParadigm.chrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter)),[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect,g_strctParadigm.m_strctCurrentTrial.orientation,0);
+
+%hImageID = g_strctParadigm.hartleys_local(randi(1188));
+% if g_strctParadigm.m_strctCurrentTrial.DensenoisePrimaryuseRGBCloud==4 % achromatic cloud
+%     hImageID = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+% elseif g_strctParadigm.m_strctCurrentTrial.DensenoisePrimaryuseRGBCloud==1 %achromatic hartleys
+%     hImageID = g_strctParadigm.hartleys_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+% elseif g_strctParadigm.m_strctCurrentTrial.DensenoisePrimaryuseRGBCloud==2 %color hartleys
+%     hImageID = g_strctParadigm.hartleys_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+% elseif g_strctParadigm.m_strctCurrentTrial.DensenoisePrimaryuseRGBCloud==3 %color cloud
+%     hImageID = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+% end
+% Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect);
+%     
+return
+
+function fnDisplayDiscProbeLocally()
+global g_strctParadigm g_strctPTB
+
+StimServerScreenRect = [0 0 g_strctPTB.m_fScale*g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(3),...
+    g_strctParadigm.g_strctStimulusServer.m_aiScreenSize(4)];
+aiFixationRect = g_strctPTB.m_fScale*[g_strctParadigm.m_strctCurrentTrial.m_pt2iFixationSpot-g_strctParadigm.m_strctCurrentTrial.m_fFixationSizePix,...
+    g_strctParadigm.m_strctCurrentTrial.m_pt2iFixationSpot+g_strctParadigm.m_strctCurrentTrial.m_fFixationSizePix];
+
+Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBackgroundColor,StimServerScreenRect);
+% numDots = g_strctParadigm.m_strctCurrentTrial.NumberOfDots;
+% Rect = zeros(4,numDots);
+% reallign the rect so it is in the left, top, right, bottom order required by the filloval command
+% Screen('FillOval', g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_afLocalBarColor, Rect);
+
+% Screen('FillOval', g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_aiLocalStimColor,  squeeze([g_strctParadigm.m_strctCurrentTrial.m_aiCoordinates(1, g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter, :),... left
+%     g_strctParadigm.m_strctCurrentTrial.m_aiCoordinates(2, g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter, :),... top
+%     g_strctParadigm.m_strctCurrentTrial.m_aiCoordinates(3, g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter, :),... right
+%     g_strctParadigm.m_strctCurrentTrial.m_aiCoordinates(4, g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter, :)])); % bottom
+
+DiscProbeRect=g_strctPTB.m_fScale*[g_strctParadigm.m_strctCurrentTrial.m_aiStimCenter(1)-g_strctParadigm.m_strctCurrentTrial.m_iDiscDiameter/2,...
+    g_strctParadigm.m_strctCurrentTrial.m_aiStimCenter(2)-g_strctParadigm.m_strctCurrentTrial.m_iDiscDiameter/2,...
+    g_strctParadigm.m_strctCurrentTrial.m_aiStimCenter(1)+g_strctParadigm.m_strctCurrentTrial.m_iDiscDiameter/2,...
+    g_strctParadigm.m_strctCurrentTrial.m_aiStimCenter(2)+g_strctParadigm.m_strctCurrentTrial.m_iDiscDiameter/2];
+
+%display actual Probe color
+Screen('FillArc',g_strctPTB.m_hWindow,g_strctParadigm.m_strctCurrentTrial.DiscprobeColor, DiscProbeRect,0,360); %
+
+%draw fixation
+Screen('FillArc',g_strctPTB.m_hWindow,g_strctParadigm.m_strctCurrentTrial.m_iFixationColor, aiFixationRect,0,360);
+
+return;
+	
 
 
 function fnColorTuningFuncLocal()
@@ -1075,5 +1515,4 @@ Screen('Close',hMovieTex);
 return;
 
 
-
-
+%trial
