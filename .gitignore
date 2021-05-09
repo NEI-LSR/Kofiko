@@ -1,1 +1,5 @@
 StimulusSet/NTlab_cis/
+
+# Rig A
+Config/KofikoConfigForDifferentRigs/RegisterGUICache.mat
+Config/StimServerConfigForDifferentRigs/StimServerCache.mat
