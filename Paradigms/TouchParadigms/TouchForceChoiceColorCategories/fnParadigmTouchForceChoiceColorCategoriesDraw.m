@@ -50,11 +50,11 @@ if any(g_strctParadigm.m_iMachineState) && ~isempty(g_strctParadigm.m_strctCurre
 		%if strcmp(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'Ring')
 			%fnDisplayChoiceRing(g_strctPTB.m_hWindow,g_strctParadigm.m_strctCurrentTrial);
             
-            fnDisplayChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true)
+            fnDisplayChoicesColorCategories(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true)
 			case {'disc','annuli','nestedannuli'}
 		%elseif strcmp(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'Disc')
             
-            fnDisplayChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true);
+            fnDisplayChoicesColorCategories(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true);
 			%fnDisplayChoiceDiscs(g_strctPTB.m_hWindow,g_strctParadigm.m_strctCurrentTrial);
             
 		end

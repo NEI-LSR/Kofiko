@@ -1,4 +1,4 @@
-function [fChoicesOnsetTS] = fnDisplayChoicesTraining(hPTBWindow, strctCurrentTrial,bFlip,bClear)
+function [fChoicesOnsetTS] = fnDisplayChoicesColorCategories(hPTBWindow, strctCurrentTrial,bFlip,bClear)
 global  g_strctPTB 
 % Clear screen
 

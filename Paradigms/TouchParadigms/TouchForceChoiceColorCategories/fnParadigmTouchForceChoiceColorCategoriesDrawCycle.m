@@ -366,23 +366,23 @@ if isfield(g_strctDraw,'m_iMachineState') && ~isempty(g_strctDraw.m_iMachineStat
             if ~g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.m_bKeepCueOnScreen
                 if g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.m_bShowChoicesOnScreen && ...
                         ~strcmp(g_strctDraw.m_strctCurrentTrial.m_astrctChoicesMedia.m_strChoiceType,'ring')
-					fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true); % THIS IS THE ONE THAT GETS USED
-                    %fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, true,true);
+					fChoicesOnsetTS = fnDisplayChoicesColorCategories(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true); % THIS IS THE ONE THAT GETS USED
+                    %fChoicesOnsetTS = fnDisplayChoicesColorCategories(hPTBWindow, g_strctDraw.m_strctCurrentTrial, true,true);
                 elseif g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.m_bShowChoicesOnScreen && ...
                         strcmp(g_strctDraw.m_strctCurrentTrial.m_astrctChoicesMedia.m_strChoiceType,'ring')
-					fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
+					fChoicesOnsetTS = fnDisplayChoicesColorCategories(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
                     %fChoicesOnsetTS = fnDisplayChoiceRing(g_strctPTB.m_hWindow,g_strctDraw.m_strctCurrentTrial, true,true);
 
                 else
-					fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, [], g_strctDraw.m_strctCurrentTrial, g_strctDraw.m_acMedia,true,true,false,1,false);
+					fChoicesOnsetTS = fnDisplayChoicesColorCategories(hPTBWindow, [], g_strctDraw.m_strctCurrentTrial, g_strctDraw.m_acMedia,true,true,false,1,false);
                 end
             else
 			
 			 if ~strcmp(g_strctDraw.m_strctCurrentTrial.m_astrctChoicesMedia.m_strChoiceType == 'ring') 
         
 					fnDrawCue(hPTBWindow,false);
-					%fnDisplayChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true);
-					fnDisplayChoicesTraining(hPTBWindow, 1:iNumChoices, g_strctDraw.m_strctCurrentTrial, g_strctDraw.m_acMedia,false,false,false,1,false);
+					%fnDisplayChoicesColorCategories(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true);
+					fnDisplayChoicesColorCategories(hPTBWindow, 1:iNumChoices, g_strctDraw.m_strctCurrentTrial, g_strctDraw.m_acMedia,false,false,false,1,false);
 				elseif strcmp(g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia.m_strChoiceType == 'ring') 
 					fnDrawCue(hPTBWindow,false);
 
@@ -406,10 +406,10 @@ if isfield(g_strctDraw,'m_iMachineState') && ~isempty(g_strctDraw.m_iMachineStat
         case 7		
 			% Trial is almost over ? unless we need to extinguish
             % non-saccaded targets....
-			fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
+			fChoicesOnsetTS = fnDisplayChoicesColorCategories(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
             if g_strctDraw.m_strctCurrentTrial.m_bLuminanceNoiseBackground
 				% update the luminance noise background
-				fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
+				fChoicesOnsetTS = fnDisplayChoicesColorCategories(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
 			end
     end
 end
