@@ -266,8 +266,8 @@
 		Initial_DirectMatchCueChoices = "1"
 		Initial_ProbeTrialProbability = "0" 
 		Initial_ProbeTrialRewardProbability = "50"
-		Initial_ChoiceDistributionSpread = '32'
-		Initial_EasyTrialProbability = '0'
+		Initial_ChoiceDistributionSpread = '16'
+		Initial_EasyTrialProbability = '100'
 		Initial_minChoiceAngleDeg = "0"
 		Initial_maxChoiceAngleDeg = "360"
 		
