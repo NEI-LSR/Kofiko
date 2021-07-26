@@ -406,7 +406,7 @@ if isfield(g_strctDraw,'m_iMachineState') && ~isempty(g_strctDraw.m_iMachineStat
         case 7		
 			% Trial is almost over ? unless we need to extinguish
             % non-saccaded targets....
-			fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
+			fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true)
             if g_strctDraw.m_strctCurrentTrial.m_bLuminanceNoiseBackground
 				% update the luminance noise background
 				fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
