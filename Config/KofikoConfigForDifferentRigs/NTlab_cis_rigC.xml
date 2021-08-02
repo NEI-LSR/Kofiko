@@ -148,8 +148,9 @@
         Initial_PreloadTexturesVRAM = "0"
 
 		Initial_StimulusPosition = "512 384"
-		Initial_SecondaryStimulusPosition = "256 256"
-		
+		Initial_SecondaryStimulusPosition = "360 360"
+		Initial_TertiaryStimulusPosition = "480 360"
+
 		Initial_PlainBarWidth = "5"
 		Initial_PlainBarLength = "40"
 		Initial_PlainBarOrientation = "135"
