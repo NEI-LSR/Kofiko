@@ -30,9 +30,14 @@
  	Name = "Pollux"
         Image = "Pollux.jpg"
     > </Monkey>
-	
-
-
+		 <Monkey
+ 	Name = "Audrey"
+        Image = "Audrey.jpg"
+	> </Monkey>
+		 <Monkey
+ 	Name = "Danny"
+        Image = "Danny.jpg"
+	> </Monkey>
 		<Monkey
  	Name = "Wooster"
         Image = "Wooster.jpg"

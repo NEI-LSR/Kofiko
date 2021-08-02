@@ -25,6 +25,9 @@ g_strctParadigm.m_strctSubject.m_strExperimentHistoryFileName = [g_strctParadigm
 g_strctParadigm.m_strExperimentName = g_strctParadigm.m_strctMonkeyInfo.m_strExperimentName;
 g_strctParadigm.m_strInitial_ExperimentName = g_strctParadigm.m_strExperimentName;
 
+
+fnInitializeStimulusSpace(); % calculate coordinates for all stimuli 
+
 fnInitializeColors();
 
 
@@ -203,6 +206,7 @@ g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CueJuiceTimeMS', g_strctParadigm.
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'IncludeGrayTrials', g_strctParadigm.m_fInitial_IncludeGrayTrials, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GrayTrialProbability', g_strctParadigm.m_fInitial_GrayTrialProbability, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CueRhoDeviation', g_strctParadigm.m_fInitial_CueRhoDeviation, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'StartingHue', g_strctParadigm.m_fInitial_StartingHue, iSmallBuffer);
 
 if isfield(g_strctParadigm,'m_strInitial_SelectedCueColors')
     cAllColors = strsplit(g_strctParadigm.m_strInitial_SelectedCueColors,';');

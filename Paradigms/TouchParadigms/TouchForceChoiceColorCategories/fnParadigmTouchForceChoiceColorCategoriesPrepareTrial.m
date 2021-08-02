@@ -774,12 +774,6 @@ strctCurrentTrial.m_strctChoiceVars.m_EasyTrialProbability = fnTsGetVar('g_strct
 
 if strctCurrentTrial.m_strctStimuliVars.m_bDirectMatchCueChoices || rand() > (strctCurrentTrial.m_strctStimuliVars.m_fProbeTrialProbability/100)
 	strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = true;
-	% sample from full 64 color range until I figure out how to fix this - Audrey
-	strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
-	Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
-	strctCurrentTrial.m_aiActiveChoiceColorID = [strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID, ...
-	Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
-	%{
 	if rand() > (strctCurrentTrial.m_strctChoiceVars.m_EasyTrialProbability/100) % sample from limited range (cue +/- spread) 
 
 		strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = false;
@@ -790,28 +784,15 @@ if strctCurrentTrial.m_strctStimuliVars.m_bDirectMatchCueChoices || rand() > (st
 			Distractors(randperm(length(Distractors), strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
 	else 
 		% sample from full range (some probability of easier trials) 
-		%strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
-		%Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
-		%strctCurrentTrial.m_aiActiveChoiceColorID = [strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID, ...
-		%	Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
-		
-		% sample from everything outside of spread
-		CloseDistractors = strctCurrentTrial.m_aiAllChoiceColorIDs(mod([strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-1, ... 
-			strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID+1:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID + strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread]-1, ...
-			length(strctCurrentTrial.m_aiAllChoiceColorIDs))+1);
-		Distractors = setdiff(strctCurrentTrial.m_aiAllChoiceColorIDs, CloseDistractors); % subset out the "far distractors"
+		strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
+		Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
 		strctCurrentTrial.m_aiActiveChoiceColorID = [strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID, ...
-			Distractors(randperm(length(Distractors), strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
+			Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
 	end
-	%}
+
 else % no direct match
 	strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = false;
-	% sample from full range
-	strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
-	Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
-	strctCurrentTrial.m_aiActiveChoiceColorID = Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets));
-	
-	%{
+
 	if rand() > (strctCurrentTrial.m_strctChoiceVars.m_EasyTrialProbability/100) % sample from limited range
 		strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = false;
 		Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(mod([strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-1, ... 
@@ -820,20 +801,13 @@ else % no direct match
 		strctCurrentTrial.m_aiActiveChoiceColorID = Distractors(randperm(length(Distractors), strctCurrentTrial.m_strctChoiceVars.m_NTargets));
 	else 
 		% sample from full range
-		%strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
-		%Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
-		%strctCurrentTrial.m_aiActiveChoiceColorID = Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets));
+		strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
+		Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
+		strctCurrentTrial.m_aiActiveChoiceColorID = Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets));
 	
-		% sample from everything outside of spread
-		CloseDistractors = strctCurrentTrial.m_aiAllChoiceColorIDs(mod([strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-1, ... 
-			strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID+1:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID + strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread]-1, ...
-			length(strctCurrentTrial.m_aiAllChoiceColorIDs))+1);
-		Distractors = setdiff(strctCurrentTrial.m_aiAllChoiceColorIDs, CloseDistractors); % subset out the "far distractors"
-		strctCurrentTrial.m_aiActiveChoiceColorID = [strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID, ...
-			Distractors(randperm(length(Distractors), strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
 	end
 	
-	%}
+
 end
 
 %{

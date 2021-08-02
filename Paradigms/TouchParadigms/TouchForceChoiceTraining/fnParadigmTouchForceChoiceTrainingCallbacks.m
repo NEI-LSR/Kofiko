@@ -9,6 +9,8 @@ global  g_strctParadigm g_strctStimulusServer g_strctAppConfig g_strctPTB
 
 
 switch strCallback
+	case 'StartingHue'
+		varargout{1} = fnDynamicCallback(strCallback);
 	case 'minChoiceAngleDeg'
 		varargout{1} = fnDynamicCallback(strCallback);
 	case 'maxChoiceAngleDeg'
