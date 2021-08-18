@@ -66,6 +66,14 @@ g_strctParadigm.m_strctStimServerVars.m_fStimulusMonitorRefreshRate = fnParadigm
 
 
 
+%% Initialize pre-allocation of choices 
+g_strctParadigm.m_bPreAllocateStimuli = g_strctParadigm.m_fInitial_PreAllocateStimuli;
+g_strctParadigm.m_strStimFile = fullfile('StimulusSet', 'TouchForceChoice_Stimuli', g_strctParadigm.m_strInitial_StimFile);
+if g_strctParadigm.m_bPreAllocateStimuli
+	g_strctParadigm.m_iTrialNumber = 1;
+	g_strctParadigm.m_aiPreAllocatedTrials = load(g_strctParadigm.m_strStimFile);
+	g_strctParadigm.m_iSessionLength = size(g_strctParadigm.m_aiPreAllocatedTrials, 1); 
+end
 
 
 %% Pre Cue
@@ -234,6 +242,7 @@ end
 g_strctParadigm.m_aiColorsDisplayedCount = zeros(numel(aiAllSaturations),numel(cAllColors{:}));
 %g_strctParadigm.m_aiColorsDisplayedCount = zeros(sum(cellfun(@numel,g_strctParadigm.m_cAllColorsPerSat)),1);% + fnTsGetVar('g_strctParadigm', 'IncludeGrayTrials'),1);
 
+if isfield(g_strctParadigm,'NTargets')
 if isfield(g_strctParadigm,'NTargets')
     g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NTargets', g_strctParadigm.m_fInitial_NTargets, iSmallBuffer);
 else

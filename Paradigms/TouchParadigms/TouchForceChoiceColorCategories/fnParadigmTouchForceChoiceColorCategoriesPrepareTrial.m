@@ -321,6 +321,12 @@ else
 end
 
 strctCurrentTrial.m_strctTrialParams.m_iTrialType = strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID;
+
+%% pre-allocation stuff
+strctCurrentTrial.m_bPreallocateStimuli = g_strctParadigm.m_bPreAllocateStimuli;
+strctCurrentTrial.m_strStimFile = g_strctParadigm.m_strStimFile;
+strctCurrentTrial.m_iTrialNumber = g_strctParadigm.m_iTrialNumber;
+
 return;
 % ----------------------------------------------------------------------------------------------------------------------
 %% ----------------------------------------------------------------------------------------------------------------------
@@ -407,6 +413,7 @@ strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials = fnTsGetVar('g_strctPar
 
 
 % Choose what color this trial will be
+
 strctCurrentTrial.m_strctCuePeriod.m_acCurrentlyActiveColorStructures = g_strctParadigm.m_strctCurrentSaturations;
 
 iCurrentColorConversionID = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType,'value');
@@ -494,8 +501,14 @@ if ~strctCurrentTrial.m_strctTrialParams.m_bGrayTrial
 
     strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID = thisTrialTempSaturationID;%...
     % currentlySelectedSaturationvalue(eligibleConditions(leastDisplayedSaturationPossibilities(thisTrialSaturationRandomNumber)));
-    strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID = currentlySelectedColors(leastDisplayedColorPossibilities(thisTrialColorRandomNumber));
-    strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation = ...
+    
+	if ~strctCurrentTrial.m_bPreAllocateStimuli
+		strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID = currentlySelectedColors(leastDisplayedColorPossibilities(thisTrialColorRandomNumber));
+    else
+		strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID = g_strctParadigm.m_aiPreAllocatedTrials(1); 
+	
+	
+	strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation = ...
         strctCurrentTrial.m_cCurrentlySelectedSaturations.(deblank(currentlySelectedSaturationStrings(currentlySelectedSaturationvalue(thisTrialTempSaturationID),:)));
     % store the absolute ID of the cue
     % I.E., which iteration of generation it was during creation of the texture, for local display
@@ -715,14 +728,18 @@ strctCurrentTrial.m_strctChoicePeriod.Clut(:,2) = round(g_strctParadigm.m_aiBack
 strctCurrentTrial.m_strctChoicePeriod.Clut(:,3) = round(g_strctParadigm.m_aiBackgroundColor(ceil(end/2),3)) .* ones(256,1)  ;
 
 if g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial
-    if g_strctParadigm.m_strctChoiceVars.m_bProgressiveChoiceRingRotation
+	if g_strctParadigm.m_strctChoiceVars.m_bProgressiveChoiceRingRotation
         strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = -(g_strctParadigm.m_strctChoiceVars.m_fLastChoiceRingRotation + g_strctParadigm.m_strctChoiceVars.m_iChoiceRingRotationIncrement);
         g_strctParadigm.m_strctChoiceVars.m_fLastChoiceRingRotation = strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle;
-    else
+    elseif ~g_strctParadigm.m_strctChoiceVars.m_bProgressiveChoiceRingRotation
 
         % take the negative of the rotation angle. Psychophysics toolbox handles rotation in the opposite manner of the matlab functions that determine the angle of the choice direction
-        strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = -rad2deg(rand(1) * (2 * pi));
         strctCurrentTrial.m_strctChoicePeriod.m_bRandomChoiceRotationAngle = true;
+		if ~strctCurrentTrial.m_bPreAllocateStimuli
+			strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = -rad2deg(rand(1) * (2 * pi));
+		else	
+			strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = NaN;
+		end
     end
 else
     strctCurrentTrial.m_strctChoicePeriod.m_bRandomChoiceRotationAngle = false;
@@ -772,44 +789,45 @@ strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread = fnTsGetVar('g_s
 
 strctCurrentTrial.m_strctChoiceVars.m_EasyTrialProbability = fnTsGetVar('g_strctParadigm','EasyTrialProbability');
 
-if strctCurrentTrial.m_strctStimuliVars.m_bDirectMatchCueChoices || rand() > (strctCurrentTrial.m_strctStimuliVars.m_fProbeTrialProbability/100)
-	strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = true;
-	if rand() > (strctCurrentTrial.m_strctChoiceVars.m_EasyTrialProbability/100) % sample from limited range (cue +/- spread) 
+if ~strctCurrentTrial.m_bPreAllocateStimuli
+	if strctCurrentTrial.m_strctStimuliVars.m_bDirectMatchCueChoices || rand() > (strctCurrentTrial.m_strctStimuliVars.m_fProbeTrialProbability/100)
+		strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = true;
+		if rand() > (strctCurrentTrial.m_strctChoiceVars.m_EasyTrialProbability/100) % sample from limited range (cue +/- spread) 
 
-		strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = false;
-		Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(mod([strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-1, ... 
-			strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID+1:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID + strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread]-1, ...
-			length(strctCurrentTrial.m_aiAllChoiceColorIDs))+1);
-		strctCurrentTrial.m_aiActiveChoiceColorID = [strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID, ...
-			Distractors(randperm(length(Distractors), strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
-	else 
-		% sample from full range (some probability of easier trials) 
-		strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
-		Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
-		strctCurrentTrial.m_aiActiveChoiceColorID = [strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID, ...
-			Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
+			strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = false;
+			Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(mod([strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-1, ... 
+				strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID+1:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID + strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread]-1, ...
+				length(strctCurrentTrial.m_aiAllChoiceColorIDs))+1);
+			strctCurrentTrial.m_aiActiveChoiceColorID = [strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID, ...
+				Distractors(randperm(length(Distractors), strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
+		else 
+			% sample from full range (some probability of easier trials) 
+			strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
+			Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
+			strctCurrentTrial.m_aiActiveChoiceColorID = [strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID, ...
+				Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
+		end
+
+	else % no direct match
+		strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = false;
+
+		if rand() > (strctCurrentTrial.m_strctChoiceVars.m_EasyTrialProbability/100) % sample from limited range
+			strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = false;
+			Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(mod([strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-1, ... 
+				strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID+1:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID + strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread]-1, ...
+				length(strctCurrentTrial.m_aiAllChoiceColorIDs))+1);
+			strctCurrentTrial.m_aiActiveChoiceColorID = Distractors(randperm(length(Distractors), strctCurrentTrial.m_strctChoiceVars.m_NTargets));
+		else 
+			% sample from full range
+			strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
+			Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
+			strctCurrentTrial.m_aiActiveChoiceColorID = Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets));
+		
+		end
 	end
-
-else % no direct match
-	strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = false;
-
-	if rand() > (strctCurrentTrial.m_strctChoiceVars.m_EasyTrialProbability/100) % sample from limited range
-		strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = false;
-		Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(mod([strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID-1, ... 
-			strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID+1:strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID + strctCurrentTrial.m_strctChoiceVars.m_ChoiceDistributionSpread]-1, ...
-			length(strctCurrentTrial.m_aiAllChoiceColorIDs))+1);
-		strctCurrentTrial.m_aiActiveChoiceColorID = Distractors(randperm(length(Distractors), strctCurrentTrial.m_strctChoiceVars.m_NTargets));
-	else 
-		% sample from full range
-		strctCurrentTrial.m_strctChoicePeriod.m_bIsEasyTrial = true;
-		Distractors = strctCurrentTrial.m_aiAllChoiceColorIDs(strctCurrentTrial.m_aiAllChoiceColorIDs~=strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
-		strctCurrentTrial.m_aiActiveChoiceColorID = Distractors(randperm(strctCurrentTrial.m_strctChoiceVars.numColors-1,strctCurrentTrial.m_strctChoiceVars.m_NTargets));
-	
-	end
-	
-
+else % if pre-allocating stimuli
+	strctCurrentTrial.m_aiActiveChoiceColorID = g_strctParadigm.m_aiPreAllocatedTrials(strctCurrentTrial.m_iTrialNumber, 2:(1+strctCurrentTrial.m_NTargets)); 
 end
-
 %{
 if strctCurrentTrial.m_strctStimuliVars.m_bDirectMatchCueChoices || rand() > (strctCurrentTrial.m_strctStimuliVars.m_fProbeTrialProbability/100)
     strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = true;
@@ -988,29 +1006,38 @@ if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') || 
 		% calculate choice thetas based on inputted range
 		strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg = fnTsGetVar('g_strctParadigm', 'minChoiceAngleDeg');
 		strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg = fnTsGetVar('g_strctParadigm', 'maxChoiceAngleDeg');
-	
-		if strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg <= strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg
-			strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg = strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg + 360;
+		
+		
+		if ~strctCurrentTrial.m_bPreAllocateStimuli
+			if strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg <= strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg
+				strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg = strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg + 360;
+			end
+			TotalSpan = strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg - strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg;
+			if g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial 
+				strctCurrentTrial.m_strctChoiceVars.m_bRotateChoiceRing = true;
+				rotAngle = floor(rand()*TotalSpan/nTotalChoices);
+				strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = rotAngle + sort(mod([strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg:TotalSpan/nTotalChoices:strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg-0.001], 360));
+				strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = circshift(strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas, floor(rand()*nTotalChoices));
+			elseif ~g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial
+				strctCurrentTrial.m_strctChoiceVars.m_bRotateChoiceRing = false;
+				strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = sort(mod([strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg:TotalSpan/nTotalChoices:strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg-0.001], 360));
+			end
+
+
+			if g_strctParadigm.m_strctChoiceVars.m_bRandomRingOrderInversion
+				strctCurrentTrial.m_strctChoiceVars.m_bChoiceRingOrderInversion = true;
+				if rand() > 0.5
+					strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = flip(strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas);
+				end
+			else
+				strctCurrentTrial.m_strctChoiceVars.m_bChoiceRingOrderInversion = false;
+			end
+		else
+			strctCurrentTrial.m_strctChoiceVars.m_bChoiceRingOrderInversion = g_strctParadigm.m_strctChoiceVars.m_bRandomRingOrderInversion;
+			strctCurrentTrial.m_strctChoiceVars.m_bRotateChoiceRing = g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial;
+			strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = g_strctParadigm.m_aiPreAllocatedTrials(strctCurrentTrial.m_iTrialNumber, (2+strctCurrentTrial.m_NTargets:1+(2*strctCurrentTrial.m_NTargets)));
+			
 		end
-		TotalSpan = strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg - strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg;
-		if g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial 
-			rotAngle = floor(rand()*TotalSpan/nTotalChoices);
-			strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = rotAngle + sort(mod([strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg:TotalSpan/nTotalChoices:strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg-0.001], 360));
-			strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = circshift(strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas, floor(rand()*nTotalChoices));
-		elseif ~g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial
-			strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = sort(mod([strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg:TotalSpan/nTotalChoices:strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg-0.001], 360));
-		end
-
-
-        if g_strctParadigm.m_strctChoiceVars.m_bRandomRingOrderInversion
-            strctCurrentTrial.m_strctChoiceVars.m_bChoiceRingOrderInversion = true;
-            if rand() > 0.5
-                strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = flip(strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas);
-            end
-        else
-            strctCurrentTrial.m_strctChoiceVars.m_bChoiceRingOrderInversion = false;
-        end
-
 
         % OLD VERSION (does not work)
         %{

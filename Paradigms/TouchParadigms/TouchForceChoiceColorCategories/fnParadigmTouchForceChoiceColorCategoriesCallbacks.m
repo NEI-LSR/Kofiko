@@ -9,6 +9,8 @@ global  g_strctParadigm g_strctStimulusServer g_strctAppConfig g_strctPTB
 
 
 switch strCallback
+	case 'PreAllocateStimuli'
+		g_strctParadigm.m_bPreAllocateStimuli = ~g_strctParadigm.m_bPreAllocateStimuli;
 	case 'EasyTrialProbability'
 		varargout{1} = fnDynamicCallback(strCallback);
 	case 'ChoiceDistributionSpread'
@@ -766,12 +768,18 @@ fnInitializeCueTrainingTextures(stimulusTypeToPrepare, fnTsGetVar('g_strctParadi
 
 		
 		% shortcut implementation of positive juice increment which bypasses stats server
-		
 		if bCorrect
 			g_strctParadigm.m_iPositiveJuiceIncrement = g_strctParadigm.m_iPositiveJuiceIncrement + 1;
 		else
 			g_strctParadigm.m_iPositiveJuiceIncrement = 0;
 		end
+		
+		% Counter for number of trials
+		g_strctParadigm.m_iTrialNumber = g_strctParadigm.m_iTrialNumber + 1;
+		if g_strctParadigm.m_iTrialNumber > g_strctParadigm.m_iSessionLength
+			fnPauseParadigm(); 
+		end
+		
 		
 		%{
 		if bCorrect

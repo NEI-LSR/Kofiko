@@ -412,12 +412,19 @@ strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials = fnTsGetVar('g_strctPar
 iCurrentColorConversionID = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType,'value');
 strCurrentColorConversionName = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType,'string');
 strctCurrentTrial.m_strctCuePeriod.m_strSelectedConversionType = strCurrentColorConversionName{iCurrentColorConversionID,:};
+
+strctCurrentTrial.m_aAllStimulusSats = g_strctParadigm.m_aAllStimulusSats;
+strctCurrentTrial.m_aAllStimulusHues = g_strctParadigm.m_aAllStimulusHues;
+strctCurrentTrial.m_aiAllStimulusIDs = 1:length(strctCurrentTrial.m_aAllStimulusHues);
+numStimuli = length(strctCurrentTrial.m_aiAllStimulusIDs);
+
 % currentlySelectedSaturationvalue = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'value');
 % currentlySelectedSaturationStrings = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'string');
 
 % currentlySelectedColors = get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'value');
 
-thisColorConversionStructs = g_strctParadigm.m_strctMasterColorTable{get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType,'value')};
+strctCurrentTrial.m_cCurrentlySelectedSaturations = g_strctParadigm.m_strctMasterColorTable{get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType,'value')};
+
 %for iActiveSaturations = 1:numel(currentlySelectedSaturationvalue)
 %    strctCurrentTrial.m_cCurrentlySelectedSaturations.(deblank(currentlySelectedSaturationStrings(currentlySelectedSaturationvalue(iActiveSaturations),:))) = ...
 %        thisColorConversionStructs.(deblank(currentlySelectedSaturationStrings(currentlySelectedSaturationvalue(iActiveSaturations),:)));
@@ -459,15 +466,25 @@ strctCurrentTrial.m_strctCuePeriod.m_bCueHighlight = g_strctParadigm.m_strctStim
 
 strctCurrentTrial.m_strctCuePeriod.m_aiClut = g_strctParadigm.m_afMasterClut;
 
-strctCurrentTrial.m_aAllStimulusSats = g_strctParadigm.m_aAllStimulusSats;
-strctCurrentTrial.m_aAllStimulusHues = g_strctParadigm.m_aAllStimulusHues;
-strctCurrentTrial.m_aiAllStimulusIDs = 1:length(strctCurrentTrial.m_aAllStimulusHues);
-numStimuli = length(strctCurrentTrial.m_aiAllStimulusIDs);
-
 strctCurrentTrial.m_strctCuePeriod.m_iCueID = randi(numStimuli);
 strctCurrentTrial.m_strctCuePeriod.m_fCueHue = strctCurrentTrial.m_aAllStimulusSats(strctCurrentTrial.m_strctCuePeriod.m_iCueID);
 strctCurrentTrial.m_strctCuePeriod.m_fCueSat = strctCurrentTrial.m_aAllStimulusHues(strctCurrentTrial.m_strctCuePeriod.m_iCueID);
-% probably also need to fill in Azimuth, RGB, Coordinates, etc. - ask Danny
+
+
+% Color look up stuff
+
+thisSaturationStr = ['Chroma', num2str(round(strctCurrentTrial.m_strctCuePeriod.m_fCueSat, 0))];
+strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation = strctCurrentTrial.m_cCurrentlySelectedSaturations.(thisSaturationStr);
+%iselectedColorID = 
+% need to figure out how to find the selected color ID for each saturation
+strctCurrentTrial.m_strctCuePeriod.m_aiRGB = strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.RGB(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID,:);
+strctCurrentTrial.m_strctCuePeriod.m_aiLocalStimulusColors = round((strctCurrentTrial.m_strctCuePeriod.m_aiRGB/65535)*255);
+strctCurrentTrial.m_strctCuePeriod.m_iSaturation = strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.Radius;
+strctCurrentTrial.m_strctCuePeriod.m_afLUV_CartCoordinates = ...
+    strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.m_afCartCoordinates(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID,:);
+strctCurrentTrial.m_strctCuePeriod.m_afSphereCoordinates = strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.m_afSphereCoordinates(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID,:);
+strctCurrentTrial.m_strctCuePeriod.m_iAzimuth = strctCurrentTrial.m_strctCuePeriod.m_strctSelectedSaturation.azimuthSteps(strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID);
+
 
 % old way of picking cues
 %{ 

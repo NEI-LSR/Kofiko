@@ -288,6 +288,15 @@ strctControllers.m_hStimType = uicontrol('Style', 'listbox', 'String', stimCell,
     'Position', [10 strctCueControllers.m_iPanelHeight-690 ,strctCueControllers.m_iPanelWidth-15 30], 'parent',strctCueControllers.m_hPanel, 'Callback',[g_strctParadigm.m_strCallbacks,'(''SelectStimType'');'],...
     'value',1,'UIContextMenu',strctControllers.hColorListContextMenu, 'max', 1, 'min', 1);
 
+
+
+% need to figure out where there is space for this checkbox - leaving it out for now so people can't accidentally click it and mess things up
+% strctControllers.m_bPreAllocateStimuli = uicontrol('Parent',strctCueControllers.m_hPanel,'Style', 'checkbox', 'String', 'Use pre-allocated stimuli','value',...
+%	g_strctParadigm.m_bPreAllocateStimuli,...
+%   'Position', [5 iPanelHeight-650 250 25], 'Callback', [g_strctParadigm.m_strCallbacks,'(''PreAllocateStimuli'');']);  
+
+
+
 %% Memory Period Sub Panel
 
 %strctControllers = fnAddTextSliderEditComboSmallWithCallback2(strctControllers, strctMemoryControllers.m_hPanel,40+30*1, ...
