@@ -243,7 +243,6 @@ g_strctParadigm.m_aiColorsDisplayedCount = zeros(numel(aiAllSaturations),numel(c
 %g_strctParadigm.m_aiColorsDisplayedCount = zeros(sum(cellfun(@numel,g_strctParadigm.m_cAllColorsPerSat)),1);% + fnTsGetVar('g_strctParadigm', 'IncludeGrayTrials'),1);
 
 if isfield(g_strctParadigm,'NTargets')
-if isfield(g_strctParadigm,'NTargets')
     g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NTargets', g_strctParadigm.m_fInitial_NTargets, iSmallBuffer);
 else
     g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NTargets', 1, iSmallBuffer);

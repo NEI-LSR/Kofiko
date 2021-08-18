@@ -775,11 +775,12 @@ fnInitializeCueTrainingTextures(stimulusTypeToPrepare, fnTsGetVar('g_strctParadi
 		end
 		
 		% Counter for number of trials
-		g_strctParadigm.m_iTrialNumber = g_strctParadigm.m_iTrialNumber + 1;
-		if g_strctParadigm.m_iTrialNumber > g_strctParadigm.m_iSessionLength
-			fnPauseParadigm(); 
+		if g_strctParadigm.m_bPreAllocateStimuli
+			g_strctParadigm.m_iTrialNumber = g_strctParadigm.m_iTrialNumber + 1;
+			if g_strctParadigm.m_iTrialNumber > g_strctParadigm.m_iSessionLength
+				fnPauseParadigm(); 
+			end
 		end
-		
 		
 		%{
 		if bCorrect
