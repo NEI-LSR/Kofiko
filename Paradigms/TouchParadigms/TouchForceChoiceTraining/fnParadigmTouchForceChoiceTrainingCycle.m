@@ -1069,21 +1069,31 @@ switch g_strctParadigm.m_iMachineState
             elseif strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') || ...
 					strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli') || ...
 					strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
-
                  insideChoices = strctInputs.m_pt2iEyePosScreen(1) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,1) & ...
                     strctInputs.m_pt2iEyePosScreen(2) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,2) & ...
                     strctInputs.m_pt2iEyePosScreen(1) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,3) & ...
                     strctInputs.m_pt2iEyePosScreen(2) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,4);
                 if any(any(insideChoices))
-                    [g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat,...
-                    g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor] = ...
+ 					%dbstop if warning
+ 					%warning('stop')
+                    [iCurrentlySelectedChoice(1),iCurrentlySelectedChoice(2)] = ...
                     find(strctInputs.m_pt2iEyePosScreen(1) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,1) & ...
                     strctInputs.m_pt2iEyePosScreen(2) > g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,2) & ...
                     strctInputs.m_pt2iEyePosScreen(1) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,3) & ...
                     strctInputs.m_pt2iEyePosScreen(2) < g_strctParadigm.m_strctCurrentTrial.m_aiInsideChoiceRects(:,:,4));
 
-                iCurrentlySelectedChoice = [g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat, ...
-                    g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor];
+					%iCurrentlySelectedChoice = [g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat, ...
+					%	g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor];
+						
+					g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingSaturationID = ... 
+						g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceSaturationID(iCurrentlySelectedChoice(2));
+					g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingColorID = ... 
+						g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceColorID(iCurrentlySelectedChoice(2));
+
+					g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceID = ... 
+						g_strctParadigm.m_strctCurrentTrial.m_aiColorOrder(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingSaturationID, ...
+						g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingColorID);
+						
                 if ~any(iCurrentlySelectedChoice)
                     bBlinkTimerElapsed = fnCheckBlinkTimer('check');
                     if bBlinkTimerElapsed
@@ -1132,8 +1142,8 @@ switch g_strctParadigm.m_iMachineState
 
 
         end
-        if bInsideChoice && GetSecs()-g_strctParadigm.m_fInsideChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS/1e3
-            g_strctParadigm.m_strctCurrentTrial.m_iSelectedChoice = g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice;
+		if bInsideChoice && GetSecs()-g_strctParadigm.m_fInsideChoiceTS >  g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_fHoldToSelectChoiceMS/1e3
+            % g_strctParadigm.m_strctCurrentTrial.m_iSelectedChoice = g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoice;
 			g_strctParadigm.m_iMachineState = 23; % Monkey committed to a decision
             if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'ring')
                 g_strctParadigm.m_strctCurrentTrial.m_fChoiceDirectionTheta = choiceDirectionTheta;
@@ -1149,9 +1159,13 @@ switch g_strctParadigm.m_iMachineState
         % First thing - has he made decision which entitles juice?
 		
         bGiveJuice = 0;
+        
+%         dbstop if warning
+%  		warning('stop')
         [bGiveJuice, bJuiceDropMultiplier, fJuiceTimeMultiplier] = fnDetermineJuiceReward();
 
 		
+        
         %g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia(g_strctParadigm.m_iSelectedChoice).m_bJuiceReward;
         if bGiveJuice > 0
             % Correct trial!
@@ -1389,26 +1403,25 @@ if g_strctParadigm.m_bDebugModeEnabled
 end
 %dbstop if warning
 %warning('stop')
-if ~isfield(g_strctParadigm.m_strctCurrentTrial,'m_iCurrentlySelectedChoiceSat') || isempty(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat)
+if ~isfield(g_strctParadigm.m_strctCurrentTrial,'m_iCurrentlySelectedChoiceID') || isempty(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceID)
 bGiveJuice = 0;
 bJuiceDropMultiplier= 0;
 fJuiceTimeMultiplier = 0;
 return;
 end
 g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_strChosenSaturation = ...
-				g_strctParadigm.m_strctCurrentTrial.m_strActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat};
+				g_strctParadigm.m_strctCurrentTrial.m_strActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingSaturationID};
 
 g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_strctChosenSaturation = ...
-	g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat};
+	g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingSaturationID};
 
 g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_afChosenCartColorCoordinates = ...
-	g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat}.m_afCartCoordinates(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor,:);
+	g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingSaturationID}.m_afCartCoordinates(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingColorID,:);
 
 g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_afChosenSphColorCoordinates = ...
-	g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat}.m_afSphereCoordinates(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor,:);
+	g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingSaturationID}.m_afSphereCoordinates(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingColorID,:);
 
 %strctCurrentTrial = g_strctParadigm.m_strctCurrentTrial;
-
 
 
 if g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_bBinaryReward
@@ -1416,14 +1429,11 @@ if g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_bBinaryReward
             || strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli') ...
             || strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
 		if g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial % if trial is a direct match, keep old reward structure
-			%if any(g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{1} == ...
-			%        g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat) && ...
-			%        any(g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{2} == ...
-			%        g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor)
-			if any(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceSaturationID(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat) == ...
-					g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID) && ...
-					any(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceColorID(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor) == ...
-					g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID)
+
+			if any(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingSaturationID == ...
+					g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCueHandleIndexingSaturationID) && ...
+					any(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceHandleIndexingColorID == ...
+					g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCueHandleIndexingColorID)
 				bGiveJuice = true;
 				bJuiceDropMultiplier = 1;
 				fJuiceTimeMultiplier = 1;

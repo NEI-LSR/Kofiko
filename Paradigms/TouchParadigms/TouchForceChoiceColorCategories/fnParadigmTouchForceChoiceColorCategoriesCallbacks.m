@@ -727,7 +727,7 @@ fnInitializeCueTrainingTextures(stimulusTypeToPrepare, fnTsGetVar('g_strctParadi
         clear g_strctParadigm.ahChoiceTexture
 	end
 		[g_strctParadigm.m_strctChoiceVars.m_aiChoiceRGB, g_strctParadigm.m_strctChoiceVars.m_aiRGBInd, ...
-             g_strctParadigm.m_strctChoiceVars.m_iClutIndices] = fnCreateNestedChoiceCircle();
+             g_strctParadigm.m_strctChoiceVars.m_iClutIndices] = fnCreateNestedChoiceCircleColorCategories();
 			 %dbstop if warning
 			%warning('stop')
 		fnParadigmToStimulusServer('ForceMessage', 'PrepareChoiceTexture', g_strctParadigm.m_strctChoiceVars.m_aiRGBInd);

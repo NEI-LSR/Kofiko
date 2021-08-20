@@ -1,4 +1,4 @@
-function fnInitializeColors()
+function fnInitializeColorsTouchForceChoiceTraining()
 global g_strctParadigm
 
 % conversion matrices and the gamme correction tables
@@ -25,12 +25,14 @@ g_strctParadigm.m_strCurrentConversionType = g_strctParadigm.m_acAvailableColorS
 g_strctParadigm.m_cMasterColorTableLookup{1} = g_strctParadigm.m_acstrChromaLookupLUV;
 g_strctParadigm.m_cMasterColorTableLookup{2} = g_strctParadigm.m_acstrSaturationsLookupDKL;
 
+
 % feeds in color tuning data
-g_strctParadigm.m_StartingHue = fnTsGetVar('g_strctParadigm','StartingHue');
+g_strctParadigm.m_fStartingHue = fnTsGetVar('g_strctParadigm','StartingHue');
+maxSat = max(g_strctParadigm.m_aiPresetLUVChroma);
 
 % generates 19-stimulus triangular tesselation in CIELUV
-g_strctParadigm.m_aPolarCoordinatesarAngs = mod(linspace(g_strctParadigm.m_StartingHue,g_strctParadigm.m_StartingHue+360-(360/6),6), 360); %Compute 6 exterior points
-[a,b] = g_strctParadigm.m_aPolarCoordinates2cart(deg2rad(g_strctParadigm.m_aPolarCoordinatesarAngs),ones(1,6)*maxSat); %Convert g_strctParadigm.m_aPolarCoordinatesar co-ordinates to cartesian co-ordinates
+g_strctParadigm.m_aPolarCoordinatesarAngs = mod(linspace(g_strctParadigm.m_fStartingHue,g_strctParadigm.m_fStartingHue+360-(360/6),6), 360); %Compute 6 exterior points
+[a,b] = pol2cart(deg2rad(g_strctParadigm.m_aPolarCoordinatesarAngs),ones(1,6)*maxSat); %Convert g_strctParadigm.m_aPolarCoordinatesar co-ordinates to cartesian co-ordinates
 g_strctParadigm.m_aCartesianCoordinates = [a;b];
 for i = 1:6
     inbetween = [g_strctParadigm.m_aCartesianCoordinates(1,i)/2;g_strctParadigm.m_aCartesianCoordinates(2,i)/2];
@@ -45,7 +47,7 @@ g_strctParadigm.m_aCartesianCoordinates = [g_strctParadigm.m_aCartesianCoordinat
 g_strctParadigm.m_aCartesianCoordinates = [g_strctParadigm.m_aCartesianCoordinates,[0;0]]; %add origin
 g_strctParadigm.m_aCartesianCoordinates = g_strctParadigm.m_aCartesianCoordinates(:,[1,13,2,14,3,15,4,16,5,17,6,18,7,8,9,10,11,12,19]); 
 
-[g_strctParadigm.m_aPolarCoordinates(1,:),g_strctParadigm.m_aPolarCoordinates(2,:)] = cart2g_strctParadigm.m_aPolarCoordinates(g_strctParadigm.m_aCartesianCoordinates(1,:),g_strctParadigm.m_aCartesianCoordinates(2,:));
+[g_strctParadigm.m_aPolarCoordinates(1,:),g_strctParadigm.m_aPolarCoordinates(2,:)] = cart2pol(g_strctParadigm.m_aCartesianCoordinates(1,:),g_strctParadigm.m_aCartesianCoordinates(2,:));
 g_strctParadigm.m_aPolarCoordinates(1,:) = round(rad2deg(g_strctParadigm.m_aPolarCoordinates(1,:)));
 g_strctParadigm.m_aPolarCoordinates(1,g_strctParadigm.m_aPolarCoordinates(1,:)<0) = 360+g_strctParadigm.m_aPolarCoordinates(1,g_strctParadigm.m_aPolarCoordinates(1,:)<0); % the rad2deg remapping puts 190deg as -170deg (for example) - I want everything positive from 0 -> 360.
 
@@ -53,7 +55,9 @@ g_strctParadigm.m_aPolarCoordinates(1,g_strctParadigm.m_aPolarCoordinates(1,:)<0
 g_strctParadigm.m_aAllStimulusHues = g_strctParadigm.m_aPolarCoordinates(1,:); 
 g_strctParadigm.m_aAllStimulusSats = g_strctParadigm.m_aPolarCoordinates(2,:);
 
-end
+	
+% 	dbstop if warning
+% 	stop('warning')
 
 % load information for LUV colors and initialize the matrices
 for iChroma = 1:numel(g_strctParadigm.m_aiPresetLUVChroma)
@@ -66,6 +70,7 @@ for iChroma = 1:numel(g_strctParadigm.m_aiPresetLUVChroma)
 	elseif iChroma==4
 		iStimuli = 19;
 	end;
+
 	
 	g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).azimuthSteps = deg2rad(g_strctParadigm.m_aPolarCoordinates(1, iStimuli));
 	g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).Radius = g_strctParadigm.m_aiPresetLUVChroma(iChroma)/100;
@@ -73,7 +78,7 @@ for iChroma = 1:numel(g_strctParadigm.m_aiPresetLUVChroma)
     
 	g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).m_afCartCoordinates(:,2) = g_strctParadigm.m_aCartesianCoordinates(1,iStimuli)/100;
 	g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).m_afCartCoordinates(:,3) = g_strctParadigm.m_aCartesianCoordinates(2,iStimuli)/100;
-	g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).m_afCartCoordinates(:,1) = ones(19,1) * (g_strctParadigm.m_aiPresetElevationsLUV(iChroma)/100);
+	g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).m_afCartCoordinates(:,1) = ones(length(iStimuli),1) * (g_strctParadigm.m_aiPresetElevationsLUV(iChroma)/100);
 	
 	g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).m_fElevation = g_strctParadigm.m_aiPresetElevationsLUV(iChroma);
 	
@@ -82,7 +87,7 @@ for iChroma = 1:numel(g_strctParadigm.m_aiPresetLUVChroma)
         ones(numel(g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).azimuthSteps),1) * g_strctParadigm.m_aiPresetElevationsLUV(iChroma),...
         ones(numel(g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).azimuthSteps),1) * g_strctParadigm.m_aiPresetLUVChroma(iChroma)/100];
                                    
-    uncorrectedRGB = luv2rgb([ones(19,1) * g_strctParadigm.m_aiPresetElevationsLUV(iChroma),g_strctParadigm.m_aCartesianCoordinates(1,iStimuli)',g_strctParadigm.m_aCartesianCoordinates(2,iStimuli)'])*65535;
+    uncorrectedRGB = luv2rgb([ones(length(iStimuli),1) * g_strctParadigm.m_aiPresetElevationsLUV(iChroma),g_strctParadigm.m_aCartesianCoordinates(1,iStimuli)',g_strctParadigm.m_aCartesianCoordinates(2,iStimuli)'])*65535;
     for iRGB = 1:size(uncorrectedRGB,1)
         g_strctParadigm.m_strctMasterColorTable{1}.(g_strctParadigm.m_acstrChromaLookupLUV{iChroma}).RGB(iRGB,:) = ...
         [g_strctParadigm.m_strctGammaCorrectedLookupTable.RLUT(floor(uncorrectedRGB(iRGB,1)+1)),...

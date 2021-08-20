@@ -1,4 +1,4 @@
-function [rgbNew, rgbInd, clutIndices, rgbControlComputer] = fnCreateNestedChoiceCircle()
+function [rgbNew, rgbInd, clutIndices, rgbControlComputer] = fnCreateNestedChoiceCircleColorCategories()
 global g_strctParadigm
 
 

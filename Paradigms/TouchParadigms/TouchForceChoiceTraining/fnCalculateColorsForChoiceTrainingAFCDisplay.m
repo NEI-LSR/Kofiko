@@ -1,4 +1,4 @@
-function [stimulusServerColors, controlComputerColors] = fnCalculateColorsForChoiceTrainingDisplay(activeSaturationsIds, activeSaturationsStr, activeColorConversionId, luminanceDeviation, numLuminanceStepsPerChoice, cColorsPerSaturation)
+function [stimulusServerColors, controlComputerColors] = fnCalculateColorsForChoiceTrainingAFCDisplay(activeSaturationsIds, activeSaturationsStr, activeColorConversionId, luminanceDeviation, numLuminanceStepsPerChoice)
 global g_strctParadigm
 %luminanceDeviation = fnTsGetVar('g_strctParadigm','ChoiceLuminanceDeviation');
 % (activeSaturationsIds, activeSaturationsStr, activeColorConversionId, luminanceDeviation, numLuminanceStepsPerChoice, cColorsPerSaturation)
@@ -17,8 +17,17 @@ stimulusServerColors = [];
 controlComputerColors = [];
 
 for iSaturations = 1:numel(activeSaturationsIds)
-    activeChoiceColorIds = cColorsPerSaturation{iSaturations};
-    for iColors = activeChoiceColorIds
+	% color order for 19-stimulus triangular tessalation 
+	if iSaturations == 1 
+		iStimuli = [1 3 5 7 9 11];
+	elseif iSaturations==2
+		iStimuli = [2 4 6 8 10 12];
+	elseif iSaturations==3
+		iStimuli = [13 14 15 16 17 18];
+	elseif iSaturations==4
+		iStimuli = 19;
+	end;
+    for iColors = 1:length(iStimuli);
         thisColorCoordinate = g_strctParadigm.m_strctMasterColorTable{activeColorConversionId}.(activeSaturationsStr{iSaturations}).m_afCartCoordinates(iColors,:);
         rawValues = luv2rgb([ones(numel(g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps),1) .* ...
             ((thisColorCoordinate(1)*100) + g_strctParadigm.m_strctChoiceVars.m_fChoiceLuminanceSteps*100)', ...

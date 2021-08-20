@@ -1,4 +1,4 @@
-function [rgbNew, rgbInd, clutIndices, rgbControlComputer] = fnCreateNestedChoiceCircle()
+function [rgbNew, rgbInd, clutIndices, rgbControlComputer] = fnCreateNestedChoiceCircleAFC()
 global g_strctParadigm
 
 
@@ -13,18 +13,20 @@ g_strctParadigm.m_strctChoiceVars.choiceParameters = [];
 lastClutOffset = g_strctParadigm.CLUTOffset;
 
 [iChoiceRingSize] = fnTsGetVar('g_strctParadigm','ChoiceRingSize');
-[iChoiceRingNumRings]  = numel(get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value'));
-
+%[iChoiceRingNumRings]  = numel(get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value'));
+iChoiceRingNumRings = numel(g_strctParadigm.m_strChromaLookupLUV);
 
 conversionTypes = get(g_strctParadigm.m_strctControllers.m_hChoiceColorConversionType,'string');
 conversionTypeID = get(g_strctParadigm.m_strctControllers.m_hChoiceColorConversionType,'value');
 
-choiceSaturations = get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'string');
-choiceSaturationsID = get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value');
+choiceSaturations = g_strctParadigm.m_strChromaLookupLUV;
+choiceSaturationsID = 1:4; % hard-coded for triangular tessalation
+
 
 for iChoiceSaturations = 1:numel(choiceSaturationsID)
-    cstrCurrentChoiceSaturations{iChoiceSaturations} = deblank(choiceSaturations(choiceSaturationsID(iChoiceSaturations),:));
+    cstrCurrentChoiceSaturations{iChoiceSaturations} = deblank(choiceSaturations{choiceSaturationsID(iChoiceSaturations)});
 end
+
 strCurrentConversionType = deblank(conversionTypes{conversionTypeID});
 
 
@@ -41,8 +43,16 @@ g_strctParadigm.m_strctChoiceVars.m_aiLocalChoiceRingRGBCorrected = [];
 for iRings = 1:iChoiceRingNumRings
     
     iChoiceRingwidth = floor(fnTsGetVar('g_strctParadigm','ChoiceRingSize')/ (iChoiceRingNumRings+1));    
-    aiCurrentlySelectedColors = get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'value');
-
+    %aiCurrentlySelectedColors = get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'value');
+	if iRings == 1 
+		aiCurrentlySelectedColors = [1 3 5 7 9 11];
+	elseif iRings==2
+		aiCurrentlySelectedColors = [2 4 6 8 10 12];
+	elseif iRings==3
+		aiCurrentlySelectedColors = [13 14 15 16 17 18];
+	elseif iRings==4
+		aiCurrentlySelectedColors = 19;
+	end;
     [iChoiceRingNumChoices] =  numel(aiCurrentlySelectedColors);
     %[iChoiceRingElevation] = fnTsGetVar('g_strctParadigm','ChoiceRingElevation');
     %[iChoiceRingSaturation] = fnTsGetVar('g_strctParadigm','ChoiceRingSaturation');
@@ -53,7 +63,7 @@ for iRings = 1:iChoiceRingNumRings
    
     if strcmp(strCurrentConversionType,'LUV')
         thisSaturationColorStruct = g_strctParadigm.m_strctMasterColorTable{conversionTypeID,1}.(cstrCurrentChoiceSaturations{iRings});
-        afCurrentColorAzimuth = thisSaturationColorStruct.azimuthSteps(aiCurrentlySelectedColors);
+        afCurrentColorAzimuth = thisSaturationColorStruct.azimuthSteps;
         fCurrentColorElevation = thisSaturationColorStruct.m_fElevation;
         [luvCoords(2,:),luvCoords(3,:),luvCoords(1,:)] = sph2cart(afCurrentColorAzimuth, zeros(1,numel(afCurrentColorAzimuth)), thisSaturationColorStruct.Radius) ;
          ChoiceRGBUncorrectedTemp = luv2rgb([ones(numel(luvCoords(2,:)),1) * fCurrentColorElevation,luvCoords(2,:)'.*100,luvCoords(3,:)'.*100]);
@@ -136,7 +146,7 @@ for iRings = 1:iChoiceRingNumRings
 	g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceAngleTolerance = choiceParamsTemp.m_afChoiceAngleTolerance;
 	g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceColorSpaceAngles(iRings,:) = afCurrentColorAzimuth; %vertcat(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceAngles, ...);
     g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceRingAngles(iRings,:) = choiceParamsTemp.m_afChoiceAngles'; %vertcat(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_afChoiceAngles, ...);
-    g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(iRings,:,:) = repmat(choiceParamsTemp.m_iRingRho, size(choiceParamsTemp.m_afChoiceAngles',1),1); %vertcat(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho,);
+    g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho(iRings,:,:) = repmat(choiceParamsTemp.m_iRingRho(1), size(choiceParamsTemp.m_afChoiceAngles',1),1); %vertcat(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRho,);
     g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRGB(iRings,:,:) = choiceRGBTemp; %vertcat(g_strctParadigm.m_strctChoiceVars.choiceParameters.m_aiChoiceRGB,...);
 	g_strctParadigm.m_strctChoiceVars.choiceParameters.m_strSatname{iRings} = cstrCurrentChoiceSaturations{iRings};
 	%{
@@ -309,6 +319,7 @@ for i = 1:numel(x)
        thisColorInd = clutIndices(i);
    else
        thisColorInd = 2;
+	   clutIndices(end+1) = lastUsedClut+1;
    end
     for ix = 1:numel(x1)
         rgbInd(y1(ix),x1(ix),1:3) = deal([clutIndices(end)])-1;

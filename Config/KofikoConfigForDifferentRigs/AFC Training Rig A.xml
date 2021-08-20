@@ -211,6 +211,7 @@
 		Initial_GrayTrialProbability = "20"
 		Initial_CueLuminanceNoiseBlockSize = "3"
 		Initial_CueRhoDeviation = "0"
+		Initial_StartingHue = "0"
 				
 		Initial_MemoryPeriodMinMS = "600"
 		Initial_MemoryPeriodMaxMS = "900"
@@ -260,7 +261,7 @@
 		Initial_AnnulusCenterOffset = "200"
 		Initial_AnnulusSaturationSeparation = "100"
 		Initial_RandomRingOrderInversion = "1"
-		Initial_SortChoiceHues = "1"
+		Initial_SortChoiceHues = "0"
 		Initial_NTargets = "4"
 		Initial_HoldToSelectChoiceMS = "25"
 		Initial_DirectMatchCueChoices = "1"
