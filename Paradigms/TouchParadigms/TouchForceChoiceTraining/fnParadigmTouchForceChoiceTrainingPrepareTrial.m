@@ -808,7 +808,7 @@ if ~strctCurrentTrial.m_bPreAllocateStimuli
 	end
 else % if pre-allocating stimuli
 	strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = strctCurrentTrial.m_strctStimuliVars.m_bDirectMatchCueChoices;
-    strctCurrentTrial.m_aiActiveChoiceColorID = g_strctParadigm.m_aiPreAllocatedTrials(strctCurrentTrial.m_iTrialNumber, 2:(1+strctCurrentTrial.m_strctChoiceVars.m_NTargets));
+    strctCurrentTrial.m_aiActiveChoiceID = g_strctParadigm.m_aiPreAllocatedTrials(strctCurrentTrial.m_iTrialNumber, 2:(1+strctCurrentTrial.m_strctChoiceVars.m_NTargets));
 end
 
 strctCurrentTrial.m_strctChoiceVars.numSaturations = length(unique(round(strctCurrentTrial.m_aAllStimulusSats)));
