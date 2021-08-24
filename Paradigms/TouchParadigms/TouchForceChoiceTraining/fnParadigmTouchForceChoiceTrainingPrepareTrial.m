@@ -405,6 +405,12 @@ strctCurrentTrial.m_strctCuePeriod.m_fFixationSpotSize = squeeze(g_strctParadigm
 strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials = fnTsGetVar('g_strctParadigm','IncludeGrayTrials');
 %}
 
+%% pre-allocation stuff
+strctCurrentTrial.m_bPreAllocateStimuli = g_strctParadigm.m_bPreAllocateStimuli;
+if strctCurrentTrial.m_bPreAllocateStimuli
+	strctCurrentTrial.m_strStimFile = g_strctParadigm.m_strStimFile;
+	strctCurrentTrial.m_iTrialNumber = g_strctParadigm.m_iTrialNumber;
+end
 
 % Choose what color this trial will be
 %strctCurrentTrial.m_strctCuePeriod.m_acCurrentlyActiveColorStructures = g_strctParadigm.m_strctCurrentSaturations;
@@ -457,7 +463,12 @@ strctCurrentTrial.m_strctCuePeriod.m_bCueHighlight = g_strctParadigm.m_strctStim
 
 strctCurrentTrial.m_strctCuePeriod.m_aiClut = g_strctParadigm.m_afMasterClut;
 
-strctCurrentTrial.m_strctCuePeriod.m_iCueID = randi(numStimuli);
+if ~strctCurrentTrial.m_bPreAllocateStimuli
+    strctCurrentTrial.m_strctCuePeriod.m_iCueID = randi(numStimuli);
+else
+	strctCurrentTrial.m_strctCuePeriod.m_iCueID = g_strctParadigm.m_aiPreAllocatedTrials(strctCurrentTrial.m_iTrialNumber);
+end
+
 strctCurrentTrial.m_strctCuePeriod.m_fCueHue = strctCurrentTrial.m_aAllStimulusSats(strctCurrentTrial.m_strctCuePeriod.m_iCueID);
 strctCurrentTrial.m_strctCuePeriod.m_fCueSat = strctCurrentTrial.m_aAllStimulusHues(strctCurrentTrial.m_strctCuePeriod.m_iCueID);
 
@@ -783,18 +794,21 @@ else
 end
 
 numStimuli = length(strctCurrentTrial.m_aiAllStimulusIDs);
-
-if strctCurrentTrial.m_strctStimuliVars.m_bDirectMatchCueChoices || rand() > (strctCurrentTrial.m_strctStimuliVars.m_fProbeTrialProbability/100)
-	strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = true;
-	Distractors = strctCurrentTrial.m_aiAllStimulusIDs(strctCurrentTrial.m_aiAllStimulusIDs ~= strctCurrentTrial.m_strctCuePeriod.m_iCueID); % subset random hues (including match) for each trial
-	strctCurrentTrial.m_aiActiveChoiceID = [strctCurrentTrial.m_strctCuePeriod.m_iCueID, Distractors(randperm(numStimuli-1, strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
-
-else
-    strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = false;
-	% subset random non-match hues for each trial
-	Distractors = strctCurrentTrial.m_aiAllStimulusIDs(strctCurrentTrial.m_aiAllStimulusIDs ~= strctCurrentTrial.m_strctCuePeriod.m_iCueID); % subset random hues (including match) for each trial
-	strctCurrentTrial.m_aiActiveChoiceID = [Distractors(randperm(numStimuli-1, strctCurrentTrial.m_strctChoiceVars.m_NTargets))];
-
+if ~strctCurrentTrial.m_bPreAllocateStimuli
+	if strctCurrentTrial.m_strctStimuliVars.m_bDirectMatchCueChoices || rand() > (strctCurrentTrial.m_strctStimuliVars.m_fProbeTrialProbability/100)
+		strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = true;
+		Distractors = strctCurrentTrial.m_aiAllStimulusIDs(strctCurrentTrial.m_aiAllStimulusIDs ~= strctCurrentTrial.m_strctCuePeriod.m_iCueID); % subset random hues (including match) for each trial
+		strctCurrentTrial.m_aiActiveChoiceID = ... 
+			[strctCurrentTrial.m_strctCuePeriod.m_iCueID, Distractors(randperm(numStimuli-1, strctCurrentTrial.m_strctChoiceVars.m_NTargets-1))];
+	else
+		strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = false;
+		% subset random non-match hues for each trial
+		Distractors = strctCurrentTrial.m_aiAllStimulusIDs(strctCurrentTrial.m_aiAllStimulusIDs ~= strctCurrentTrial.m_strctCuePeriod.m_iCueID); % subset random hues (including match) for each trial
+		strctCurrentTrial.m_aiActiveChoiceID = [Distractors(randperm(numStimuli-1, strctCurrentTrial.m_strctChoiceVars.m_NTargets))];
+	end
+else % if pre-allocating stimuli
+	strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial = strctCurrentTrial.m_strctStimuliVars.m_bDirectMatchCueChoices;
+    strctCurrentTrial.m_aiActiveChoiceColorID = g_strctParadigm.m_aiPreAllocatedTrials(strctCurrentTrial.m_iTrialNumber, 2:(1+strctCurrentTrial.m_strctChoiceVars.m_NTargets));
 end
 
 strctCurrentTrial.m_strctChoiceVars.numSaturations = length(unique(round(strctCurrentTrial.m_aAllStimulusSats)));

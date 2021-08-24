@@ -115,6 +115,9 @@
         Close = "fnParadigmTouchForceChoiceTrainingClose"
         ParadigmSwitch = "fnParadigmTouchForceChoiceTrainingParadigmSwitch"
         
+		Initial_PreAllocateStimuli = "0"
+		Initial_StimFile = "test.csv"
+		
 		Initial_ColorConversionID = "1"
 		
 		Initial_ColorSpaceNames = "LUV DKL"

@@ -9,6 +9,8 @@ global  g_strctParadigm g_strctStimulusServer g_strctAppConfig g_strctPTB
 
 
 switch strCallback
+	case 'PreAllocateStimuli'
+		g_strctParadigm.m_bPreAllocateStimuli = ~g_strctParadigm.m_bPreAllocateStimuli;
 	case 'StartingHue'
 		varargout{1} = fnDynamicCallback(strCallback);
 	case 'minChoiceAngleDeg'
@@ -750,7 +752,8 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
     case 'TrialOutcome'
         strctCurrentTrial = varargin{1};
         acOutcomes = lower(fnSplitString( strctCurrentTrial.m_strctTrialOutcome.m_strResult));
-        if strctCurrentTrial.m_strctTrialParams.m_iTrialType == 0
+        
+		if strctCurrentTrial.m_strctTrialParams.m_iTrialType == 0
             g_strctParadigm.m_strctStatistics.m_strctCurrentDesign.m_aiNumNullTrials =  g_strctParadigm.m_strctStatistics.m_strctCurrentDesign.m_aiNumNullTrials + 1;
         else
             g_strctParadigm.m_strctStatistics.m_strctCurrentDesign.m_aiNumTrials(strctCurrentTrial.m_strctTrialParams.m_iTrialType) = g_strctParadigm.m_strctStatistics.m_strctCurrentDesign.m_aiNumTrials(strctCurrentTrial.m_strctTrialParams.m_iTrialType) + 1;
@@ -767,6 +770,14 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
 			g_strctParadigm.m_iPositiveJuiceIncrement = g_strctParadigm.m_iPositiveJuiceIncrement + 1;
 		else
 			g_strctParadigm.m_iPositiveJuiceIncrement = 0;
+		end
+		
+		% Counter for number of trials
+		if g_strctParadigm.m_bPreAllocateStimuli
+			g_strctParadigm.m_iTrialNumber = g_strctParadigm.m_iTrialNumber + 1;
+			if g_strctParadigm.m_iTrialNumber > g_strctParadigm.m_iSessionLength
+				fnPauseParadigm(); 
+			end
 		end
 		
 		%{

@@ -66,8 +66,14 @@ g_strctParadigm.m_afMasterClut(256,:) =  [65535 65535 65535];
 % Stim Server Refresh for calculating stuff during prep
 g_strctParadigm.m_strctStimServerVars.m_fStimulusMonitorRefreshRate = fnParadigmToKofikoComm('GetRefreshRate');
 
-
-
+%% Initialize pre-allocation of choices 
+g_strctParadigm.m_bPreAllocateStimuli = g_strctParadigm.m_fInitial_PreAllocateStimuli;
+g_strctParadigm.m_strStimFile = fullfile('StimulusSet', 'TouchForceChoice_Stimuli', g_strctParadigm.m_strInitial_StimFile);
+if g_strctParadigm.m_bPreAllocateStimuli
+	g_strctParadigm.m_iTrialNumber = 1;
+	g_strctParadigm.m_aiPreAllocatedTrials = load(g_strctParadigm.m_strStimFile);
+	g_strctParadigm.m_iSessionLength = size(g_strctParadigm.m_aiPreAllocatedTrials, 1); 
+end
 
 
 %% Pre Cue
