@@ -234,7 +234,7 @@ switch g_strctParadigm.m_iMachineState
         else
             % First trial or previously correct trial...
             %tic
-            [strctTemp,strWhatHappened] =  fnParadigmTouchForceChoiceTrainingPrepareTrial();
+            [strctTemp,strWhatHappened] =  fnParadigmTouchForceChoicePrepareTrial();
             %disp(sprintf('trial prep took %s', num2str(toc)));
             if isempty(strctTemp)
                 if strcmpi(strWhatHappened, 'TR_Mode_FinishedAllBlocks')
