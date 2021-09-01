@@ -5,7 +5,7 @@ function varargout=fnParadigmTouchForceChoiceDrawCycle(acInputsFromKofiko)
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (see GPL.txt)
 
-global  g_strctDraw g_strctStimulusServer g_strctPTB
+global  g_strctDraw g_strctStimulusServer g_strctPTB g_bPhotoDiodeToggle
 
 
 if g_strctPTB.m_bRunningOnStimulusServer
@@ -26,7 +26,6 @@ if ~isempty(acInputsFromKofiko)
         case 'PrepareTrial'
             g_strctDraw.m_strctCurrentTrial = acInputsFromKofiko{2};
             
-
 			
 			if ~g_strctDraw.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
             % Load Images, unless they are already in memory...
@@ -41,29 +40,56 @@ if ~isempty(acInputsFromKofiko)
             fnStimulusServerToKofikoParadigm('TrialPreparationDone');
         case 'ClearScreen'
 			Screen('FillRect',hPTBWindow,1);
-            fnFlipWrapper(hPTBWindow); % clear & Block
+            g_bPhotoDiodeToggle = 1; % black
+			fFlipTime = fnFlipWrapper(hPTBWindow); % Blocking !
+			
             PsychPortAudio('Stop',g_strctPTB.m_hAudioDevice);
             
         case 'ShowFixationSpot'
-            fnDrawFixationSpot(hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctPreCuePeriod, true, 1);
-            fFlipTime =  fnFlipWrapper(hPTBWindow); % Blocking !
+            fnDrawFixationSpotTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctPreCuePeriod, true, 1);	
+			
+			g_bPhotoDiodeToggle = 0; % white
+			fFlipTime = fnFlipWrapper(hPTBWindow); % Blocking !
+			
             if ~g_strctPTB.m_bRunningOnStimulusServer
                 fFlipTime =  GetSecs(); % Don't trust TS obtained from flip on touch mode
             end
             fnStimulusServerToKofikoParadigm('FixationSpotFlip',fFlipTime); % For remote kofiko
             varargout{1} = fFlipTime; % for local touch screen
         case 'AbortTrial'
-            if nargin > 1
+            if length(acInputsFromKofiko) > 1 & g_strctDraw.m_strctCurrentTrial.m_strctPostTrial.m_bExtinguishNonSelectedChoicesAfterChoice
                 % We need to present only the choice media and wait for a while
                 % before moving on...
                 iSelectedChoice = acInputsFromKofiko{2};
                 fTimeOnScreenMS =  acInputsFromKofiko{3};
-                fnDisplayChoices(hPTBWindow,iSelectedChoice, g_strctDraw.m_strctCurrentTrial, g_strctDraw.m_acMedia, true, true,false,1,false); % Blocking (!)
+				
+% 				dbstop if warning
+% 			    warning('stop')
+				
+				% note (AC): maybe try adding new "Post-Trial" struct to strctCurrentTrial instead of creating this temporary one (or do all of it inside RetainChoiceTraining)
+				m_strctKeepCurrentTrial.m_aiActiveChoiceColorID = g_strctDraw.m_strctCurrentTrial.m_aiActiveChoiceColorID(iSelectedChoice(2));		
+				m_strctKeepCurrentTrial.m_strctTrialParams.m_bDynamicTrial = g_strctDraw.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial;
+                m_strctKeepCurrentTrial.m_strctChoicePeriod.m_afBackgroundColor = g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.m_afBackgroundColor;
+                m_strctKeepCurrentTrial.m_strctChoicePeriod.m_afBackgroundLUT = g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.m_afBackgroundLUT;
+                m_strctKeepCurrentTrial.m_iChoiceFrameCounter = g_strctDraw.m_strctCurrentTrial.m_iChoiceFrameCounter;
+                m_strctKeepCurrentTrial.m_iMaxFramesInChoiceEpoch = g_strctDraw.m_strctCurrentTrial.m_iMaxFramesInChoiceEpoch;
+                m_strctKeepCurrentTrial.m_aiChoiceScreenCoordinates = g_strctDraw.m_strctCurrentTrial.m_aiChoiceScreenCoordinates(iSelectedChoice(2),:);
+                m_strctKeepCurrentTrial.m_strctChoicePeriod.Clut = g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.Clut;	
+				m_strctKeepCurrentTrial.m_strChoiceDisplayType = g_strctDraw.m_strctCurrentTrial.m_strChoiceDisplayType; 
+				m_strctKeepCurrentTrial.m_bLuminanceNoiseBackground = g_strctDraw.m_strctCurrentTrial.m_bLuminanceNoiseBackground; 
+				m_strctKeepCurrentTrial.m_strctChoiceVars = g_strctDraw.m_strctCurrentTrial.m_strctChoiceVars;
+				m_strctKeepCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs = iSelectedChoice(2);
+				m_strctKeepCurrentTrial.thisTrialChoiceTextureOrder = g_strctDraw.m_strctCurrentTrial.thisTrialChoiceTextureOrder;
+				
+				
+                fnRetainChoiceTraining(hPTBWindow,m_strctKeepCurrentTrial, true, true); % Blocking (!)
                 WaitSecs(fTimeOnScreenMS/1e3);
             end
-            
             g_strctDraw.m_iMachineState  = 0;
-            fnFlipWrapper(hPTBWindow); % Blocking !
+            
+			g_bPhotoDiodeToggle = 0; % white
+			fFlipTime = fnFlipWrapper(hPTBWindow); % Blocking !
+			
             PsychPortAudio('Stop',g_strctPTB.m_hAudioDevice);
             
             if isfield(g_strctDraw,'m_strctCurrentTrial') && isfield(g_strctDraw.m_strctCurrentTrial,'m_bLoadOnTheFly') && g_strctDraw.m_strctCurrentTrial.m_bLoadOnTheFly
@@ -74,6 +100,10 @@ if ~isempty(acInputsFromKofiko)
             return;
         case 'StartTrial'
             g_strctDraw.m_iMachineState = 1;
+			
+			g_bPhotoDiodeToggle = 1; % black
+			fFlipTime = fnFlipWrapper(hPTBWindow); % Blocking !
+			
             if ~isempty(g_strctDraw.m_strctCurrentTrial.m_strctPreCuePeriod)
                 WaitSecs(g_strctDraw.m_strctCurrentTrial.m_strctPreCuePeriod.m_fPostTouchDelayMS/1e3);
             end
@@ -83,10 +113,10 @@ if ~isempty(acInputsFromKofiko)
 			fnGenerateNoiseTextures(acInputsFromKofiko{2},acInputsFromKofiko{3},acInputsFromKofiko{4});
 			
 		case 'PrepareChoiceTextures'
-			fnInitializeChoiceTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
+			fnInitializeChoiceTrainingTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
 		
 		case 'PrepareCueTextures'
-			fnInitializeCueTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
+			fnInitializeCueTrainingTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
 			
 		case 'PrepareChoiceTexture'
 		if isfield(g_strctDraw, 'ahChoiceTexture') 
@@ -105,6 +135,8 @@ end
 SHOW_CHOICES = 101;
 MEMORY_PERIOD_WAIT = 100;
 MEMORY_PERIOD = 105;
+MEMORY_SHOW_CHOICES = 102;
+MEMORY_SHOW_CHOICES_Cont = 103;
 SHOWING_CUES = 50;
 CUE_WAIT_WHILE_ON_SCREEN = 51;
 CUE_CONTINUE_DISPLAYING_LUMINANCE_NOISE_STIM = 52;
@@ -113,6 +145,10 @@ CUE_MEMORY_PERIOD = 505;
 CUE_MEMORY_PERIOD_WAIT = 506;
 NEXT_CUE = 200;
 
+
+            %dbstop if warning
+			%warning('test')
+			
 if isfield(g_strctDraw,'m_iMachineState') && ~isempty(g_strctDraw.m_iMachineState)
     switch  g_strctDraw.m_iMachineState
         case 1
@@ -142,7 +178,10 @@ if isfield(g_strctDraw,'m_iMachineState') && ~isempty(g_strctDraw.m_iMachineStat
             
         case SHOWING_CUES
 			if g_strctDraw.m_strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
-				[g_strctDraw.m_afCueOnsetTS(g_strctDraw.m_iCurrentCue)] = fnDrawDynamicCue(hPTBWindow);
+				fFlipTime =  fnFlipWrapper(hPTBWindow); % Blocking !
+% 				dbstop if warning
+% 				warning('true') 
+				[g_strctDraw.m_afCueOnsetTS(g_strctDraw.m_iCurrentCue)] = fnDrawDynamicCueTraining(hPTBWindow);
 				g_strctDraw.m_iMachineState = CUE_CONTINUE_DISPLAYING_LUMINANCE_NOISE_STIM;
 				fnStimulusServerToKofikoParadigm('CueOnset',g_strctDraw.m_afCueOnsetTS(g_strctDraw.m_iCurrentCue),g_strctDraw.m_iCurrentCue);
 			else
@@ -164,7 +203,7 @@ if isfield(g_strctDraw,'m_iMachineState') && ~isempty(g_strctDraw.m_iMachineStat
 			if GetSecs()-g_strctDraw.m_afCueOnsetTS(g_strctDraw.m_iCurrentCue) <= ...
                     g_strctDraw.m_strctCurrentTrial.m_strctCuePeriod.m_fCuePeriodMS/1e3  - (0.2 * (1/g_strctPTB.m_iRefreshRate) )
                 
-				[~] = fnDrawDynamicCue(hPTBWindow);
+				[~] = fnDrawDynamicCueTraining(hPTBWindow);
                 
             else
                 g_strctDraw.m_iMachineState = CUE_MEMORY_PERIOD;
@@ -182,14 +221,13 @@ if isfield(g_strctDraw,'m_iMachineState') && ~isempty(g_strctDraw.m_iMachineStat
                 g_strctDraw.m_iMachineState = CUE_MEMORY_PERIOD;
             end
         case CUE_MEMORY_PERIOD
-            
-            if  g_strctDraw.m_strctCurrentTrial.m_strctCuePeriod.m_fCueMemoryPeriodMS > 0
+		        if  g_strctDraw.m_strctCurrentTrial.m_strctCuePeriod.m_fCueMemoryPeriodMS > 0
                 
                 Screen('FillRect',hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctCuePeriod.m_afBackgroundColor);
                 if g_strctDraw.m_strctCurrentTrial.m_strctCuePeriod.m_bCueMemoryPeriodShowFixation
                     fnDrawFixationSpot(hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctCuePeriod, false, 1);
                 end
-                g_strctDraw.m_afCueMemoryOnsetTS(g_strctDraw.m_iCurrentCue) = fnFlipWrapper(hPTBWindow);
+				g_strctDraw.m_afCueMemoryOnsetTS(g_strctDraw.m_iCurrentCue) = fnFlipWrapper(hPTBWindow);
                 
                 if ~g_strctPTB.m_bRunningOnStimulusServer
                     g_strctDraw.m_afCueMemoryOnsetTS(g_strctDraw.m_iCurrentCue) =  GetSecs(); % Don't trust TS obtained from flip on touch mode
@@ -230,21 +268,23 @@ if isfield(g_strctDraw,'m_iMachineState') && ~isempty(g_strctDraw.m_iMachineStat
             end
             
         case MEMORY_PERIOD
-            
             % Cue period is over! Do we have a cue memory period?
             if ~isempty(g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod) && (g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_fMemoryPeriodMS ~= 0)
                 Screen('FillRect',hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_afBackgroundColor);
-                if g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_bShowFixationSpot
+                if g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_bShowFixationSpot			
                     fnDrawFixationSpot(hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod, false, 1);
                 end
-                g_strctDraw.m_fMemoryOnsetTS = fnFlipWrapper(hPTBWindow);
                 
+				g_bPhotoDiodeToggle = 0;
+				g_strctDraw.m_fMemoryOnsetTS = fnFlipWrapper(hPTBWindow);
+				
                 if ~g_strctPTB.m_bRunningOnStimulusServer
                     g_strctDraw.m_fMemoryOnsetTS =  GetSecs(); % Don't trust TS obtained from flip on touch mode
                 end
                 fnStimulusServerToKofikoParadigm('MemoryOnsetTS',g_strctDraw.m_fMemoryOnsetTS);
                 varargout{1} = 'MemoryOnsetTS';
                 varargout{2} = g_strctDraw.m_fMemoryOnsetTS;
+				
                 
                 g_strctDraw.m_iMachineState = MEMORY_PERIOD_WAIT;
             else
@@ -254,57 +294,122 @@ if isfield(g_strctDraw,'m_iMachineState') && ~isempty(g_strctDraw.m_iMachineStat
             
         case MEMORY_PERIOD_WAIT
             % Memory period
+			
+			if g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_bShowFixationSpot	
+                fnDrawFixationSpot(hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod, false, 1);
+            end
+             
+			 g_bPhotoDiodeToggle = 1;
+			 fFipTime = fnFlipWrapper(hPTBWindow);
+			 
+			 
+            ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.Clut );
+            ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
+            Screen('DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1],0,0 );
+            Screen('Close',ClutTextureIndex);
+			
+
+            g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounter = g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounter + 1;
+            if g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounter > round(g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.numFrames/2)
+                g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounter = 1;
+                g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounterResets =  g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounterResets + 1;
+            end
+				
+			
             if GetSecs()-g_strctDraw.m_fMemoryOnsetTS > (g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_fMemoryPeriodMS/1e3 - (0.2 * (1/g_strctPTB.m_iRefreshRate) ))
-                g_strctDraw.m_iMachineState = SHOW_CHOICES;
+                g_strctDraw.m_iMachineState = MEMORY_SHOW_CHOICES;
             end
             
+          case MEMORY_SHOW_CHOICES
+
+		  
+            if ~isempty(g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod) && (g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_fMemoryChoicePeriodMS ~= 0)
+                %Screen('FillRect',hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_afBackgroundColor);
+                
+               if g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_bShowFixationSpot
+                    fnDrawFixationSpot(hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod, false, 0);
+                end
+				
+
+				g_strctDraw.m_fMemoryChoicesOnsetTS = fnFlipWrapper(hPTBWindow);
+                
+                if ~g_strctPTB.m_bRunningOnStimulusServer
+                    g_strctDraw.m_fMemoryChoicesOnsetTS =  GetSecs(); % Don't trust TS obtained from flip on touch mode
+                end
+
+            fnStimulusServerToKofikoParadigm('MemoryChoicesOnsetTS',g_strctDraw.m_fMemoryChoicesOnsetTS);
+            varargout{1} = 'MemoryChoicesOnsetTS';
+            varargout{2} = g_strctDraw.m_fMemoryChoicesOnsetTS;
             
+                g_strctDraw.m_iMachineState = MEMORY_SHOW_CHOICES_Cont;
+            else
+                g_strctDraw.m_iMachineState = SHOW_CHOICES;
+            end
+           % dbstop if warning
+		%	warning('test')
+        case MEMORY_SHOW_CHOICES_Cont
+            fnDisplayMemoryChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, 0, false);
+%             fnDrawFixationSpot(hPTBWindow, g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod, false, 1);
+%             fChoicesOnsetTS = fnFlipWrapper(hPTBWindow); % This would block the server until the next flip.
+            
+			
+            if GetSecs()-g_strctDraw.m_fMemoryChoicesOnsetTS > (g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod.m_fMemoryChoicePeriodMS/1e3 - (0.2 * (1/g_strctPTB.m_iRefreshRate) ))
+                g_strctDraw.m_iMachineState = SHOW_CHOICES;
+            end   
             
         case SHOW_CHOICES
+
             % Choices
-            iNumChoices =  length(g_strctDraw.m_strctCurrentTrial.m_astrctChoicesMedia);
-            
+            iNumChoices =  length(g_strctDraw.m_strctCurrentTrial.m_astrctChoicesMedia);	
+			
+			
             if ~g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.m_bKeepCueOnScreen
                 if g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.m_bShowChoicesOnScreen && ...
                         ~strcmp(g_strctDraw.m_strctCurrentTrial.m_astrctChoicesMedia.m_strChoiceType,'ring')
-                    fChoicesOnsetTS = fnDisplayChoices(hPTBWindow, g_strctDraw.m_strctCurrentTrial, true,true);
+					fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true); % THIS IS THE ONE THAT GETS USED
+                    %fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, true,true);
                 elseif g_strctDraw.m_strctCurrentTrial.m_strctChoicePeriod.m_bShowChoicesOnScreen && ...
                         strcmp(g_strctDraw.m_strctCurrentTrial.m_astrctChoicesMedia.m_strChoiceType,'ring')
-                    fChoicesOnsetTS = fnDisplayChoiceRing(g_strctPTB.m_hWindow,g_strctDraw.m_strctCurrentTrial, true,true);
+					fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
+                    %fChoicesOnsetTS = fnDisplayChoiceRing(g_strctPTB.m_hWindow,g_strctDraw.m_strctCurrentTrial, true,true);
 
                 else
-                    fChoicesOnsetTS = fnDisplayChoices(hPTBWindow, [], g_strctDraw.m_strctCurrentTrial, g_strctDraw.m_acMedia,true,true,false,1,false);
+					fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, [], g_strctDraw.m_strctCurrentTrial, g_strctDraw.m_acMedia,true,true,false,1,false);
                 end
             else
 			
 			 if ~strcmp(g_strctDraw.m_strctCurrentTrial.m_astrctChoicesMedia.m_strChoiceType == 'ring') 
         
 					fnDrawCue(hPTBWindow,false);
-					fnDisplayChoices(hPTBWindow, 1:iNumChoices, g_strctDraw.m_strctCurrentTrial, g_strctDraw.m_acMedia,false,false,false,1,false);
+					%fnDisplayChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true);
+					fnDisplayChoicesTraining(hPTBWindow, 1:iNumChoices, g_strctDraw.m_strctCurrentTrial, g_strctDraw.m_acMedia,false,false,false,1,false);
 				elseif strcmp(g_strctParadigm.m_strctCurrentTrial.m_astrctChoicesMedia.m_strChoiceType == 'ring') 
 					fnDrawCue(hPTBWindow,false);
 
 					fChoicesOnsetTS = fnDisplayChoiceRing(g_strctPTB.m_hWindow,g_strctDraw.m_strctCurrentTrial);
         
 				end
-                fChoicesOnsetTS =fnFlipWrapper(hPTBWindow); % This would block the server until the next flip.
+                %fChoicesOnsetTS =fnFlipWrapper(hPTBWindow); % This would block the server until the next flip.
                 if ~g_strctPTB.m_bRunningOnStimulusServer
                     fChoicesOnsetTS =  GetSecs(); % Don't trust TS obtained from flip on touch mode
                 end
             end
             
+			g_bPhotoDiodeToggle = 0;
+			g_strctDraw.m_fChoicesOnsetTS = fnFlipWrapper(hPTBWindow);
+			
             fnStimulusServerToKofikoParadigm('ChoicesOnsetTS',fChoicesOnsetTS);
             varargout{1} = 'ChoicesOnsetTS';
             varargout{2} = fChoicesOnsetTS;
             g_strctDraw.m_iMachineState = 7;
             PsychPortAudio('Stop',g_strctPTB.m_hAudioDevice);
-        case 7
-            % Trial is almost over ? unless we need to extinguish
+        case 7		
+			% Trial is almost over ? unless we need to extinguish
             % non-saccaded targets....
-			fChoicesOnsetTS = fnDisplayChoices(hPTBWindow, g_strctDraw.m_strctCurrentTrial, true,true)
+			fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
             if g_strctDraw.m_strctCurrentTrial.m_bLuminanceNoiseBackground
 				% update the luminance noise background
-				fChoicesOnsetTS = fnDisplayChoices(hPTBWindow, g_strctDraw.m_strctCurrentTrial, true,true);
+				fChoicesOnsetTS = fnDisplayChoicesTraining(hPTBWindow, g_strctDraw.m_strctCurrentTrial, false,true);
 			end
     end
 end

@@ -27,18 +27,34 @@ if any(g_strctParadigm.m_iMachineState) && ~isempty(g_strctParadigm.m_strctCurre
 	
 	if g_strctParadigm.m_iMachineState == 20
 		%fnDisplayDynamicStimLocally();
-		 fnDrawDynamicCue(g_strctPTB.m_hWindow);
+		if g_strctParadigm.bMemory == 0 && g_strctParadigm.bMemoryChoice == 0; 
+			fnDrawDynamicCue(g_strctPTB.m_hWindow); % note: pulling this from touch force choice (not training) 
+		elseif g_strctParadigm.bMemory == 1 && g_strctParadigm.bMemoryChoice == 0
+		Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_afLocalBackgroundColor,...
+						[0 0 g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(3),...
+						g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(4)]);
+		fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctMemoryPeriod, false, g_strctPTB.m_fScale);
+		elseif g_strctParadigm.bMemoryChoice == 1 && g_strctParadigm.bMemory == 0
+		%disp('EnteringMemoryChoiceState')
+		%{
+		Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_afLocalBackgroundColor,...
+						[0 0 g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(3),...
+						g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(4)]);
+		%}
+		%fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctMemoryPeriod, false, g_strctPTB.m_fScale);
+		fnDisplayMemoryChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,1,false);
+		end 
 	elseif any(ismember(g_strctParadigm.m_iMachineState, [21,22,23])) 
 		switch lower(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType)
 			case 'ring'
 		%if strcmp(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'Ring')
 			%fnDisplayChoiceRing(g_strctPTB.m_hWindow,g_strctParadigm.m_strctCurrentTrial);
             
-            fnDisplayChoices(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true)
+            fnDisplayChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true)
 			case {'disc','annuli','nestedannuli'}
 		%elseif strcmp(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'Disc')
             
-            fnDisplayChoices(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true);
+            fnDisplayChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true);
 			%fnDisplayChoiceDiscs(g_strctPTB.m_hWindow,g_strctParadigm.m_strctCurrentTrial);
             
 		end
@@ -112,34 +128,59 @@ elseif g_strctParadigm.m_bPolarPlot
 	%}
 end
 %}
-if 0
+%if 0
 % Stat...
 iNumTrials = g_strctParadigm.acTrials.BufferIdx-1;
 iNumTimeOuts = 0;
 iNumCorrect = 0;
 iNumIncorrect = 0;
+iNumAborted = 0; 
+
+%{
 for iTrialIter=1:iNumTrials
     if ~isempty(g_strctParadigm.acTrials.Buffer{iTrialIter}) && isfield(g_strctParadigm.acTrials.Buffer{iTrialIter},'m_g_strctParadigm.m_strctParadigmPTBUpdateParams.utcome')
         switch g_strctParadigm.acTrials.Buffer{iTrialIter}.m_g_strctParadigm.m_strctParadigmPTBUpdateParams.utcome.m_strResult
             case 'Timeout'
                 iNumTimeOuts = iNumTimeOuts+1;
             case 'Correct'
+                 dbstop if warning
+                 warning('stop')
                 iNumCorrect = iNumCorrect + 1;
             case 'Incorrect'
                 iNumIncorrect = iNumIncorrect + 1;
+			case 'Aborted'
+				iNumAborted = iNumAborted + 1;
+        end
+    end
+end
+%}
+
+
+for iTrialIter = 1:iNumTrials
+    if ~isempty(g_strctParadigm.acTrials.Buffer{iTrialIter+1})
+        switch g_strctParadigm.acTrials.Buffer{iTrialIter+1}.m_strctTrialOutcome.m_strResult
+                    case 'Timeout'
+                        iNumTimeOuts = iNumTimeOuts+1;
+                    case 'Correct'
+                        iNumCorrect = iNumCorrect + 1;
+                    case 'Incorrect'
+                        iNumIncorrect = iNumIncorrect + 1;
+                    case 'Aborted'
+                        iNumAborted = iNumAborted + 1;
         end
     end
 end
 %aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
 
-fStartX = 0;    
-fStartY = 200;
-Screen(g_strctPTB.m_hWindow,'DrawText', sprintf('Num Trials   : %d',iNumTrials), fStartX,fStartY+30,[255 255 255]);
-Screen(g_strctPTB.m_hWindow,'DrawText', sprintf('Num Correct  : %d (%.1f%%)',iNumCorrect,iNumCorrect/iNumTrials*100), fStartX,fStartY+60,[0 255 0]);
-Screen(g_strctPTB.m_hWindow,'DrawText', sprintf('Num Incorrect: %d (%.1f%%)',iNumIncorrect,iNumIncorrect/iNumTrials*100), fStartX,fStartY+90,[255 0 0]);
-Screen(g_strctPTB.m_hWindow,'DrawText', sprintf('Num Timeout  : %d (%.1f%%)',iNumTimeOuts,iNumTimeOuts/iNumTrials*100), fStartX,fStartY+120,[255 0 255]);
+fStartX = 5;    
+fStartY = 50;
+Screen(g_strctPTB.m_hWindow,'DrawText', sprintf('# Trials   : %d',iNumTrials), fStartX,fStartY+00,[255 255 255]);
+Screen(g_strctPTB.m_hWindow,'DrawText', sprintf('# Correct  : %d (%.1f%%)',iNumCorrect,iNumCorrect/iNumTrials*100), fStartX,fStartY+30,[0 255 0]);
+Screen(g_strctPTB.m_hWindow,'DrawText', sprintf('# Incorrect: %d (%.1f%%)',iNumIncorrect,iNumIncorrect/iNumTrials*100), fStartX,fStartY+60,[255 0 0]);
+Screen(g_strctPTB.m_hWindow,'DrawText', sprintf('# Aborted  : %d (%.1f%%)',iNumAborted,iNumAborted/iNumTrials*100), fStartX,fStartY+90,[0 0 255]);
+Screen(g_strctPTB.m_hWindow,'DrawText', sprintf('# Timeout  : %d (%.1f%%)',iNumTimeOuts,iNumTimeOuts/iNumTrials*100), fStartX,fStartY+120,[255 0 255]);
 
-end
+%end
 return;
         
 aiScreenSize = fnParadigmToKofikoComm('GetStimulusServerScreenSize');
@@ -239,13 +280,13 @@ if g_strctParadigm.m_iMachineState == 5 | g_strctParadigm.m_strctCurrentTrial.m_
 end
 %}
 if strcmpi(g_strctParadigm.m_strCueType,'disc')
-	Screen(g_strctPTB.m_hWindow,'FillArc',g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_aiLocalStimulusColors, g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect,0,360);
+	Screen(g_strctPTB.m_hWindow,'FillArc',g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_aiLocalStimulusColors,g_strctPTB.m_fScale * g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect,0,360);
 elseif strcmpi(g_strctParadigm.m_strCueType,'bar')
 
 	if ~g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_bBlur
 		for iNumOfBars = 1:g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_iNumberOfBars
 			Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_aiLocalStimulusColors,...
-				 horzcat(g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiCoordinatesX(1:4,1,iNumOfBars),...
+				g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiCoordinatesX(1:4,1,iNumOfBars),...
 					g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiCoordinatesY(1:4,1,iNumOfBars)),0);
 		end
 		%{
@@ -301,13 +342,13 @@ end
 
 % Cue Params
 
-Screen('FrameRect', g_strctPTB.m_hWindow, [255 0 0], g_strctParadigm.m_aiStimulusRect', 3); % outline the stimulus box
+Screen('FrameRect', g_strctPTB.m_hWindow, [255 0 0],  g_strctPTB.m_fScale * g_strctParadigm.m_aiStimulusRect', 3); % outline the stimulus box
 Screen('FillPoly',g_strctPTB.m_hWindow, g_strctParadigm.m_strctParadigmPTBUpdateParams.BarColor,...
-			 horzcat(g_strctParadigm.m_strctParadigmPTBUpdateParams.coordinatesX(1:4,1,1),...
+			 g_strctPTB.m_fScale * horzcat(g_strctParadigm.m_strctParadigmPTBUpdateParams.coordinatesX(1:4,1,1),...
 				g_strctParadigm.m_strctParadigmPTBUpdateParams.coordinatesY(1:4,1,1)),0);
 				
 
-Screen('FrameOval',g_strctPTB.m_hWindow, [0, 0, 255], g_strctParadigm.m_strctParadigmPTBUpdateParams.m_aiChoiceDestinationRect,3);
+Screen('FrameOval',g_strctPTB.m_hWindow, [0, 0, 255], g_strctPTB.m_fScale *g_strctParadigm.m_strctParadigmPTBUpdateParams.m_aiChoiceDestinationRect,3);
 	
 %{			
 for iChoices = 1:squeeze(g_strctParadigm.NumberOfChoices.Buffer(:,1,g_strctParadigm.NumberOfChoices.BufferIdx));

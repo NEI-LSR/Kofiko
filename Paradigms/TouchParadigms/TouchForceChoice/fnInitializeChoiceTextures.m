@@ -45,7 +45,7 @@ if blockSize == 1
         
         % dbstop if warning
         %warning('stop')
-        LastUsedClutEntry = CLUTOffset;
+        LastUsedClutEntry = CLUTOffset + 1; 
         for iDiscs = 1:numDiscs
             thisDiscCLUTEntries = LastUsedClutEntry:(LastUsedClutEntry + numEntriesPerTexture)-1;
             for iTextures = 1:numTextures
@@ -54,13 +54,15 @@ if blockSize == 1
             end
             LastUsedClutEntry = max(thisDiscCLUTEntries)+1;
         end
-        % special case, generate 1 extra disc for the null condition (gray trial)
+        
+		% special case, generate 1 extra disc for the null condition (gray trial)
         
         thisDiscCLUTEntries = LastUsedClutEntry:(LastUsedClutEntry + numEntriesPerTexture)-1;
         for iTextures = 1:numTextures
             textureTemplate(linearIndices, :) = repmat(thisDiscCLUTEntries(seed(randperm(numel(linearIndices))))',[1,3]);
             g_strctDraw.m_ahChoiceDiscTextures(iDiscs+1, iTextures) =  Screen('MakeTexture', g_strctPTB.m_hWindow, reshape(textureTemplate,[(discRadius*2),(discRadius*2),3]));
         end
+		
         LastUsedClutEntry = max(thisDiscCLUTEntries)+1;
         
     else
@@ -89,7 +91,8 @@ if blockSize == 1
             end
             LastUsedClutEntry = max(g_strctParadigm.m_strctChoiceVars.ChoiceLUTs(iDiscs,:))+1;
         end
-        % special case, generate 1 extra disc for the null condition (gray trial)
+        
+		% special case, generate 1 extra disc for the null condition (gray trial)
         g_strctParadigm.m_strctChoiceVars.ChoiceLUTs(iDiscs,:) = LastUsedClutEntry:(LastUsedClutEntry + numEntriesPerTexture)-1;
         for iTextures = 1:numTextures
             
@@ -99,7 +102,7 @@ if blockSize == 1
             g_strctParadigm.m_strctChoiceVars.m_ahChoiceDiscTextures(iDiscs+1, iTextures) =  ...
                 Screen('MakeTexture', g_strctPTB.m_hWindow, reshape(textureTemplate,[(discRadius*2),(discRadius*2),3]));
         end
-
+		
     end
 elseif blockSize > 1
     %dbstop if warning
@@ -124,7 +127,7 @@ elseif blockSize > 1
         
         % dbstop if warning
         %warning('stop')
-        LastUsedClutEntry = CLUTOffset;
+        LastUsedClutEntry = CLUTOffset +1;
         for iDiscs = 1:numDiscs
             thisDiscCLUTEntries = LastUsedClutEntry:(LastUsedClutEntry + numEntriesPerTexture)-1;
             
@@ -216,4 +219,6 @@ elseif blockSize > 1
         %}
     end
 end
+        dbstop if warning
+        warning('stop')
 return;

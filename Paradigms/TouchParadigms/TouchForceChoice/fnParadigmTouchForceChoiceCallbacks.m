@@ -9,6 +9,53 @@ global  g_strctParadigm g_strctStimulusServer g_strctAppConfig g_strctPTB
 
 
 switch strCallback
+	case 'PreAllocateStimuli'
+		g_strctParadigm.m_bPreAllocateStimuli = ~g_strctParadigm.m_bPreAllocateStimuli;
+	case 'StartingHue'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'minChoiceAngleDeg'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'maxChoiceAngleDeg'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'SortChoiceHues'
+		g_strctParadigm.m_strctChoicePeriod.m_bSortChoiceHues = ~g_strctParadigm.m_strctChoicePeriod.m_bSortChoiceHues; 
+	case 'ProbeTrialRewardProbability'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'ProbeTrialProbability'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'MemoryChoiceJuiceTimeMS'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'MemoryChoiceRewardProbability'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'MemoryChoiceReward'
+		g_strctParadigm.m_bMemoryChoiceReward = ~g_strctParadigm.m_bMemoryChoiceReward; 
+	case 'MemoryPeriodMinMS'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'MemoryPeriodMaxMS'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'DirectMatch'
+		g_strctParadigm.m_strctStimuliVars.m_bDirectMatchCueChoices = ~g_strctParadigm.m_strctStimuliVars.m_bDirectMatchCueChoices; 
+	case 'MemoryChoicePeriodMinMS'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'MemoryChoicePeriodMaxMS'
+		varargout{1} = fnDynamicCallback(strCallback);
+	case 'NTargets'
+		varargout{1} = fnDynamicCallback(strCallback);
+		g_strctParadigm.m_bChoiceTexturesInitialized = 0;
+	%{
+	case 'QuadrantsSelected'
+		iQuadrantsSelected= get(g_strctParadigm.m_strctControllers.m_hQuadrantsSelected,'value');
+		strQuadrantsSelected = get(g_strctParadigm.m_strctControllers.m_hQuadrantsSelected,'string');
+        for n=1:numel(iQuadrantsSelected)
+            QuadrantsSelected{n} = deblank(strQuadrantsSelected(n,:));
+			c_iQuadrantsSelected{n} = iQuadrantsSelected(n);
+			%c_strQuadrantsSelected{n} = char(QuadrantsSelected{iQuadrantsSelected(n)}); % get strings for quadrants selected
+        end 
+		g_strctParadigm.m_ciQuadrantsSelected = c_iQuadrantsSelected;
+		%g_strctParadigm.m_strctChoiceVars.m_cQuadrantsSelected = c_strQuadrantsSelected
+	%}	
+	case 'RandomInvertChoiceRing'
+		g_strctParadigm.m_strctChoiceVars.m_bRandomRingOrderInversion = ~g_strctParadigm.m_strctChoiceVars.m_bRandomRingOrderInversion;
 	case 'SelectStimType'
 	cuetypes = get(g_strctParadigm.m_strctControllers.m_hStimType,'string');
 	g_strctParadigm.m_strCueType = strtrim(cuetypes(get(g_strctParadigm.m_strctControllers.m_hStimType,'value'),:));
@@ -31,7 +78,7 @@ switch strCallback
 		g_strctParadigm.m_strctStimuliVars.m_bDisplayCue = ~g_strctParadigm.m_strctStimuliVars.m_bDisplayCue;
 	case 'HighlightCue'
 		g_strctParadigm.m_strctStimuliVars.m_bCueHighlight = ~g_strctParadigm.m_strctStimuliVars.m_bCueHighlight;
-	case 'RetainSelectedChoicePeriodMS'
+	case 'HoldToSelectChoiceMS'
 		varargout{1} = fnDynamicCallback(strCallback);
 	case 'ExtinguishNonSelectedChoicesAfterChoice'
 		g_strctParadigm.m_strctPostTrialVars.m_bExtinguishNonSelectedChoicesAfterChoice = ...
@@ -128,7 +175,7 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
 		fnParadigmToKofikoComm('JuiceOff');
 		fnParadigmToStimulusServer('AbortTrial');
 		fnPauseParadigm();
-        g_strctParadigm.m_cAllColorsPerSat = get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'value');		
+        g_strctParadigm.m_strctCurrentColors = get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'value');		
         g_strctParadigm.m_aiColorsDisplayedCount = zeros(numel(get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'value')),numel(get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'value')));
 		g_strctParadigm.m_bCueTexturesInitialized = false;
 
@@ -170,7 +217,7 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
          if ~fnParadigmToKofikoComm('IsTouchMode')
             fnParadigmToStimulusServer('AbortTrial');
          else
-            fnParadigmTouchForceChoiceDrawCycle({'AbortTrial'});
+            fnParadigmTouchForceChoiceTrainingDrawCycle({'AbortTrial'});
          end
 		 
     case 'EditDesign'
@@ -178,7 +225,7 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
         if ~fnParadigmToKofikoComm('IsTouchMode')
             fnParadigmToStimulusServer('AbortTrial');
         else
-            fnParadigmTouchForceChoiceDrawCycle({'AbortTrial'});
+            fnParadigmTouchForceChoiceTrainingDrawCycle({'AbortTrial'});
         end
         fnHidePTB();
           iSelected = get(g_strctParadigm.m_strctDesignControllers.m_hFavroiteLists,'value');
@@ -333,7 +380,7 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
          if ~fnParadigmToKofikoComm('IsTouchMode')
             fnParadigmToStatServerComm('AbortTrial');
          else
-            fnParadigmTouchForceChoiceDrawCycle({'AbortTrial'});
+            fnParadigmTouchForceChoiceTrainingDrawCycle({'AbortTrial'});
          end
         
         fnHidePTB();
@@ -505,84 +552,173 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
 
 	case 'GenerateCues'
         fnPauseParadigm();
-		dbstop if warning
-		warning('stop')
+		%dbstop if warning
+		%warning('stop')
+        
 		% use the same number of luminance steps for the cue as for the choice
-		numInitialChoices = numel(get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'value')) * ...
-                            numel(get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value'));
-		numLuminanceStepsPerChoice = floor(253 / (numInitialChoices + 1));
-		if rem(numLuminanceStepsPerChoice,2) == 0
-			numLuminanceStepsPerChoice = numLuminanceStepsPerChoice - 1;
+		%numInitialChoices = numel(g_strctParadigm.m_afInitial_SelectedChoiceColors) * numel(g_strctParadigm.m_afInitial_SelectedChoiceSaturations);
+				numInitialCues = 19; % hard-coded for 19-stimulus triangular tessalation
+		%		numInitialCues = numel(get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'value')) * ...
+		%                            numel(get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'value'));
+				numLuminanceStepsPerCue = floor(253 / (numInitialCues + 1));
+
+		if rem(numLuminanceStepsPerCue,2) == 0
+			numLuminanceStepsPerCue = numLuminanceStepsPerCue - 1;
 		end
 		stimulusTypeStr = get(g_strctParadigm.m_strctControllers.m_hStimType, 'String');
-		stimulusTypeValue = get(g_strctParadigm.m_strctControllers.m_hStimType, 'Value');
-		stimulusTypeToPrepare = deblank(stimulusTypeStr(stimulusTypeValue,:));
+		stimulusTypeID = get(g_strctParadigm.m_strctControllers.m_hStimType, 'Value');
+		%satString = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'String');
+		%activeSaturationsID = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'Value');
+		colorConversionID = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType,'Value');
+		%colorValuesStr = get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'String');
+		%colorValuesID = get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'Value');
+		cueTypeValue = get(g_strctParadigm.m_strctControllers.m_hStimType,'Value');
+		cueTypeString = get(g_strctParadigm.m_strctControllers.m_hStimType,'String');
+		cueDisplayType = cueTypeString(cueTypeValue,:);
+		%g_strctParadigm.m_cAllCueColorsPerSat = {colorValuesID};
+		stimulusTypeToPrepare = deblank(stimulusTypeStr(stimulusTypeID,:));
+
 		fnParadigmToStimulusServer('ForceMessage', 'PrepareCueTextures', stimulusTypeToPrepare,...
 													fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerCue'), 1,...
 													[fnTsGetVar('g_strctParadigm', 'CueLength'),fnTsGetVar('g_strctParadigm', 'CueLength')], ...
-													numLuminanceStepsPerChoice, ...
-													g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'CueLuminanceNoiseBlockSize'));  
+													numLuminanceStepsPerCue, ...
+													g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'CueLuminanceNoiseBlockSize'));% ,g_strctParadigm.m_cAllCueColorsPerSat);  
+												
 
-		cueSaturationStr = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'String');
-		cueSaturationVal = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'Value');
-        cueColorVal = get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'Value');
-        
-       % stimulusConversionStr = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType, 'String');
-        stimulusConversionValue = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType, 'Value');
-        
-        %stimulusConversionType = stimulusConversionStr{stimulusConversionValue};
-		%cueSaturationsToPrepare = cueSaturationStr{cueSaturationVal};									
-		%satString = strsplit(g_strctParadigm.m_strInitial_ChromaLookupLUV);
-		for i = 1:numel(cueSaturationVal)
-			activeSaturationsStr{i} = deblank(cueSaturationStr(cueSaturationVal(i),:));
-        end
-        
-		[~, controlComputerColors] = fnCalculateColorsForChoiceDisplay(cueSaturationVal,...
-                                            cueColorVal, ...
-                                            activeSaturationsStr, ...
-                                            stimulusConversionValue, ...
-                                            fnTsGetVar('g_strctParadigm', 'CueLuminanceDeviation'), ...
-                                            numLuminanceStepsPerChoice);
 
-		fnInitializeCueTextures(stimulusTypeToPrepare, fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerCue'), ...
-													numInitialChoices, [fnTsGetVar('g_strctParadigm', 'CueLength'),fnTsGetVar('g_strctParadigm', 'CueLength')], ...
-													numLuminanceStepsPerChoice, g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'CueLuminanceNoiseBlockSize'), ...
+		activeSaturationsID = 1:4;
+		satString = g_strctParadigm.m_strChromaLookupLUV;
+		for i = 1:numel(activeSaturationsID)
+			activeSaturationsStr{i} = deblank(satString{activeSaturationsID(i)});
+		end
+		
+		%{
+		[~, controlComputerColors] = fnCalculateColorsForChoiceDisplay(g_strctParadigm.m_afInitial_SelectedCueSaturations,...
+																						   g_strctParadigm.m_afInitial_SelectedCueColors, ...
+																							activeSaturationsStr, ...
+																							g_strctParadigm.m_fInitial_SelectedCueConversionID, ...
+																							fnTsGetVar('g_strctParadigm', 'CueLuminanceDeviation'), ...
+																							numLuminanceStepsPerChoice,...
+																							g_strctParadigm.m_cAllColorsPerSat);
+		%}
+		[~, controlComputerColors] = fnCalculateColorsForChoiceAFCDisplay(activeSaturationsID,...
+																							activeSaturationsStr, ...
+																							colorConversionID, ...
+																							fnTsGetVar('g_strctParadigm', 'CueLuminanceDeviation'), ...
+																							numLuminanceStepsPerCue);
+
+		fnInitializeCueTrainingTextures(stimulusTypeToPrepare, fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerCue'), ...
+													numInitialCues, [fnTsGetVar('g_strctParadigm', 'CueLength'),fnTsGetVar('g_strctParadigm', 'CueLength')], ...
+													numLuminanceStepsPerCue, g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'CueLuminanceNoiseBlockSize'), ...
 													controlComputerColors)
-		strctCurrentTrial.m_strctCuePeriod.m_bCueTexturesInitialized = true;
+													strctCurrentTrial.m_strctCuePeriod.m_bCueTexturesInitialized = true;
+				%{
+				% use the same number of luminance steps for the cue as for the choice
+				numInitialChoices = numel(get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'value')) * ...
+									numel(get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value'));
+				numLuminanceStepsPerChoice = floor(253 / (numInitialChoices + 1));
+				if rem(numLuminanceStepsPerChoice,2) == 0
+					numLuminanceStepsPerChoice = numLuminanceStepsPerChoice - 1;
+				end
+				stimulusTypeStr = get(g_strctParadigm.m_strctControllers.m_hStimType, 'String');
+				stimulusTypeValue = get(g_strctParadigm.m_strctControllers.m_hStimType, 'Value');
+				stimulusTypeToPrepare = deblank(stimulusTypeStr(stimulusTypeValue,:));
+				fnParadigmToStimulusServer('ForceMessage', 'PrepareCueTextures', stimulusTypeToPrepare,...
+															fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerCue'), 1,...
+															[fnTsGetVar('g_strctParadigm', 'CueLength'),fnTsGetVar('g_strctParadigm', 'CueLength')], ...
+															numLuminanceStepsPerChoice, ...
+															g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'CueLuminanceNoiseBlockSize'));  
+
+				cueSaturationStr = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'String');
+				cueSaturationVal = get(g_strctParadigm.m_strctControllers.m_hCueSaturationLists,'Value');
+				cueColorVal = get(g_strctParadigm.m_strctControllers.m_hCueColorLists,'Value');
+				
+			   % stimulusConversionStr = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType, 'String');
+				stimulusConversionValue = get(g_strctParadigm.m_strctControllers.m_hCueColorConversionType, 'Value');
+				
+				%stimulusConversionType = stimulusConversionStr{stimulusConversionValue};
+				%cueSaturationsToPrepare = cueSaturationStr{cueSaturationVal};									
+				%satString = strsplit(g_strctParadigm.m_strInitial_ChromaLookupLUV);
+				for i = 1:numel(cueSaturationVal)
+					activeSaturationsStr{i} = deblank(cueSaturationStr(cueSaturationVal(i),:));
+				end
+				
+				[~, controlComputerColors] = fnCalculateColorsForChoiceDisplay(cueSaturationVal,...
+													cueColorVal, ...
+													activeSaturationsStr, ...
+													stimulusConversionValue, ...
+													fnTsGetVar('g_strctParadigm', 'CueLuminanceDeviation'), ...
+													numLuminanceStepsPerChoice);
+
+				fnInitializeCueTextures(stimulusTypeToPrepare, fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerCue'), ...
+															numInitialChoices, [fnTsGetVar('g_strctParadigm', 'CueLength'),fnTsGetVar('g_strctParadigm', 'CueLength')], ...
+															numLuminanceStepsPerChoice, g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'CueLuminanceNoiseBlockSize'), ...
+															controlComputerColors)
+				strctCurrentTrial.m_strctCuePeriod.m_bCueTexturesInitialized = true;
+				%}
 	
 	case 'GenerateChoices'
         fnPauseParadigm();
-		
-			satString = strsplit(g_strctParadigm.m_strctChoiceVars.m_aiChoiceChromaLookupLUV);
-		for i = 1:numel(g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations)
-			activeSaturationsStr{i} = deblank(satString{g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations(i)});
-        end
-        
-        %numInitialChoices = numel(get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'value')) * ...
-        %                    numel(get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value'));
-        numInitialChoices = sum(cellfun(@numel,g_strctParadigm.m_cAllColorsPerSat));
+		stimulusTypeStr = get(g_strctParadigm.m_strctControllers.m_hStimType, 'String');
+		stimulusTypeID = get(g_strctParadigm.m_strctControllers.m_hStimType, 'Value');
+		%satString = get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'String');
+		%activeSaturationsID = get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'Value');
+		colorConversionID = get(g_strctParadigm.m_strctControllers.m_hChoiceColorConversionType,'Value');
+		%colorValuesStr = get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'String');
+		%colorValuesID = get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'Value');
+		ChoiceTypeValue = get(g_strctParadigm.m_strctControllers.m_hStimType,'Value');
+		ChoiceTypeString = get(g_strctParadigm.m_strctControllers.m_hStimType,'String');
+		ChoiceDisplayType = ChoiceTypeString(ChoiceTypeValue,:);
+		%g_strctParadigm.m_cAllChoiceColorsPerSat = {colorValuesID};
+		stimulusTypeToPrepare = deblank(stimulusTypeStr(stimulusTypeID,:));
+		%satString = strsplit(g_strctParadigm.m_strctChoiceVars.m_aiChoiceChromaLookupLUV);
+		%for i = 1:numel(g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations)
+		%	activeSaturationsStr{i} = deblank(satString{g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations(i)});
+		%end
+		nTargets = fnTsGetVar('g_strctParadigm','NTargets');    
+	    numInitialChoices = nTargets;
+		numInitialChoices_local = 19; % hard-coded for 19-stimulus triangular tessalation
+%		numInitialChoices_local = numel(get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists,'value')) * ...
+%                            numel(get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value'));
         numLuminanceStepsPerChoice = floor(253 / (numInitialChoices + 1));
         % get an odd number of steps so the middle value is always the
         % target
         if rem(numLuminanceStepsPerChoice,2) == 0
             numLuminanceStepsPerChoice = numLuminanceStepsPerChoice - 1;
         end
+		
+		% numLuminanceStepsPerChoice = floor(253 / (numInitialChoices + 1))
+		
+		activeSaturationsID = 1:4;
+		satString = g_strctParadigm.m_strChromaLookupLUV;
+		for i = 1:numel(activeSaturationsID)
+			activeSaturationsStr{i} = deblank(satString{activeSaturationsID(i)});
+		end
+	
 		fnParadigmToStimulusServer('ForceMessage', 'PrepareChoiceTextures', g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType,...
-                                            fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'), 1,...
-                                            [fnTsGetVar('g_strctParadigm', 'ChoiceLength'),fnTsGetVar('g_strctParadigm', 'ChoiceWidth')], ...
-                                            numLuminanceStepsPerChoice, ...
-                                            g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'ChoiceLuminanceNoiseBlockSize'),...
-                                            g_strctParadigm.m_cAllColorsPerSat);  
+										fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'), numInitialChoices,...
+										[fnTsGetVar('g_strctParadigm', 'ChoiceLength'),fnTsGetVar('g_strctParadigm', 'ChoiceWidth')], ...
+										numLuminanceStepsPerChoice, ...
+										g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'ChoiceLuminanceNoiseBlockSize'));
+		
 
-        [~, controlComputerColors] = fnCalculateColorsForChoiceDisplay(g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations,...
+	
+		[~, controlComputerColors] = fnCalculateColorsForChoiceAFCDisplay(g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations, ...
+										activeSaturationsStr, ...
+										g_strctParadigm.m_strctChoiceVars.m_iInitialChoiceColorConversionType, ...
+										fnTsGetVar('g_strctParadigm', 'ChoiceLuminanceDeviation'),...
+										numLuminanceStepsPerChoice);
+		%{
+        [~, controlComputerColors] = fnCalculateColorsForChoiceDisplay(aiAllSaturations,...
                                                                                     activeSaturationsStr, ...
-                                                                                    g_strctParadigm.m_strctChoiceVars.m_iInitialChoiceColorConversionType, ...
-																					fnTsGetVar('g_strctParadigm', 'ChoiceLuminanceDeviation'), ...
+                                                                                    g_strctParadigm.m_fInitial_SelectedCueConversionID, ...
+																					fnTsGetVar('g_strctParadigm', 'CueLuminanceDeviation'), ...
                                                                                     numLuminanceStepsPerChoice,...
                                                                                     g_strctParadigm.m_cAllColorsPerSat);
-
-        fnInitializeChoiceTextures(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'), ...
-                                            numInitialChoices, [fnTsGetVar('g_strctParadigm', 'ChoiceLength'),fnTsGetVar('g_strctParadigm', 'ChoiceWidth')], ...
+                                    %}
+                                    
+		fnInitializeChoiceTrainingTextures(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'), ...
+                                            numInitialChoices_local, [fnTsGetVar('g_strctParadigm', 'ChoiceLength'),fnTsGetVar('g_strctParadigm', 'ChoiceWidth')], ...
                                             numLuminanceStepsPerChoice, g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'ChoiceLuminanceNoiseBlockSize'), ...
 											controlComputerColors)
 		
@@ -590,15 +726,14 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
 	if isfield(g_strctParadigm, 'ahChoiceTexture') %&& exist('g_strctParadigm.ahChoiceTexture')
 		Screen('Close',g_strctParadigm.ahChoiceTexture)
         clear g_strctParadigm.ahChoiceTexture
-    end
-    %{
+	end
 		[g_strctParadigm.m_strctChoiceVars.m_aiChoiceRGB, g_strctParadigm.m_strctChoiceVars.m_aiRGBInd, ...
-             g_strctParadigm.m_strctChoiceVars.m_iClutIndices] = fnCreateNestedChoiceCircle();
+             g_strctParadigm.m_strctChoiceVars.m_iClutIndices] = fnCreateNestedChoiceCircleAFC();
 			 %dbstop if warning
 			%warning('stop')
 		fnParadigmToStimulusServer('ForceMessage', 'PrepareChoiceTexture', g_strctParadigm.m_strctChoiceVars.m_aiRGBInd);
 		g_strctParadigm.ahChoiceTexture = Screen('MakeTexture', g_strctPTB.m_hWindow,  g_strctParadigm.m_strctChoiceVars.m_aiChoiceRGB);
-%}
+
 		Screen('PreloadTextures', g_strctPTB.m_hWindow);
 	%case {}
 	%dbstop if warning
@@ -607,7 +742,7 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
 	%get(g_strctParadigm.m_strctControllers.m_hChoiceSaturationLists,'value')
 	%get(g_strctParadigm.m_strctControllers.m_hChoiceColorLists ,'value')
 	
-	
+	g_strctParadigm.m_bChoiceTexturesInitialized = true;
 	
 	case 'RotateChoiceRingOnEachTrial'
 		g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial = ~g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial;
@@ -617,7 +752,8 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
     case 'TrialOutcome'
         strctCurrentTrial = varargin{1};
         acOutcomes = lower(fnSplitString( strctCurrentTrial.m_strctTrialOutcome.m_strResult));
-        if strctCurrentTrial.m_strctTrialParams.m_iTrialType == 0
+        
+		if strctCurrentTrial.m_strctTrialParams.m_iTrialType == 0
             g_strctParadigm.m_strctStatistics.m_strctCurrentDesign.m_aiNumNullTrials =  g_strctParadigm.m_strctStatistics.m_strctCurrentDesign.m_aiNumNullTrials + 1;
         else
             g_strctParadigm.m_strctStatistics.m_strctCurrentDesign.m_aiNumTrials(strctCurrentTrial.m_strctTrialParams.m_iTrialType) = g_strctParadigm.m_strctStatistics.m_strctCurrentDesign.m_aiNumTrials(strctCurrentTrial.m_strctTrialParams.m_iTrialType) + 1;
@@ -627,6 +763,23 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
         bIncorrect = ismember('incorrect',acOutcomes);
         bAborted = ismember('aborted',acOutcomes);
         bTimeout = ismember('timeout',acOutcomes); 
+		
+		% shortcut implementation of positive juice increment which bypasses stats server
+		
+		if bCorrect
+			g_strctParadigm.m_iPositiveJuiceIncrement = g_strctParadigm.m_iPositiveJuiceIncrement + 1;
+		else
+			g_strctParadigm.m_iPositiveJuiceIncrement = 0;
+		end
+		
+		% Counter for number of trials
+		if g_strctParadigm.m_bPreAllocateStimuli
+			g_strctParadigm.m_iTrialNumber = g_strctParadigm.m_iTrialNumber + 1;
+			if g_strctParadigm.m_iTrialNumber > g_strctParadigm.m_iSessionLength
+				fnPauseParadigm(); 
+			end
+		end
+		
 		%{
 		if bCorrect
 				
@@ -862,7 +1015,7 @@ strctControllers.m_hSaturationLists = uicontrol('Style', 'listbox', 'String', a2
         fNewTRValue = str2num(get(g_strctParadigm.m_strctDesignControllers.m_hChangeTRValue,'string'));
         if isreal(fNewTRValue) && ~isnan(fNewTRValue)
             fnTsSetVarParadigm( 'TR',fNewTRValue);
-            [strctCurrentTrial,strWhatHappened] =  fnParadigmTouchForceChoicePrepareTrial();
+            [strctCurrentTrial,strWhatHappened] =  fnParadigmTouchForceChoiceTrainingPrepareTrial();
             if ~isempty(strctCurrentTrial)
                 g_strctParadigm.m_strctCurrentTrial = strctCurrentTrial;
             end
@@ -962,7 +1115,7 @@ fnTsSetVarParadigm('ExperimentDesigns',g_strctParadigm.m_strctDesign);
 % mode....
 if ~g_strctParadigm.m_strctDesign.m_bLoadOnTheFly
     if fnParadigmToKofikoComm('IsTouchMode')
-        fnParadigmTouchForceChoiceDrawCycle({'LoadMedia', g_strctParadigm.m_strctDesign.m_astrctMedia});
+        fnParadigmTouchForceChoiceTrainingDrawCycle({'LoadMedia', g_strctParadigm.m_strctDesign.m_astrctMedia});
         g_strctParadigm.m_bStimulusServerLoadedMedia = true;
     else
         fnParadigmToStimulusServer('LoadMedia', g_strctParadigm.m_strctDesign.m_astrctMedia);

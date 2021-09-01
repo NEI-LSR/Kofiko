@@ -1,4 +1,4 @@
-function [stimulusServerColors, controlComputerColors] = fnCalculateColorsForChoiceTrainingAFCDisplay(activeSaturationsIds, activeSaturationsStr, activeColorConversionId, luminanceDeviation, numLuminanceStepsPerChoice)
+function [stimulusServerColors, controlComputerColors] = fnCalculateColorsForChoiceAFCDisplay(activeSaturationsIds, activeSaturationsStr, activeColorConversionId, luminanceDeviation, numLuminanceStepsPerChoice)
 global g_strctParadigm
 %luminanceDeviation = fnTsGetVar('g_strctParadigm','ChoiceLuminanceDeviation');
 % (activeSaturationsIds, activeSaturationsStr, activeColorConversionId, luminanceDeviation, numLuminanceStepsPerChoice, cColorsPerSaturation)

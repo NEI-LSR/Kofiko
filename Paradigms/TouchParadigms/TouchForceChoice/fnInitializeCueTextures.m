@@ -122,11 +122,8 @@ if blockSize == 1
         
     end
 elseif blockSize > 1
-%{
-    dbstop if warning
-	ShowCursor
-    warning('stop')
-	%}
+    %dbstop if warning
+    %warning('stop')
     % generate a noise pattern and then mask all pixels outside the
     % generation area
     out = find(dist>discRadius);

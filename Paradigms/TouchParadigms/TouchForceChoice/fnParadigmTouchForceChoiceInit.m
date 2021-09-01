@@ -25,11 +25,13 @@ g_strctParadigm.m_strctSubject.m_strExperimentHistoryFileName = [g_strctParadigm
 g_strctParadigm.m_strExperimentName = g_strctParadigm.m_strctMonkeyInfo.m_strExperimentName;
 g_strctParadigm.m_strInitial_ExperimentName = g_strctParadigm.m_strExperimentName;
 
-fnInitializeColors();
-
-
 iSmallBuffer = 500;
 iLargeBuffer = 50000;
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'StartingHue', g_strctParadigm.m_fInitial_StartingHue, iSmallBuffer);
+fnInitializeColorsTouchForceChoice();
+
+
 if isfield(g_strctParadigm, 'm_strInitial_BackgroundColor')
 	%disp('found background color')
 	g_strctParadigm = fnTsAddVar(g_strctParadigm, 'BackgroundColor',  g_strctParadigm.m_fInitial_BackgroundColor, iSmallBuffer);
@@ -64,7 +66,14 @@ g_strctParadigm.m_afMasterClut(256,:) =  [65535 65535 65535];
 % Stim Server Refresh for calculating stuff during prep
 g_strctParadigm.m_strctStimServerVars.m_fStimulusMonitorRefreshRate = fnParadigmToKofikoComm('GetRefreshRate');
 
-
+%% Initialize pre-allocation of choices 
+g_strctParadigm.m_bPreAllocateStimuli = g_strctParadigm.m_fInitial_PreAllocateStimuli;
+g_strctParadigm.m_strStimFile = fullfile('StimulusSet', 'TouchForceChoice_Stimuli', g_strctParadigm.m_strInitial_StimFile);
+if g_strctParadigm.m_bPreAllocateStimuli
+	g_strctParadigm.m_iTrialNumber = 1;
+	g_strctParadigm.m_aiPreAllocatedTrials = load(g_strctParadigm.m_strStimFile);
+	g_strctParadigm.m_iSessionLength = size(g_strctParadigm.m_aiPreAllocatedTrials, 1); 
+end
 
 
 %% Pre Cue
@@ -201,29 +210,46 @@ g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CueFixationRegion', g_strctParadi
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CueJuiceTimeMS', g_strctParadigm.m_fInitial_CueJuiceTimeMS, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'IncludeGrayTrials', g_strctParadigm.m_fInitial_IncludeGrayTrials, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'GrayTrialProbability', g_strctParadigm.m_fInitial_GrayTrialProbability, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CueRhoDeviation', g_strctParadigm.m_fInitial_CueRhoDeviation, iSmallBuffer);
+
+%{
 if isfield(g_strctParadigm,'m_strInitial_SelectedCueColors')
     cAllColors = strsplit(g_strctParadigm.m_strInitial_SelectedCueColors,';');
     for iColors = 1:numel(cAllColors)
-        g_strctParadigm.m_cAllColorsPerSat{iColors} = str2double(strsplit(cAllColors{iColors},' '));
-        g_strctParadigm.m_cColorsDisplayedCount{iColors} = zeros(numel(g_strctParadigm.m_cAllColorsPerSat{iColors}),1);
+        g_strctParadigm.m_cAllCueColorsPerSat{iColors} = str2double(strsplit(cAllColors{iColors},' '));
+        g_strctParadigm.m_cColorsDisplayedCount{iColors} = zeros(numel(g_strctParadigm.m_cAllCueColorsPerSat{iColors}),1);
     end
 elseif isfield(g_strctParadigm,'m_fInitial_SelectedCueColors')
     cAllColors = {g_strctParadigm.m_fInitial_SelectedCueColors};
     for iColors = 1:numel(cAllColors)
-        g_strctParadigm.m_cAllColorsPerSat{iColors} = cAllColors{iColors};
-        g_strctParadigm.m_cColorsDisplayedCount{iColors} = zeros(numel(g_strctParadigm.m_cAllColorsPerSat{iColors}),1);
+        g_strctParadigm.m_cAllCueColorsPerSat{iColors} = cAllColors{iColors};
+        g_strctParadigm.m_cColorsDisplayedCount{iColors} = zeros(numel(g_strctParadigm.m_cAllCueColorsPerSat{iColors}),1);
     end
 elseif isfield(g_strctParadigm,'m_afInitial_SelectedCueColors')
     cAllColors = {g_strctParadigm.m_afInitial_SelectedCueColors};
     for iColors = 1:numel(cAllColors)
-        g_strctParadigm.m_cAllColorsPerSat{iColors} = cAllColors{iColors};
-        g_strctParadigm.m_cColorsDisplayedCount{iColors} = zeros(numel(g_strctParadigm.m_cAllColorsPerSat{iColors}),1);
+        g_strctParadigm.m_cAllCueColorsPerSat{iColors} = cAllColors{iColors};
+        g_strctParadigm.m_cColorsDisplayedCount{iColors} = zeros(numel(g_strctParadigm.m_cAllCueColorsPerSat{iColors}),1);
     end
 end
 
+g_strctParadigm.m_aiColorsDisplayedCount = zeros(numel(aiAllSaturations),numel(cAllColors{:}));
+%g_strctParadigm.m_aiColorsDisplayedCount = zeros(sum(cellfun(@numel,g_strctParadigm.m_cAllColorsPerSat)),1);% + fnTsGetVar('g_strctParadigm', 'IncludeGrayTrials'),1);
+%}
 
-%g_strctParadigm.m_aiColorsDisplayedCount = zeros(numel(g_strctParadigm.m_afInitial_SelectedCueSaturations),numel(g_strctParadigm.m_afInitial_SelectedCueColors));
-g_strctParadigm.m_aiColorsDisplayedCount = zeros(sum(cellfun(@numel,g_strctParadigm.m_cAllColorsPerSat)),1);% + fnTsGetVar('g_strctParadigm', 'IncludeGrayTrials'),1);
+if isfield(g_strctParadigm,'m_afInitial_SelectedCueSaturations')
+    aiAllSaturations = g_strctParadigm.m_afInitial_SelectedCueSaturations;
+   
+elseif isfield(g_strctParadigm,'m_fInitial_SelectedCueSaturations')
+    aiAllSaturations = g_strctParadigm.m_fInitial_SelectedCueSaturations;
+    
+end
+
+if isfield(g_strctParadigm,'NTargets')
+    g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NTargets', g_strctParadigm.m_fInitial_NTargets, iSmallBuffer);
+else
+    g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NTargets', 1, iSmallBuffer);
+end
 
 g_strctParadigm.m_bForceBalanceCueProbabilities = true;
 if isfield(g_strctParadigm,'m_afInitial_numSelectionsPerSaturation')
@@ -235,8 +261,13 @@ g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NumTexturesToPreparePerCue', g_st
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CueLuminanceDeviation',g_strctParadigm.m_fInitial_CueLuminanceRange, iSmallBuffer);
 
 % use the same number of luminance steps for the cue as for the choice
-%numInitialChoices = numel(g_strctParadigm.m_afInitial_SelectedChoiceColors) * numel(g_strctParadigm.m_afInitial_SelectedChoiceSaturations);
-numInitialChoices = sum(cellfun(@numel,g_strctParadigm.m_cAllColorsPerSat));
+% numInitialChoices = numel(g_strctParadigm.m_afInitial_SelectedChoiceColors) * numel(g_strctParadigm.m_afInitial_SelectedChoiceSaturations);
+% numInitialChoices_local = sum(cellfun(@numel,g_strctParadigm.m_cAllCueColorsPerSat));
+numInitialChoices_local = 19; %hard-coded for 19-stimulus triangular tessalation
+
+numInitialChoices = fnTsGetVar('g_strctParadigm','NTargets');
+
+%numInitialChoices =  fnTsGetVar('g_strctParadigm', 'NTargets') * numel(g_strctParadigm.m_fInitial_SelectedCueSaturations);
 numLuminanceStepsPerChoice = floor(253 / (numInitialChoices + 1));
 if rem(numLuminanceStepsPerChoice,2) == 0
     numLuminanceStepsPerChoice = numLuminanceStepsPerChoice - 1;
@@ -248,12 +279,12 @@ fnParadigmToStimulusServer('ForceMessage', 'PrepareCueTextures', g_strctParadigm
                                             fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerCue'), 1,...
                                             [fnTsGetVar('g_strctParadigm', 'CueLength'),fnTsGetVar('g_strctParadigm', 'CueLength')], ...
                                             numLuminanceStepsPerChoice, ...
-                                            g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'CueLuminanceNoiseBlockSize'),...
-                                            g_strctParadigm.m_cAllColorsPerSat);  
+                                            g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'CueLuminanceNoiseBlockSize')) %,g_strctParadigm.m_cAllCueColorsPerSat);  
 
 satString = strsplit(g_strctParadigm.m_strInitial_ChromaLookupLUV);
-for i = 1:numel(g_strctParadigm.m_afInitial_SelectedCueSaturations)
-    activeSaturationsStr{i} = deblank(satString{g_strctParadigm.m_afInitial_SelectedCueSaturations(i)});
+g_strctParadigm.m_strChromaLookupLUV = satString; 
+for i = 1:numel(aiAllSaturations)
+    activeSaturationsStr{i} = deblank(satString{aiAllSaturations(i)});
 end
 
 %{
@@ -265,14 +296,13 @@ end
                                                                                     numLuminanceStepsPerChoice,...
                                                                                     g_strctParadigm.m_cAllColorsPerSat);
 %}
-[~, controlComputerColors] = fnCalculateColorsForChoiceDisplay(g_strctParadigm.m_afInitial_SelectedCueSaturations,...
+[~, controlComputerColors] = fnCalculateColorsForChoiceAFCDisplay(aiAllSaturations,...
                                                                                     activeSaturationsStr, ...
                                                                                     g_strctParadigm.m_fInitial_SelectedCueConversionID, ...
 																					fnTsGetVar('g_strctParadigm', 'CueLuminanceDeviation'), ...
-                                                                                    numLuminanceStepsPerChoice,...
-                                                                                    g_strctParadigm.m_cAllColorsPerSat);
+                                                                                    numLuminanceStepsPerChoice);
 
-fnInitializeCueTextures(g_strctParadigm.m_strInitial_CueDisplayType, fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerCue'), ...
+fnInitializeCueTrainingTextures(g_strctParadigm.m_strInitial_CueDisplayType, fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerCue'), ...
                                             numInitialChoices, [fnTsGetVar('g_strctParadigm', 'CueLength'),fnTsGetVar('g_strctParadigm', 'CueLength')], ...
                                             numLuminanceStepsPerChoice, g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'CueLuminanceNoiseBlockSize'), ...
 											controlComputerColors)
@@ -291,7 +321,7 @@ g_strctParadigm.m_strctStimuliVars.m_bCueHighlight = g_strctParadigm.m_fInitial_
 g_strctParadigm.m_strctStimuliVars.m_bDisplayCue = g_strctParadigm.m_fInitial_DisplayCue;
 g_strctParadigm.m_strctStimuliVars.m_bLuminanceMaskedCueStimuli = true;
 g_strctParadigm.m_strctStimuliVars.m_bOverrideGrayProbability = true;
-g_strctParadigm.m_iInitial_IndexInSaturationList = g_strctParadigm.m_afInitial_SelectedCueSaturations;
+g_strctParadigm.m_iInitial_IndexInSaturationList = aiAllSaturations;
 for iSaturations = 1:numel(g_strctParadigm.m_iInitial_IndexInSaturationList)
     g_strctParadigm.m_cCurrentSaturationsLookup{iSaturations} = g_strctParadigm.m_cMasterColorTableLookup{g_strctParadigm.m_iCurrentColorConversionID}{g_strctParadigm.m_iInitial_IndexInSaturationList(iSaturations)};
 end
@@ -314,11 +344,22 @@ end
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'AbortTrialIfBreakFixationDuringCue', g_strctParadigm.m_fInitial_AbortTrialIfBreakFixationDuringCue, iSmallBuffer);
 
 %% Memory
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryPeriodMS', g_strctParadigm.m_fInitial_MemoryPeriodMS, iSmallBuffer);
+%g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryPeriodMS', g_strctParadigm.m_fInitial_MemoryPeriodMS, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryPeriodMinMS', g_strctParadigm.m_fInitial_MemoryPeriodMinMS, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryPeriodMaxMS', g_strctParadigm.m_fInitial_MemoryPeriodMaxMS, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryPeriodFixationSpotPix', g_strctParadigm.m_fInitial_MemoryPeriodFixationSpotPix, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryPeriodFixationRegionPix', g_strctParadigm.m_fInitial_MemoryPeriodFixationRegionPix, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryPeriodJuiceTimeMS', g_strctParadigm.m_fInitial_MemoryPeriodJuiceTimeMS, iSmallBuffer);
 g_strctParadigm.m_bMemoryPeriodReward = g_strctParadigm.m_fInitial_MemoryPeriodReward;
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryChoicePeriodMinMS', g_strctParadigm.m_fInitial_MemoryChoicePeriodMinMS, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryChoicePeriodMaxMS', g_strctParadigm.m_fInitial_MemoryChoicePeriodMaxMS, iSmallBuffer);
+g_strctParadigm.bMemory = 0; 
+g_strctParadigm.bMemoryChoice = 0; 
+
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryChoiceJuiceTimeMS', g_strctParadigm.m_fInitial_MemoryChoiceJuiceTimeMS, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'MemoryChoiceRewardProbability', g_strctParadigm.m_fInitial_MemoryChoiceRewardProbability, iSmallBuffer);
+g_strctParadigm.m_bMemoryChoiceReward = g_strctParadigm.m_fInitial_MemoryChoiceReward;
+
 
 %% Choices
 g_strctParadigm.m_strNullCategoryName = g_strctParadigm.m_strInitial_NullCategoryName;
@@ -342,7 +383,8 @@ g_strctParadigm.m_bSeparateRingChoicesBySaturation = g_strctParadigm.m_fInitial_
 g_strctParadigm.m_bRewardCorrectNullTrials = true;
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'AnnulusCenterOffset', g_strctParadigm.m_fInitial_AnnulusCenterOffset,iSmallBuffer);      
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'AnnulusSaturationSeparation', g_strctParadigm.m_fInitial_AnnulusSaturationSeparation,iSmallBuffer);      
-
+g_strctParadigm.m_strctStimuliVars.m_bDirectMatchCueChoices = g_strctParadigm.m_fInitial_DirectMatchCueChoices;
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'ProbeTrialProbability', g_strctParadigm.m_fInitial_ProbeTrialProbability,iSmallBuffer); 
 
 g_strctParadigm.m_iAzimuthRoundToDec = -2;
 %g_strctParadigm.m_fChoiceLuminanceDeviation = g_strctParadigm.m_fInitial_ChoiceLuminanceRange;
@@ -367,18 +409,53 @@ g_strctParadigm = fnTsAddVar(g_strctParadigm, 'ChoiceLocationWeights', [50], iSm
 g_strctParadigm.m_strctChoicesVars.m_bChoicesLocationsWeightingOverride = 1;
 
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'RetainSelectedChoicePeriodMS', g_strctParadigm.m_fInitial_RetainSelectedChoicePeriodMS, iSmallBuffer);
-g_strctParadigm.m_strctPostTrialVars.m_bExtinguishNonSelectedChoicesAfterChoice = 0;
+g_strctParadigm.m_strctPostTrialVars.m_bExtinguishNonSelectedChoicesAfterChoice = 1;
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NumberOfChoices', g_strctParadigm.m_fInitial_NumberOfChoices, iSmallBuffer);
 
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'ChoiceFixationSpotPix', g_strctParadigm.m_fInitial_ChoiceFixationSpotPix, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'ChoiceFixationRegion', g_strctParadigm.m_fInitial_ChoiceFixationRegion, iSmallBuffer);
 g_strctParadigm.m_strctChoiceVars.m_bShowFixationSpot = 0;
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FixationSpotPersistPeriodMS', g_strctParadigm.m_fInitial_FixationSpotPersistPeriodMS, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'HoldToSelectChoiceMS', g_strctParadigm.m_fInitial_RetainSelectedChoicePeriodMS, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'HoldToSelectChoiceMS', g_strctParadigm.m_fInitial_HoldToSelectChoiceMS, iSmallBuffer);
 g_strctParadigm.m_strctChoiceVars.m_strChoicePositionType = 'LeftRight';
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'minChoiceAngleDeg', g_strctParadigm.m_fInitial_minChoiceAngleDeg, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'maxChoiceAngleDeg', g_strctParadigm.m_fInitial_maxChoiceAngleDeg, iSmallBuffer);
 
 %g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceColors = g_strctParadigm.m_afInitial_SelectedChoiceColors;
+if isfield(g_strctParadigm,'m_strInitial_SelectedChoiceColors')
+    cAllColors = strsplit(g_strctParadigm.m_strInitial_SelectedChoiceColors,';');
+    for iColors = 1:numel(cAllColors)
+        g_strctParadigm.m_cAllChoiceColorsPerSat{iColors} = str2double(strsplit(cAllColors{iColors},' '));
+        g_strctParadigm.m_cColorsDisplayedCount{iColors} = zeros(numel(g_strctParadigm.m_cAllChoiceColorsPerSat{iColors}),1);
+    end
+elseif isfield(g_strctParadigm,'m_fInitial_SelectedChoiceColors')
+    cAllColors = {g_strctParadigm.m_fInitial_SelectedChoiceColors};
+    for iColors = 1:numel(cAllColors)
+        g_strctParadigm.m_cAllChoiceColorsPerSat{iColors} = cAllColors{iColors};
+        g_strctParadigm.m_cColorsDisplayedCount{iColors} = zeros(numel(g_strctParadigm.m_cAllChoiceColorsPerSat{iColors}),1);
+    end
+elseif isfield(g_strctParadigm,'m_afInitial_SelectedChoiceColors')
+    cAllColors = {g_strctParadigm.m_afInitial_SelectedChoiceColors};
+    for iColors = 1:numel(cAllColors)
+        g_strctParadigm.m_cAllChoiceColorsPerSat{iColors} = cAllColors{iColors};
+        g_strctParadigm.m_cColorsDisplayedCount{iColors} = zeros(numel(g_strctParadigm.m_cAllChoiceColorsPerSat{iColors}),1);
+    end
+end
+if isfield(g_strctParadigm,'m_afInitial_SelectedChoiceSaturations')
 g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations = g_strctParadigm.m_afInitial_SelectedChoiceSaturations;
+elseif isfield(g_strctParadigm,'m_fInitial_SelectedChoiceSaturations')
+g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations = g_strctParadigm.m_fInitial_SelectedChoiceSaturations;
+end
+%{
+if isfield(g_strctParadigm,'m_afInitial_SelectedChoiceColors')
+g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceColors = g_strctParadigm.m_afInitial_SelectedChoiceColors;
+elseif isfield(g_strctParadigm,'m_fInitial_SelectedChoiceColors')
+g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceColors = g_strctParadigm.m_fInitial_SelectedChoiceColors;
+end
+%}
+
+
+
 g_strctParadigm.m_strctChoiceVars.m_bForceChoiceColorConversionMatchToCueType = 1;
 g_strctParadigm.m_strctChoiceVars.m_iInitialChoiceColorConversionType = g_strctParadigm.m_fInitial_SelectedChoiceConversionType;
 g_strctParadigm.m_strctChoiceVars.m_aiNumChoiceColorsPerSaturations = g_strctParadigm.m_afInitial_NumChoiceColorsPerSaturations;
@@ -396,14 +473,28 @@ g_strctParadigm.m_strctChoiceVars.m_bForceMatchChoiceShapeParametersToCue = g_st
 g_strctParadigm.m_strctChoiceVars.m_bProgressiveChoiceRingRotation = 0;
 g_strctParadigm.m_strctChoiceVars.m_fLastChoiceRingRotation = 0;
 g_strctParadigm.m_strctChoiceVars.m_iChoiceRingRotationIncrement= 22.5;
+g_strctParadigm.m_strctChoiceVars.m_bRandomRingOrderInversion = g_strctParadigm.m_fInitial_RandomRingOrderInversion;
+%g_strctParadigm.m_strctChoiceVars.m_QuadrantsSelected = strsplit(g_strctParadigm.m_strInitial_QuadrantsSelected);
+g_strctParadigm.m_strctChoicePeriod.m_bSortChoiceHues = g_strctParadigm.m_fInitial_SortChoiceHues;
+% g_strctParadigm.m_strctChoiceVars.m_NTargets = 1;  
+
+
+
+%g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NTargets', g_strctParadigm.m_fInitial_NTargets, iSmallBuffer)
+%g_strctParadigm.NTargets = g_strctParadigm.m_fInitial_NTargets; 
+
+
+%g_strctParadigm.m_ciQuadrantsSelected = {1 2 3 4}; 
 
 %% noise patterns
 
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NumTexturesToPreparePerChoice', g_strctParadigm.m_fInitial_NumTexturesToPreparePerChoice, iSmallBuffer);
 
 %numInitialChoices = numel(g_strctParadigm.m_afInitial_SelectedChoiceColors) * numel(g_strctParadigm.m_afInitial_SelectedChoiceSaturations);
-numInitialChoices = sum(cellfun(@numel,g_strctParadigm.m_cAllColorsPerSat));
-numLuminanceStepsPerChoice = floor(253 / (numInitialChoices + 1));
+%numInitialChoices = sum(cellfun(@numel,g_strctParadigm.m_cAllChoiceColorsPerSat));
+%numInitialChoices =  fnTsGetVar('g_strctParadigm', 'NTargets')
+numLuminanceStepsPerChoice = floor(253 / (numInitialChoices + 1)); 
+
 if rem(numLuminanceStepsPerChoice,2) == 0
     numLuminanceStepsPerChoice = numLuminanceStepsPerChoice - 1;
 end
@@ -421,17 +512,16 @@ for i = 1:numel(g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations)
     activeSaturationsStr{i} = deblank(satString{g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations(i)});
 end
 
-[~, controlComputerColors] = fnCalculateColorsForChoiceDisplay(g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations, ...
+[~, controlComputerColors] = fnCalculateColorsForChoiceAFCDisplay(g_strctParadigm.m_strctChoiceVars.m_aiSelectedChoiceSaturations, ...
                                                                                     activeSaturationsStr,...
                                                                                     g_strctParadigm.m_strctChoiceVars.m_iInitialChoiceColorConversionType, ...
 																					fnTsGetVar('g_strctParadigm', 'ChoiceLuminanceDeviation'),...
-                                                                                    numLuminanceStepsPerChoice,...
-                                                                                    g_strctParadigm.m_cAllColorsPerSat);
+                                                                                    numLuminanceStepsPerChoice);
 			
                                                                                 
 
 fnInitializeChoiceTextures(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'), ...
-                                            numInitialChoices, [fnTsGetVar('g_strctParadigm', 'ChoiceLength'),fnTsGetVar('g_strctParadigm', 'ChoiceWidth')], ...
+                                            numInitialChoices_local, [fnTsGetVar('g_strctParadigm', 'ChoiceLength'),fnTsGetVar('g_strctParadigm', 'ChoiceWidth')], ...
                                             numLuminanceStepsPerChoice, g_strctParadigm.CLUTOffset, fnTsGetVar('g_strctParadigm', 'ChoiceLuminanceNoiseBlockSize'), ...
 											controlComputerColors)
 g_strctParadigm.m_bChoiceTexturesInitialized = true;
@@ -505,7 +595,7 @@ g_strctParadigm = fnTsAddVar(g_strctParadigm, 'JuiceTimeHighMS', g_strctParadigm
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'PositiveIncrement', g_strctParadigm.m_fInitial_PositiveIncrementPercent, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'NumberOfJuiceDrops', g_strctParadigm.m_fInitial_NumberOfJuiceDrops, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'JuiceDropInterval', g_strctParadigm.m_fInitial_JuiceDropInterval, iSmallBuffer);
-
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'ProbeTrialRewardProbability', g_strctParadigm.m_fInitial_ProbeTrialRewardProbability, iSmallBuffer);
 
 g_strctParadigm.m_bBinaryReward = g_strctParadigm.m_fInitial_BinaryReward; 
 
