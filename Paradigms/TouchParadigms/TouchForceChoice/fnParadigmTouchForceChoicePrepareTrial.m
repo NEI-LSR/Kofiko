@@ -1135,6 +1135,8 @@ if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') || 
 
     strctCurrentTrial.m_iStimulusLUTEntries = repmat(g_strctParadigm.m_strctChoiceVars.m_iClutIndices, [3,1])-1;
     strctCurrentTrial.m_aiLocalStimulusColors = floor((g_strctParadigm.m_strctChoiceVars.m_aiChoiceRingRGBCorrected/((2^16)-1))*255);
+	
+	
 end
 
 strctCurrentTrial.m_strctChoicePeriod.m_afBackgroundLUT= [1 1 1];
@@ -1181,6 +1183,16 @@ for iSaturations = 1:numel(strctCurrentTrial.m_aiActiveChoiceSaturationID)
 		vertcat(strctCurrentTrial.m_strctChoicePeriod.ClutEntries,fnGammaCorrectRGBValues(rawValues));
 	
 end
+
+% storing colors for local display
+strctCurrentTrial.m_strctChoicePeriod.m_aiRGB = zeros(numel(strctCurrentTrial.m_aiActiveChoiceID),3);
+strctCurrentTrial.m_strctChoicePeriod.m_aiLocalStimulusColors = zeros(numel(strctCurrentTrial.m_aiActiveChoiceID),3);
+for iChoice = 1:numel(strctCurrentTrial.m_aiActiveChoiceID)
+	strctCurrentTrial.m_strctChoicePeriod.m_aiRGB(iChoice,:) = ... 
+		strctCurrentTrial.m_strctChoicePeriod.m_acActiveChoiceSaturations{iChoice}.RGB(strctCurrentTrial.m_aiActiveChoiceColorID(iChoice),:);
+	strctCurrentTrial.m_strctChoicePeriod.m_aiLocalStimulusColors(iChoice,:) = round((strctCurrentTrial.m_strctChoicePeriod.m_aiRGB(iChoice,:)/65535)*255);
+end
+
 %{
 if strctCurrentTrial.m_strctCuePeriod.m_bIncludeGrayTrials
     % append the gray choice information

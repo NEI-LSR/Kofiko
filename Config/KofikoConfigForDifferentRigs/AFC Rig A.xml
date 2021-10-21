@@ -115,7 +115,7 @@
         Close = "fnParadigmTouchForceChoiceClose"
         ParadigmSwitch = "fnParadigmTouchForceChoiceParadigmSwitch"
         
-		Initial_PreAllocateStimuli = "1"
+		Initial_PreAllocateStimuli = "0"
 		Initial_StimFile = "calibration.csv"
 		
 		Initial_ColorConversionID = "1"

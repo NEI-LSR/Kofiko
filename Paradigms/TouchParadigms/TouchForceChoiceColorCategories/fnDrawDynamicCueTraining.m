@@ -93,21 +93,21 @@ else
 		
 		end
 	elseif strcmp(g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strStimulusType,'disc')
-		if g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_bLuminanceMaskedCueStimuli
-			thisFrame = rem(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCuePeriodFrameCounter, g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iMaxFramesInCueEpoch);
-			thisFrame(thisFrame == 0) = 1;
-			%dbstop if warning
-			%warning('stop')
-			Screen('DrawTexture', h_PTBWindow, ...
-				g_strctParadigm.m_strctStimuliVars.m_ahCueDiscTextures(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCueHandleIndexingColorID, ...
-												g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.thisTrialCueTextureOrder(thisFrame))', ...
-												[] , g_strctPTB.m_fScale * g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect');
-			g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCuePeriodFrameCounter = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCuePeriodFrameCounter + 1;
-		else
+ 		if g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_bLuminanceMaskedCueStimuli
+ 			thisFrame = rem(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCuePeriodFrameCounter, g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iMaxFramesInCueEpoch);
+ 			thisFrame(thisFrame == 0) = 1;
+ 			%dbstop if warning
+ 			%warning('stop')
+ 			Screen('DrawTexture', h_PTBWindow, ...
+ 				g_strctParadigm.m_strctStimuliVars.m_ahCueDiscTextures(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCueHandleIndexingColorID, ...
+ 												g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.thisTrialCueTextureOrder(thisFrame))', ...
+ 												[] , g_strctPTB.m_fScale * g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect');
+ 			g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCuePeriodFrameCounter = g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iCuePeriodFrameCounter + 1;
+ 		else
 			Screen('FillArc', h_PTBWindow, g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_aiCueColors, g_strctPTB.m_fScale * g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_strctStimulusVariables.m_aiBar_rect', 0, 360);
 		end
 
-	end
+ 	end
 
 	%ClutEncoded = BitsPlusEncodeClutRow(g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_aiClut);
 	%ClutTextureIndex = Screen( 'MakeTexture', h_PTBWindow, ClutEncoded );

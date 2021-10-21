@@ -1,14 +1,12 @@
-function [fChoicesOnsetTS] = fnDisplayChoicesTraining(hPTBWindow, strctCurrentTrial,bFlip,bClear)
-global  g_strctPTB 
+function [fMemoryChoicesOnsetTS] = fnDisplayMemoryChoicesTraining(hPTBWindow, strctCurrentTrial,bFlip,bClear)
+global  g_strctPTB
 % Clear screen
 
 if strctCurrentTrial.m_strctTrialParams.m_bDynamicTrial
     if g_strctPTB.m_bRunningOnStimulusServer
-	fChoicesOnsetTS = fnDynamicTrial(hPTBWindow, strctCurrentTrial, bFlip, bClear);
-									
+	fMemoryChoicesOnsetTS = fnDynamicTrial(hPTBWindow, strctCurrentTrial, bFlip, bClear);							
     else
-        fnDynamicTrial(hPTBWindow, strctCurrentTrial, bFlip, bClear);
-									
+        fnDynamicTrial(hPTBWindow, strctCurrentTrial, bFlip, bClear);								
     end
     return;
 end	
@@ -18,6 +16,7 @@ return;
 %function fChoicesOnsetTS = fnDynamicTrial(hPTBWindow, aiChoices, strctCurrentTrial, acMedia,bFlip,bClear,bHighlightRewardedChoices,fScale, bDrawResponseRegion)
 function fChoicesOnsetTS = fnDynamicTrial(hPTBWindow, strctCurrentTrial,bFlip,bClear)
 global  g_strctPTB 
+
 if bClear && g_strctPTB.m_bRunningOnStimulusServer
 	Screen('FillRect',hPTBWindow, strctCurrentTrial.m_strctChoicePeriod.m_afBackgroundColor);
 elseif bClear && ~g_strctPTB.m_bRunningOnStimulusServer
@@ -35,17 +34,14 @@ switch lower(strctCurrentTrial.m_strChoiceDisplayType)
 
 
 end
-
-
-
 return;
 
 function [fChoicesOnsetTS] = fnDisplayChoiceDiscs(strctCurrentTrial, bFlip)
-global g_strctPTB                                                                                                                                                                                                                  
+global g_strctPTB                                                                                                                                                                                                                   
 if g_strctPTB.m_bRunningOnStimulusServer
 global g_strctDraw g_bPhotoDiodeToggle
 	Screen('FillRect',g_strctPTB.m_hWindow, strctCurrentTrial.m_strctChoicePeriod.m_afBackgroundLUT);
-	thisFrame = rem(strctCurrentTrial.m_iChoiceFrameCounter, strctCurrentTrial.m_iMaxFramesInChoiceEpoch);
+	thisFrame = rem(strctCurrentTrial.m_iMemoryFrameCounter, strctCurrentTrial.m_strctMemoryPeriod.numFrames);
             thisFrame(thisFrame == 0) = 1;
 
     if strctCurrentTrial.m_bLuminanceNoiseBackground        
@@ -56,6 +52,7 @@ global g_strctDraw g_bPhotoDiodeToggle
     end
 %     dbstop if warning
 %     warning('stop')
+
     for iChoices = 1:numel(strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs)
        thisChoicesFrameID(iChoices) = ...
            g_strctDraw.m_ahChoiceDiscTextures(...
@@ -74,13 +71,22 @@ strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs,...
         %}
 	%fnDrawFixationSpot(g_strctPTB.m_hWindow, strctCurrentTrial.m_strctChoicePeriod, false, 1);
 
+	fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctDraw.m_strctCurrentTrial.m_strctMemoryPeriod, false, 1);
+	%fnFlipWrapper(hPTBWindow)
+	
+	
     ClutEncoded = BitsPlusEncodeClutRow( strctCurrentTrial.m_strctChoicePeriod.Clut );
     ClutTextureIndex = Screen( 'MakeTexture', g_strctPTB.m_hWindow, ClutEncoded );
 	Screen('DrawTexture', g_strctPTB.m_hWindow, ClutTextureIndex, [], [0, 0, 524, 1] );
 	Screen('Close',ClutTextureIndex);
 	
-    g_strctDraw.m_strctCurrentTrial.m_iChoiceFrameCounter = strctCurrentTrial.m_iChoiceFrameCounter + 1;
-	%g_strctDraw.m_strctCurrentTrial.m_iChoiceFrameCounter
+    g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounter = g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounter + 1;
+	if g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounter > strctCurrentTrial.m_strctMemoryPeriod.numFrames
+        g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounter = 1;
+        g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounterResets =  g_strctDraw.m_strctCurrentTrial.m_iMemoryFrameCounterResets + 1;
+    end
+	
+	
     if bFlip
 	    fChoicesOnsetTS = fnFlipWrapper(g_strctPTB.m_hWindow); % This would block the server until the next flip.
 	else
@@ -93,7 +99,7 @@ strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs,...
 	 
 else
 	global g_strctParadigm 
-	thisFrame = rem(strctCurrentTrial.m_iChoiceFrameCounter, strctCurrentTrial.m_iMaxFramesInChoiceEpoch);
+	thisFrame = rem(strctCurrentTrial.m_iLocalMemoryFrameCounter, strctCurrentTrial.m_iMaxFramesInChoiceEpoch);
 		thisFrame(thisFrame == 0) = 1;
 	
 	for iChoices = 1:numel(strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs)
@@ -102,10 +108,19 @@ else
            g_strctParadigm.m_strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs(iChoices),... 
            g_strctParadigm.m_strctCurrentTrial.thisTrialChoiceTextureOrder(iChoices,thisFrame)); %g_strctParadigm.m_strctCurrentTrial.thisTrialChoiceTextureOrder(g_strctParadigm.m_strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs(iChoices),thisFrame));  
     end
-
-	Screen('DrawTextures', g_strctPTB.m_hWindow, ...
-		thisChoicesFrameID', ...
-		[] ,g_strctPTB.m_fScale * strctCurrentTrial.m_aiChoiceScreenCoordinates');
+	
+    
+    for iChoices = 1:numel(strctCurrentTrial.m_aiActiveChoiceID)
+    	Screen('FillArc', g_strctPTB.m_hWindow, strctCurrentTrial.m_strctChoicePeriod.m_aiLocalStimulusColors(iChoices,:), g_strctPTB.m_fScale * strctCurrentTrial.m_aiChoiceScreenCoordinates(iChoices,:)', 0, 360);
+    end
+	
+	
+	%Screen('DrawTextures', g_strctPTB.m_hWindow, ...
+	%	thisChoicesFrameID', ...
+	%	[] ,g_strctPTB.m_fScale * strctCurrentTrial.m_aiChoiceScreenCoordinates');
+		
+		
+		
 		%{
 		Screen('DrawTextures', g_strctPTB.m_hWindow, ...
 	g_strctParadigm.m_strctChoiceVars.m_ahChoiceDiscTextures(strctCurrentTrial.m_strctChoiceVars.m_iChoiceTextureIDs, strctCurrentTrial.thisTrialChoiceTextureOrder(thisFrame))', ...
@@ -115,6 +130,8 @@ else
 		Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255],g_strctPTB.m_fScale * strctCurrentTrial.m_strctReward.m_aiChoiceFramingRects);
 	end
 	%fnDrawFixationSpot(g_strctPTB.m_hWindow, strctCurrentTrial.m_strctChoicePeriod, false, 1);
+	%fnDrawFixationSpot(g_strctPTB.m_hWindow, strctCurrentTrial.m_strctMemoryPeriod, false, 1);
+	%fnFlipWrapper(g_strctPTB.m_hWindow)
     fChoicesOnsetTS = nan;
     g_strctParadigm.m_strctCurrentTrial.m_iChoiceFrameCounter = thisFrame + 1;
 	
@@ -122,6 +139,7 @@ else
 end
 return;
 
+%{
 function [fChoicesOnsetTS] = fnDisplayChoiceRing(strctCurrentTrial, bFlip)
 global g_strctPTB
 
@@ -163,3 +181,4 @@ else
     fChoicesOnsetTS = nan;
 end
 return;
+%}

@@ -28,21 +28,23 @@ if any(g_strctParadigm.m_iMachineState) && ~isempty(g_strctParadigm.m_strctCurre
 	if g_strctParadigm.m_iMachineState == 20
 		%fnDisplayDynamicStimLocally();
 		if g_strctParadigm.bMemory == 0 && g_strctParadigm.bMemoryChoice == 0; 
-			fnDrawDynamicCue(g_strctPTB.m_hWindow); % note: pulling this from touch force choice (not training) 
+			fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod, false, g_strctPTB.m_fScale)
+			fnDrawDynamicCueAFC(g_strctPTB.m_hWindow); 
 		elseif g_strctParadigm.bMemory == 1 && g_strctParadigm.bMemoryChoice == 0
-		Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_afLocalBackgroundColor,...
-						[0 0 g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(3),...
-						g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(4)]);
-		fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctMemoryPeriod, false, g_strctPTB.m_fScale);
-		elseif g_strctParadigm.bMemoryChoice == 1 && g_strctParadigm.bMemory == 0
+			Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_afLocalBackgroundColor,...
+							[0 0 g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(3),...
+							g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(4)]);
+			fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctMemoryPeriod, false, g_strctPTB.m_fScale);
+		elseif g_strctParadigm.bMemoryChoice == 1 && g_strctParadigm.bMemory == 1
 		%disp('EnteringMemoryChoiceState')
 		%{
 		Screen('FillRect',g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_afLocalBackgroundColor,...
 						[0 0 g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(3),...
 						g_strctPTB.m_fScale*g_strctParadigm.m_strctCurrentTrial.m_strctTrialParams.m_aiStimServerScreen(4)]);
 		%}
-		%fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctMemoryPeriod, false, g_strctPTB.m_fScale);
-		fnDisplayMemoryChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,1,false);
+		fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctMemoryPeriod, false, g_strctPTB.m_fScale);
+
+		fnDisplayMemoryChoicesAFC(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,1,false);
 		end 
 	elseif any(ismember(g_strctParadigm.m_iMachineState, [21,22,23])) 
 		switch lower(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType)
@@ -50,16 +52,16 @@ if any(g_strctParadigm.m_iMachineState) && ~isempty(g_strctParadigm.m_strctCurre
 		%if strcmp(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'Ring')
 			%fnDisplayChoiceRing(g_strctPTB.m_hWindow,g_strctParadigm.m_strctCurrentTrial);
             
-            fnDisplayChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true)
+            fnDisplayChoicesAFC(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true)
 			case {'disc','annuli','nestedannuli'}
 		%elseif strcmp(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'Disc')
             
-            fnDisplayChoicesTraining(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true);
+            fnDisplayChoicesAFC(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial,false,true);
 			%fnDisplayChoiceDiscs(g_strctPTB.m_hWindow,g_strctParadigm.m_strctCurrentTrial);
             
 		end
 	end
-    fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod, false, g_strctPTB.m_fScale);
+    %fnDrawFixationSpot(g_strctPTB.m_hWindow, g_strctParadigm.m_strctCurrentTrial.m_strctPreCuePeriod, false, g_strctPTB.m_fScale);
 
 
 end
