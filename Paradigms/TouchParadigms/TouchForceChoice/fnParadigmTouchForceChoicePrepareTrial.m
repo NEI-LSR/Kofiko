@@ -1134,7 +1134,13 @@ if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') || 
         fnTsGetVar('g_strctParadigm', 'NumTexturesToPreparePerChoice'))+1;
 
     strctCurrentTrial.m_iStimulusLUTEntries = repmat(g_strctParadigm.m_strctChoiceVars.m_iClutIndices, [3,1])-1;
-    strctCurrentTrial.m_aiLocalStimulusColors = floor((g_strctParadigm.m_strctChoiceVars.m_aiChoiceRingRGBCorrected/((2^16)-1))*255);
+	
+	for iChoice = 1:numel(strctCurrentTrial.m_aiAllStimulusIDs)
+		[sat_idx, col_idx] = find(strctCurrentTrial.m_aiColorOrder==iChoice);
+		strctCurrentTrial.m_aiRGB(iChoice,:) = ...
+			g_strctParadigm.m_strctCurrentSaturations{sat_idx}{1}.RGB(col_idx, :);
+		strctCurrentTrial.m_aiLocalStimulusColors(iChoice,:) = round((strctCurrentTrial.m_aiRGB(iChoice,:)/65535)*255);
+	end
 	
 	
 end

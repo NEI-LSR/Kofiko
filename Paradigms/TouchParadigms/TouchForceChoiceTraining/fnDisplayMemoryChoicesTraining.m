@@ -121,7 +121,7 @@ else
 		Screen('FrameRect', g_strctPTB.m_hWindow, [255 255 255],g_strctPTB.m_fScale * strctCurrentTrial.m_strctReward.m_aiChoiceFramingRects);
 	end
 	%fnDrawFixationSpot(g_strctPTB.m_hWindow, strctCurrentTrial.m_strctChoicePeriod, false, 1);
-	fnDrawFixationSpot(g_strctPTB.m_hWindow, strctCurrentTrial.m_strctMemoryPeriod, false, 1);
+	%fnDrawFixationSpot(g_strctPTB.m_hWindow, strctCurrentTrial.m_strctMemoryPeriod, false, 1);
 	%fnFlipWrapper(g_strctPTB.m_hWindow)
     fChoicesOnsetTS = nan;
     g_strctParadigm.m_strctCurrentTrial.m_iChoiceFrameCounter = thisFrame + 1;

@@ -105,7 +105,7 @@
 
 <Paradigms>
 
-  <Paradigm Name = "Touch Force Choice"
+  <Paradigm Name = "Touch Force Choice MultiSats"
         Init = "fnParadigmTouchForceChoiceInit"
         Cycle = "fnParadigmTouchForceChoiceCycle"
         Draw = "fnParadigmTouchForceChoiceDraw"
@@ -116,7 +116,7 @@
         ParadigmSwitch = "fnParadigmTouchForceChoiceParadigmSwitch"
         
 		Initial_PreAllocateStimuli = "0"
-		Initial_StimFile = "calibration.csv"
+		Initial_StimFile = "test.csv"
 		
 		Initial_ColorConversionID = "1"
 		
