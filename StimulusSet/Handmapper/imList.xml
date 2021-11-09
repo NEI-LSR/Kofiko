@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Config>
+   <Media>
+	<Command Attr= "PlainBar" FileName="Z:\StimulusSet\NTlab_cis\c1.mat" Name="c1"/>
+	<Command Attr= "MovingBar" FileName="Z:\StimulusSet\NTlab_cis\c2.mat" Name="c2"/>
+	<Command Attr= "2Bar" FileName="Z:\StimulusSet\NTlab_cis\c3.mat" Name="c3"/>
+	<Command Attr= "Gabor" FileName="Z:\StimulusSet\NTlab_cis\c5.mat" Name="c5"/>
+	<Command Attr= "Disc" FileName="Z:\StimulusSet\NTlab_cis\c6.mat" Name="c6"/>
+	<Command Attr= "ManyBar" FileName="Z:\StimulusSet\NTlab_cis\c7.mat" Name="c7"/>
+	<Command Attr= "Dualstim" FileName="Z:\StimulusSet\NTlab_cis\c8.mat" Name="c8"/>
+	<Command Attr= "CIHandmapper" FileName="Z:\StimulusSet\NTlab_cis\c9.mat" Name="c9"/>
+	<Command Attr= "GroundTruth" FileName="Z:\StimulusSet\NTlab_cis\c10.mat" Name="c10"/>
+	<Command Attr= "DenseNoise" FileName="Z:\StimulusSet\NTlab_cis\c11.mat" Name="c11"/>
+	<Command Attr= "Fivedot" FileName="Z:\StimulusSet\NTlab_cis\c12.mat" Name="c12"/>
+	<Command Attr= "1DNoise" FileName="Z:\StimulusSet\NTlab_cis\c13.mat" Name="c13"/>
+	<Command Attr= "DiscProbe" FileName="Z:\StimulusSet\NTlab_cis\c13.mat" Name="c14"/>
+	
+   </Media>
+   
+   <Blocks>
+      <Block Attr="Fivedot" Name="Fivedot"/>
+	  <Block Attr="PlainBar" Name="Plain Bar"/>
+	  <Block Attr="CIHandmapper" Name="CI Handmapper"/>
+	  <Block Attr="DiscProbe" Name="Disc Probe"/>
+	  <Block Attr="Dualstim" Name="Dual Stim"/>
+	  <Block Attr="GroundTruth" Name="Ground Truth"/>
+	  <Block Attr="DenseNoise" Name="Dense Noise"/>
+	  <Block Attr="1DNoise" Name="OneD Noise"/>
+	  <Block Attr="MovingBar" Name="Moving Bar"/>
+	  <Block Attr= "2Bar" Name="Two Bar"/>
+	  <Block Attr= "Gabor" Name="Gabor"/>
+	  <Block Attr= "Disc" Name="Moving Disc"/>
+	  <Block Attr= "ManyBar" Name="Many Bar"/>
+	 
+   </Blocks>
+   <BlockOrder>
+      <Order Name="Default Order">
+		<Block Attr="Fivedot" Name="Fivedot"/>
+        <Block Name="Plain Bar" Repitition="1"/>
+		<Block Attr="CIHandmapper" Name="CI Handmapper"/>
+		<Block Attr="DiscProbe" Name="Disc Probe"/>
+		<Block Attr="Dualstim" Name="Dual Stim"/>
+		<Block Attr="GroundTruth" Name="Ground Truth"/>
+		<Block Attr="DenseNoise" Name="Dense Noise"/>
+	    <Block Attr="1DNoise" Name="OneD Noise"/>
+		<Block Attr="MovingBar" Name="Moving Bar"/>
+		<Block Attr= "2Bar" Name="Two Bar"/>
+		<Block Attr= "Gabor" Name="Gabor"/>
+		<Block Attr= "Disc" Name="Moving Disc"/>
+		<Block Attr= "ManyBar" Name="Many Bar"/>
+		
+	  </Order>
+   </BlockOrder>
+   <Conditions>
+      <Condition DefaultVisibility="1" Name="Plain Bar" ValidAttributes="PlainBar"/>
+	   <Condition DefaultVisibility="1" Name="Moving Bar" ValidAttributes="MovingBar"/>
+	   <Condition DefaultVisibility="1" Name="Fivedot" ValidAttributes="Fivedot"/>
+	   <Condition DefaultVisibility="1" Name="Dual Stim" ValidAttributes="Dualstim"/>
+	   <Condition DefaultVisibility="1" Name="Disc Probe" ValidAttributes="DiscProbe"/>
+	   <Condition DefaultVisibility="1" Name="CI Handmapper" ValidAttributes="CIHandmapper"/>
+	   <Condition DefaultVisibility="1" Name="Ground Truth" ValidAttributes="GroundTruth"/>
+	   <Condition DefaultVisibility="1" Name="Dense Noise" ValidAttributes="DenseNoise"/>
+	   <Condition DefaultVisibility="1" Name="OneD Noise" ValidAttributes="1DNoise"/>
+	   <Condition DefaultVisibility="1" Name="Two Bar" ValidAttributes="2Bar"/>
+	   <Condition DefaultVisibility="1" Name="Gabor" ValidAttributes="Gabor"/>
+	   <Condition DefaultVisibility="1" Name="Moving Disc" ValidAttributes="Disc"/>
+	   <Condition DefaultVisibility="1" Name="Many Bar" ValidAttributes="ManyBar"/>
+	   
+	   
+	   
+   </Conditions>
+   <StatServer NumTrialInCircularBuffer="200" Post_TimeSec="0.5" Pre_TimeSec="0.5"/>
+</Config>

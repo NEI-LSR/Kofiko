@@ -53,7 +53,7 @@ if ~isempty(acInputFromKofiko)
             
         case 'InitializeHartleyTextures'
 			%fnInitializeChoiceTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
-		    fnInitializeHartleyTextures(acInputFromKofiko{2}, acInputFromKofiko{3});
+		    fnInitializeHartleyTextures(acInputFromKofiko{2});
         
         case 'InitializeAchromCloudTextures'
 			%fnInitializeChoiceTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
@@ -66,6 +66,10 @@ if ~isempty(acInputFromKofiko)
         case 'InitializeChromBarTextures'
 			%fnInitializeChoiceTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
 		    fnInitializeChromBarTextures(acInputFromKofiko{2}, acInputFromKofiko{3}, acInputFromKofiko{4}, acInputFromKofiko{5});
+        
+        case 'InitializeAChromBarTextures'
+			%fnInitializeChoiceTextures(acInputsFromKofiko{2}, acInputsFromKofiko{3}, acInputsFromKofiko{4}, acInputsFromKofiko{5}, acInputsFromKofiko{6}, acInputsFromKofiko{7}, acInputsFromKofiko{8});
+		    fnInitializeAChromBarTextures(acInputFromKofiko{2}, acInputFromKofiko{3}, acInputFromKofiko{4}, acInputFromKofiko{5});
         
         case 'LoadImageList'
             acFileNames = acInputFromKofiko{2};
@@ -1413,11 +1417,14 @@ if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==0 % use ground truth
         end
     end
 elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=1 && g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=2 % use bar stimuli    
-%    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
-%    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
-    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
-elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=3 && g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=6 %achromatic hartleys
+% % %    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+% % %    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+% %     hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+% %     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+% hImageID = g_strctDraw.achrombar_disp(g_strctDraw.m_strctTrial.stimseq_ET_bars(g_strctDraw.m_iFrameCounter));
+% Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,strctTrial.cur_ori);
+
+elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=3 && g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=6 % hartleys
 %    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
     hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
@@ -1433,21 +1440,48 @@ end
 %hImageID = g_strctDraw.hartleys_disp(randi(1188));
 %Screen('Close',hImageID);
 
-% TODO: code up the sequence for secondary stims too
-% Draw peripheral stimulus
-if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==0
-
-    %Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
-    %Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
-elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1
-    hImageID2 = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET(g_strctDraw.m_iFrameCounter));
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==0 %single-ori bars in each window 
+    hImageID = g_strctDraw.achrombar_disp(g_strctDraw.m_strctTrial.stimseq_ET_bars(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,0); 
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,90); % rotate one set of bars 
 %    Screen('Close',hImageID);
-elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==2
-    hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1 % alternating-ori bars in both
+    hImageID = g_strctDraw.achrombar_disp(g_strctDraw.m_strctTrial.stimseq_ET_bars(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,g_strctDraw.m_strctTrial.stimseq_ET_baroris(g_strctDraw.m_iFrameCounter)); % rotate every other frame 
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,g_strctDraw.m_strctTrial.stimseq_ET_baroris(g_strctDraw.m_iFrameCounter)); % rotate every other frame 
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==2 % alternating-ori bars and achromatic cloud
+    hImageID = g_strctDraw.achrombar_disp(g_strctDraw.m_strctTrial.stimseq_ET_bars(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,g_strctDraw.m_strctTrial.stimseq_ET_baroris(g_strctDraw.m_iFrameCounter)); % rotate every other frame
+    hImageID2 = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Aclouds(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==3 % achromatic cloud in both
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Aclouds(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,0); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==4 % alternating-ori bars and chromatic cloud
+    hImageID = g_strctDraw.achrombar_disp(g_strctDraw.m_strctTrial.stimseq_ET_bars(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,g_strctDraw.m_strctTrial.stimseq_ET_baroris(g_strctDraw.m_iFrameCounter)); % rotate every other frame
+    hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Cclouds(g_strctDraw.m_iFrameCounter)); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==5 % color cloud in both
+    hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Cclouds(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,0); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==6 % color cloud in one, achromatic cloud in other
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Aclouds(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,0); % dont rotate cloud stimulus
+     hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Cclouds(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
 %    Screen('Close',hImageID);
 end
 
@@ -1586,10 +1620,10 @@ if g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud==0 % use ground truth
         end
     end
 elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=1 && g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=2 % use bar stimuli    
-    Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
-%    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
-    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
+%     Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
+% %    hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
+%     hImageID = g_strctDraw.chrombar_disp(g_strctDraw.m_strctTrial.cur_oribin);
+%     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctDraw.m_strctTrial.m_aiStimulusRect,0,0);
 elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>=3 && g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=6 %achromatic hartleys
     Screen('FillRect',g_strctPTB.m_hWindow, [127 127 127]);
     hImageID = g_strctDraw.hartleys_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
@@ -1611,21 +1645,52 @@ if g_strctDraw.m_strctTrial.CSDtrigframe && g_strctDraw.m_iFrameCounter<=3
     Screen('FillRect',g_strctPTB.m_hWindow, [256 256 256], g_strctDraw.m_strctTrial.m_aiStimulusRect);
 end
 
-if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==0
 
-    %Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
-    %Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect, g_strctDraw.m_strctTrial.DualStimSecondaryori(g_strctDraw.m_iFrameCounter));
-elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1
-    hImageID2 = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET(g_strctDraw.m_iFrameCounter));
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+if g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==0 %single-ori bars in each window 
+    hImageID = g_strctDraw.achrombar_disp(g_strctDraw.m_strctTrial.stimseq_ET_bars(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,0); 
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,90); % rotate one set of bars 
 %    Screen('Close',hImageID);
-elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==2
-    hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter));
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.secondarystim_bar_rect,0);
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[],g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==1 % alternating-ori bars in both
+    hImageID = g_strctDraw.achrombar_disp(g_strctDraw.m_strctTrial.stimseq_ET_bars(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,g_strctDraw.m_strctTrial.stimseq_ET_baroris(g_strctDraw.m_iFrameCounter)); % rotate every other frame 
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,g_strctDraw.m_strctTrial.stimseq_ET_baroris(g_strctDraw.m_iFrameCounter)); % rotate every other frame 
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==2 % alternating-ori bars and achromatic cloud
+    hImageID = g_strctDraw.achrombar_disp(g_strctDraw.m_strctTrial.stimseq_ET_bars(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,g_strctDraw.m_strctTrial.stimseq_ET_baroris(g_strctDraw.m_iFrameCounter)); % rotate every other frame
+    hImageID2 = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Aclouds(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==3 % achromatic cloud in both
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Aclouds(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,0); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==4 % alternating-ori bars and chromatic cloud
+    hImageID = g_strctDraw.achrombar_disp(g_strctDraw.m_strctTrial.stimseq_ET_bars(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,g_strctDraw.m_strctTrial.stimseq_ET_baroris(g_strctDraw.m_iFrameCounter)); % rotate every other frame
+    hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Cclouds(g_strctDraw.m_iFrameCounter)); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==5 % color cloud in both
+    hImageID = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Cclouds(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,0); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctDraw.m_strctTrial.DualstimSecondaryUseCloud==6 % color cloud in one, achromatic cloud in other
+    hImageID = g_strctDraw.achromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Aclouds(g_strctDraw.m_iFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctDraw.m_strctTrial.secondarystim_bar_rect,0); % dont rotate cloud stimulus
+     hImageID2 = g_strctDraw.chromcloud_disp(g_strctDraw.m_strctTrial.stimseq_ET_Cclouds(g_strctDraw.m_iFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[], g_strctDraw.m_strctTrial.tertiarystim_bar_rect,0); % dont rotate cloud stimulus
 %    Screen('Close',hImageID);
 end
+
         %end
         if ~strcmp(g_strctDraw.m_strctTrial.m_strTrialType,'Plain Bar') && g_strctDraw.m_strctTrial.m_bClipStimulusOutsideStimArea
             %Screen('FillRect', g_strctPTB.m_hWindow, g_strctDraw.m_strctTrial.m_afBackgroundColor, g_strctDraw.m_strctTrial.m_aiNonStimulusAreas);
@@ -1644,8 +1709,8 @@ end
         end
 
 %         if g_strctDraw.m_strctTrial.m_bUseGaussianPulses & g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud>2
-%                     if size( g_strctDraw.m_strctTrial.m_aiCLUT,3) >= g_strctDraw.m_iFrameCounter
-%                         ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw.m_iFrameCounter ));
+%                     if size( g_strctDraw.m_strctTrial.m_aiCLUT,3) >= g_strctDraw.
+%                         ClutEncoded = BitsPlusEncodeClutRow( g_strctDraw.m_strctTrial.m_aiCLUT(:,:,g_strctDraw. ));
 %                     end
 %         elseif g_strctDraw.m_strctTrial.DualstimPrimaryuseRGBCloud<=2
 %             ClutEncoded = BitsPlusEncodeClutRow( squeeze(g_strctDraw.m_strctTrial.m_aiCLUT(g_strctDraw.m_strctTrial.stimseq(g_strctDraw.m_iFrameCounter),:,:)) );

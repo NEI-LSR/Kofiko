@@ -1,8 +1,8 @@
-function fnInitializeChromBarTextures(stim_length, CurCLUTOffset, cloudstims, cloudstims_binned) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+function fnInitializeChromBarTextures(stim_length, CurCLUTOffset, barstims, barstims_binned) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
 
 % case {'annuli','disc','nestedannuli'}
 %     if nargin == 7
-        fnGenerateChromBarTextures(stim_length, CurCLUTOffset, cloudstims, cloudstims_binned);%numDiscs, textureSize, numEntriesPerTexture);
+        fnGenerateChromBarTextures(stim_length, CurCLUTOffset, barstims, barstims_binned);%numDiscs, textureSize, numEntriesPerTexture);
 %     else
 %         fnGenerateHartleyTextures(filename, cur_clut);%numDiscs, textureSize, numEntriesPerTexture, varargin{1});
 %     end

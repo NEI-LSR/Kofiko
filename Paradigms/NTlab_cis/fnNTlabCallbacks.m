@@ -689,6 +689,12 @@ switch strCallback
         fnInitializeChromBarTextures(g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBar) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
         fnParadigmToStimulusServer('ForceMessage', 'InitializeChromBarTextures', g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBar);
 %}
+        
+g_strctParadigm.DualstimETbars=Randi(3, [1,g_strctParadigm.nBars,g_strctParadigm.Dualstim_pregen_ETbars_n,1])-1;
+g_strctParadigm.DualstimETbars = (g_strctParadigm.DualstimETbars*127)+1;
+fnInitializeAChromBarTextures(g_strctParadigm.Dualstim_pregen_ETbars_n, 0, g_strctParadigm.DualstimETbars, g_strctParadigm.DualstimETbars) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeAChromBarTextures', g_strctParadigm.Dualstim_pregen_ETbars_n, 0, g_strctParadigm.DualstimETbars, g_strctParadigm.DualstimETbars);
+
 fnInitializeChromBarTextures(g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBarbase) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
 fnParadigmToStimulusServer('ForceMessage', 'InitializeChromBarTextures', g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBarbase);
 

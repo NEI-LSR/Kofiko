@@ -1079,8 +1079,11 @@ if g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud==0 % ground tr
         end  
     end
 elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud>=1 & g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud<=2 %bar stimuli
-    hImageID = g_strctParadigm.chrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
-    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect, g_strctParadigm.m_strctCurrentTrial.cur_ori,0);
+%     hImageID = g_strctParadigm.chrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+%     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[],g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect, g_strctParadigm.m_strctCurrentTrial.cur_ori,0);
+hImageID = g_strctParadigm.achrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_bars(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,g_strctParadigm.m_strctCurrentTrial.cur_ori); 
+
 elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud>=3 & g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud<=6 %achromatic hartleys
     hImageID = g_strctParadigm.hartleys_local(g_strctParadigm.m_strctCurrentTrial.stimseq(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
     g_strctParadigm.m_strctCurrentTrial.cur_ori=0;
@@ -1096,22 +1099,56 @@ elseif g_strctParadigm.m_strctCurrentTrial.DualstimPrimaryuseRGBCloud==8 %color 
 end
 %Screen('Close',hImageID);
 
-if g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==0
+
+if g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==0 %single-ori bars in each window 
+    hImageID = g_strctParadigm.achrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_bars(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0); 
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,90); % rotate one set of bars 
+%    Screen('Close',hImageID);
+
+elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==1 % alternating-ori bars in both
+    hImageID = g_strctParadigm.achrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_bars(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,g_strctParadigm.m_strctCurrentTrial.stimseq_ET_baroris(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter)); % rotate every other frame 
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,g_strctParadigm.m_strctCurrentTrial.stimseq_ET_baroris(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter)); % rotate every other frame 
+
+elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==2 % alternating-ori bars and achromatic cloud
+    hImageID = g_strctParadigm.achrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_bars(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,g_strctParadigm.m_strctCurrentTrial.stimseq_ET_baroris(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter)); % rotate every other frame
+    hImageID2 = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_Aclouds(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==3
+    hImageID = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_Aclouds(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==4 % alternating-ori bars and achromatic cloud
+    hImageID = g_strctParadigm.achrombar_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_bars(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,g_strctParadigm.m_strctCurrentTrial.stimseq_ET_baroris(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter)); % rotate every other frame
+    hImageID2 = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_Cclouds(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter)); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==5 % color cloud in both
+    hImageID = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_Cclouds(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0); % dont rotate cloud stimulus
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+
+elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==6 % color cloud in one, achromatic cloud in other
+    hImageID = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_Aclouds(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+    Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0); % dont rotate cloud stimulus
+     hImageID2 = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET_Cclouds(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
+     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID2,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
+%    Screen('Close',hImageID);
+end
+
 %     hImageID = Screen('MakeTexture', g_strctPTB.m_hWindow,  g_strctParadigm.m_strctCurrentTrial.DualStimSecondary(:,:,g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
 %     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect, g_strctParadigm.m_strctCurrentTrial.DualStimSecondaryori(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),0);
 %     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect, g_strctParadigm.m_strctCurrentTrial.DualStimSecondaryori(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter),0);
 %     Screen('Close',hImageID);
-elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==1
-    hImageID = g_strctParadigm.achromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
-     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0); % dont rotate cloud stimulus
-     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
-%    Screen('Close',hImageID);     
-elseif g_strctParadigm.DualstimSecondaryUseCloud.Buffer(1,:,g_strctParadigm.DualstimSecondaryUseCloud.BufferIdx)==2
-    hImageID = g_strctParadigm.chromcloud_local(g_strctParadigm.m_strctCurrentTrial.stimseq_ET(g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter));
-     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiSecondaryStimulusRect,0); % dont rotate cloud stimulus
-     Screen('DrawTexture', g_strctPTB.m_hWindow, hImageID,[], g_strctPTB.m_fScale*g_strctParadigm.m_aiTertiaryStimulusRect,0); % dont rotate cloud stimulus
-%    Screen('Close',hImageID);
-end
 
 if g_strctParadigm.m_strctCurrentTrial.CSDtrigframe && g_strctParadigm.m_strctCurrentTrial.m_iLocalFrameCounter==1
     Screen('FillRect',g_strctPTB.m_hWindow, [256 256 256], g_strctPTB.m_fScale*g_strctParadigm.m_aiStimulusRect);

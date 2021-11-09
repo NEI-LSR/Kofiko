@@ -402,7 +402,7 @@ g_strctParadigm.m_strctCurrentSaturationLookup = {g_strctParadigm.m_strctMasterC
 
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'StimulusPosition', g_strctParadigm.m_afInitial_StimulusPosition, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'SecondaryStimulusPosition', g_strctParadigm.m_afInitial_SecondaryStimulusPosition, iSmallBuffer);
-g_strctParadigm = fnTsAddVar(g_strctParadigm, 'TertiaryStimulusPosition', g_strctParadigm.m_afInitial_SecondaryStimulusPosition, iSmallBuffer);
+g_strctParadigm = fnTsAddVar(g_strctParadigm, 'TertiaryStimulusPosition', g_strctParadigm.m_afInitial_TertiaryStimulusPosition, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CurrStimulusIndex', 0, iLargeBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FixationSizePix', g_strctParadigm.m_fInitial_FixationSizePix, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'FixationSpotPix', g_strctStimulusServer.m_aiScreenSize(3:4)/2, iSmallBuffer);
@@ -565,7 +565,17 @@ g_strctParadigm = fnTsAddVar(g_strctParadigm, 'ContinuousDisplay', g_strctParadi
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'CSDtrigframe', g_strctParadigm.m_fInitial_CSDtrigframe, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'cloudpix', g_strctParadigm.m_fInitial_cloudpix, iSmallBuffer);
 
+g_strctParadigm.nBars = 60;
+g_strctParadigm.NoiseStimDir = 'Z:\StimulusSet\NTlab_cis\Cloudstims_calib_02_2021';
+g_strctParadigm.Cur_CCloud_loaded = g_strctParadigm.NoiseStimDir;
+g_strctParadigm.Dualstim_pregen_ETbars_n = 4000;
+g_strctParadigm.Dualstim_pregen_chromcloud_n = 4000;
+g_strctParadigm.Dualstim_pregen_achromcloud_n = 4000;
+g_strctParadigm.maxblocks = 10;
+
+
 tic
+%% Load Hartleys
 g_strctParadigm.DKLref=[];
 % for lvch=[-1 -0.5 0 0.5 1]
 %     for rgch=[-1 -0.6 -0.3 0 0.3 0.6 1]
@@ -585,9 +595,27 @@ for yvch=[-1 -0.6 -0.3 0 0.3 0.6 1]
 end
 g_strctParadigm.DKLclut=round(255*ldrgyv2rgb(g_strctParadigm.DKLref(1,:), g_strctParadigm.DKLref(2,:), g_strctParadigm.DKLref(3,:))');
 
-fnInitializeHartleyTextures('Z:\StimulusSet\NTlab_cis\hartleys_50_wbins.mat', 7)
-fnParadigmToStimulusServer('ForceMessage', 'InitializeHartleyTextures', 'Z:\StimulusSet\NTlab_cis\hartleys_50_wbins.mat', 7);
 
+if ~isfield(g_strctParadigm,'hartleyset')
+    g_strctParadigm.hartleyset=load('Z:\StimulusSet\NTlab_cis\hartleys_60.mat');
+    hartleys_tmp = reshape(g_strctParadigm.hartleyset.hartleys60_DKL, [1152*60*60,3]);
+    hartleys_tmp = round(255*ldrgyv2rgb(hartleys_tmp(:,1)',hartleys_tmp(:,2)',hartleys_tmp(:,3)'));
+    g_strctParadigm.hartleyset.hartleys=permute(reshape(hartleys_tmp', [1152,60,60,3]), [2,3,1,4]);
+    g_strctParadigm.hartleyset.hartleys_binned=g_strctParadigm.hartleyset.hartleys;
+end
+
+fnInitializeHartleyTextures(g_strctParadigm.hartleyset.hartleys_binned)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeHartleyTextures', g_strctParadigm.hartleyset.hartleys_binned);
+
+
+%% Load bars
+g_strctParadigm.DualstimETbars=Randi(3, [1,g_strctParadigm.nBars,g_strctParadigm.Dualstim_pregen_ETbars_n,1])-1;
+g_strctParadigm.DualstimETbars = (g_strctParadigm.DualstimETbars*127)+1;
+
+fnInitializeAChromBarTextures(g_strctParadigm.Dualstim_pregen_ETbars_n, 0, g_strctParadigm.DualstimETbars, g_strctParadigm.DualstimETbars) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
+fnParadigmToStimulusServer('ForceMessage', 'InitializeAChromBarTextures', g_strctParadigm.Dualstim_pregen_ETbars_n, 0, g_strctParadigm.DualstimETbars, g_strctParadigm.DualstimETbars);
+
+%% Load clouds
 % pregen Achromcloud - commented out for time
 %{
 % 		fnParadigmToStimulusServer('ForceMessage', 'PrepareChoiceTextures', g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType,...
@@ -619,16 +647,7 @@ g_strctParadigm.DensenoiseAchromcloud = (mk_spatialcloud(cloudpix,cloudpix, g_st
 fnInitializeAchromCloudTextures(g_strctParadigm.Dualstim_pregen_achromcloud_n, 0, g_strctParadigm.DensenoiseAchromcloud, g_strctParadigm.DensenoiseAchromcloud_binned) %, numTextures, numDiscs, textureSize, numEntriesPerTexture, varargin)
 fnParadigmToStimulusServer('ForceMessage', 'InitializeAchromCloudTextures', g_strctParadigm.Dualstim_pregen_achromcloud_n, 0, g_strctParadigm.DensenoiseAchromcloud, g_strctParadigm.DensenoiseAchromcloud_binned);
 %}
-
-
-
 %/{
-g_strctParadigm.NoiseStimDir = 'Z:\StimulusSet\NTlab_cis\Cloudstims_calib_02_2021';
-g_strctParadigm.Cur_CCloud_loaded = g_strctParadigm.NoiseStimDir;
-g_strctParadigm.Dualstim_pregen_chromcloud_n = 4000;
-g_strctParadigm.Dualstim_pregen_achromcloud_n = 4000;
-g_strctParadigm.maxblocks = 10;
-
 cloudpix=fnTsGetVar('g_strctParadigm' ,'cloudpix');
 g_strctParadigm.DensenoiseScale = g_strctParadigm.m_fInitial_DualstimPrimaryCloudScale;
 load([g_strctParadigm.NoiseStimDir '\' sprintf('Cloudstims_Achrom_size%d_scale%d_%02d.mat', cloudpix, g_strctParadigm.DensenoiseScale, 1)],'DensenoiseAchromcloud_binned');
@@ -763,6 +782,7 @@ fnInitializeChromCloudTextures(g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, 
 fnParadigmToStimulusServer('ForceMessage', 'InitializeChromCloudTextures', g_strctParadigm.Dualstim_pregen_chromcloud_n, 0, g_strctParadigm.DensenoiseChromcloud, g_strctParadigm.DensenoiseChromcloud_binned);
 %}
 
+%% Load Color Bar stimuli
 % load bar stimulus textures
 g_strctParadigm.barstims_base=load('Z:\StimulusSet\NTlab_cis\barstims_base25.mat');
 g_strctParadigm.Dualstim_pregen_chrombar_n =  g_strctParadigm.m_fInitial_DualstimPregen_chrombars_n;
@@ -813,9 +833,9 @@ fnParadigmToStimulusServer('ForceMessage', 'InitializeChromBarTextures', g_strct
 cur_ori=0; cur_oribin=floor(cur_ori./15)+1;
 
 DensenoiseChromBar=reshape(repmat(squeeze(g_strctParadigm.barstims_base.barmat_n50s2(cur_oribin,:,:)),1,1,g_strctParadigm.Dualstim_pregen_chrombar_n),50*50,g_strctParadigm.Dualstim_pregen_chrombar_n);
-nbars=25;
-randseed=rand(g_strctParadigm.Dualstim_pregen_chrombar_n, nbars);
-g_strctParadigm.chrombarmat = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n, nbars);
+nBars=g_strctParadigm.nBars;
+randseed=rand(g_strctParadigm.Dualstim_pregen_chrombar_n, nBars);
+g_strctParadigm.chrombarmat = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n, nBars);
 pvec_edges=[0 cumsum(g_strctParadigm.barprobs)];
 for pp=1:7
     g_strctParadigm.chrombarmat(randseed>pvec_edges(pp) & randseed<pvec_edges(pp+1))=pp;
@@ -836,6 +856,7 @@ fnInitializeChromBarTextures(g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_st
 fnParadigmToStimulusServer('ForceMessage', 'InitializeChromBarTextures', g_strctParadigm.Dualstim_pregen_chrombar_n, 0, g_strctParadigm.DensenoiseChromBar, g_strctParadigm.DensenoiseChromBarbase);
 %}
 
+%% generate Dualstim variables
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimPrimaryuseRGBCloud', g_strctParadigm.m_fInitial_DualstimPrimaryuseRBGCloud, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimStimulusArea', g_strctParadigm.m_fInitial_DualstimPrimaryStimulusArea, iSmallBuffer);
 g_strctParadigm = fnTsAddVar(g_strctParadigm, 'DualstimScale', g_strctParadigm.m_fInitial_DualstimPrimaryCloudScale, iSmallBuffer);
@@ -1344,8 +1365,8 @@ g_strctParadigm.m_aiSecondaryStimulusRect(2) = g_strctParadigm.m_aiCenterOfSecon
 g_strctParadigm.m_aiSecondaryStimulusRect(3) = g_strctParadigm.m_aiCenterOfSecondaryStimulus(1)+(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));
 g_strctParadigm.m_aiSecondaryStimulusRect(4) = g_strctParadigm.m_aiCenterOfSecondaryStimulus(2)+(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));
  
-g_strctParadigm.m_aiCenterOfTertiaryStimulus(1) = 3*(g_strctStimulusServer.m_aiScreenSize(3)/4);
-g_strctParadigm.m_aiCenterOfTertiaryStimulus(2) = 3*(g_strctStimulusServer.m_aiScreenSize(4)/4);
+g_strctParadigm.m_aiCenterOfTertiaryStimulus(1) = g_strctParadigm.TertiaryStimulusPosition.Buffer(1,1,1);
+g_strctParadigm.m_aiCenterOfTertiaryStimulus(2) = g_strctParadigm.TertiaryStimulusPosition.Buffer(1,2,1);
 g_strctParadigm.g_strctStimulusServer.m_aiTertiaryScreenSize = g_strctStimulusServer.m_aiScreenSize;
 
 g_strctParadigm.m_aiTertiaryStimulusRect(1) = g_strctParadigm.m_aiCenterOfTertiaryStimulus(1)-(squeeze(g_strctParadigm.PlainBarStimulusArea.Buffer(1,:,g_strctParadigm.PlainBarStimulusArea.BufferIdx)/2));

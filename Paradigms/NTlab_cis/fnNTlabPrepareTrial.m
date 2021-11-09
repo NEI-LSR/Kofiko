@@ -2051,126 +2051,146 @@ switch strctTrial.DualstimPrimaryuseRGBCloud
     strctTrial.cur_ori=fnTsGetVar('g_strctParadigm' ,'DualstimOrientation'); 
     strctTrial.cur_oribin=floor(strctTrial.cur_ori./15)+1;
         
-    strctTrial.stimseq=repmat(randi(g_strctParadigm.Dualstim_pregen_chrombar_n,1,round(strctTrial.numFrames/2)),2,1);
+%     strctTrial.stimseq=repmat(randi(g_strctParadigm.Dualstim_pregen_chrombar_n,1,round(strctTrial.numFrames/2)),2,1);
+%     strctTrial.stimseq=strctTrial.stimseq(:);
+% 
+%     nbars=60;
+%     randseed=rand(1,g_strctParadigm.Dualstim_pregen_chrombar_n*nbars);
+%     randseed2 = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n*nbars,3);
+%     strctTrial.barmat = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n*nbars,3);
+%     pvec_edges=[0 cumsum(g_strctParadigm.barprobs_lum)];
+%     for pp=1:7
+%         cur_indxs=find(randseed>=pvec_edges(pp) & randseed<pvec_edges(pp+1));
+%         randseed2(cur_indxs,:)=repmat(g_strctParadigm.barcolsDKLCLUT(pp,:),length(cur_indxs),1);
+%         strctTrial.barmat(cur_indxs,:)=repmat(g_strctParadigm.barcolsDKL(pp,:),length(cur_indxs),1);
+%     end
+%     strctTrial.m_aiCLUT=zeros(g_strctParadigm.Dualstim_pregen_chrombar_n,256,3);
+%     strctTrial.m_aiCLUT(:,2,:)=deal((65535/255)*127);%strctTrial.m_afBackgroundColor;
+%     strctTrial.m_aiCLUT(:,3:nbars+2,:)=reshape(randseed2,g_strctParadigm.Dualstim_pregen_chrombar_n,nbars,3);
+%     strctTrial.m_aiCLUT(:,126:255,:)=deal((65535/255)*127);%strctTrial.m_afBackgroundColor;
+%     strctTrial.m_aiCLUT(:,256,:) = deal(65535);
+    
+    strctTrial.stimseq=repmat(randi(g_strctParadigm.Dualstim_pregen_ETbars_n,1,round(strctTrial.numFrames/2)),2,1);
     strctTrial.stimseq=strctTrial.stimseq(:);
 
-    nbars=25;
-    randseed=rand(1,g_strctParadigm.Dualstim_pregen_chrombar_n*nbars);
-    randseed2 = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n*nbars,3);
-    strctTrial.barmat = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n*nbars,3);
-    pvec_edges=[0 cumsum(g_strctParadigm.barprobs_lum)];
-    for pp=1:7
-        cur_indxs=find(randseed>=pvec_edges(pp) & randseed<pvec_edges(pp+1));
-        randseed2(cur_indxs,:)=repmat(g_strctParadigm.barcolsDKLCLUT(pp,:),length(cur_indxs),1);
-        strctTrial.barmat(cur_indxs,:)=repmat(g_strctParadigm.barcolsDKL(pp,:),length(cur_indxs),1);
-    end
-    strctTrial.m_aiCLUT=zeros(g_strctParadigm.Dualstim_pregen_chrombar_n,256,3);
-    strctTrial.m_aiCLUT(:,2,:)=deal((65535/255)*127);%strctTrial.m_afBackgroundColor;
-    strctTrial.m_aiCLUT(:,3:nbars+2,:)=reshape(randseed2,g_strctParadigm.Dualstim_pregen_chrombar_n,nbars,3);
-    strctTrial.m_aiCLUT(:,126:255,:)=deal((65535/255)*127);%strctTrial.m_afBackgroundColor;
-    strctTrial.m_aiCLUT(:,256,:) = deal(65535);
+    linearclut=linspace(0,65535,256)';
+    strctTrial.m_aiCLUT=cat(2,linearclut,linearclut,linearclut);
 
     case 2 %use color bar stimuli
 
     strctTrial.cur_ori=fnTsGetVar('g_strctParadigm' ,'DualstimOrientation'); 
     strctTrial.cur_oribin=floor(strctTrial.cur_ori./15)+1;
         
-    strctTrial.stimseq=repmat(randi(g_strctParadigm.Dualstim_pregen_chrombar_n,1,round(strctTrial.numFrames/2)),2,1);
-    strctTrial.stimseq=strctTrial.stimseq(:);
+%     strctTrial.stimseq=repmat(randi(g_strctParadigm.Dualstim_pregen_chrombar_n,1,round(strctTrial.numFrames/2)),2,1);
+%     strctTrial.stimseq=strctTrial.stimseq(:);
+
+
 
 % new code - just uses one set of textures and generates new CLUT for display texture
-    nbars=25;
-    randseed=rand(1,g_strctParadigm.Dualstim_pregen_chrombar_n*nbars);
-    randseed2 = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n*nbars,3);
-    strctTrial.barmat = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n*nbars,3);
-    pvec_edges=[0 cumsum(g_strctParadigm.barprobs)];
-    for pp=1:7
-        cur_indxs=find(randseed>=pvec_edges(pp) & randseed<pvec_edges(pp+1));
-        randseed2(cur_indxs,:)=repmat(g_strctParadigm.barcolsDKLCLUT(pp,:),length(cur_indxs),1);
-        strctTrial.barmat(cur_indxs,:)=repmat(g_strctParadigm.barcolsDKL(pp,:),length(cur_indxs),1);
-    end
-    strctTrial.m_aiCLUT=zeros(g_strctParadigm.Dualstim_pregen_chrombar_n,256,3);
-    strctTrial.m_aiCLUT(:,2,:)=deal((65535/255)*127);%strctTrial.m_afBackgroundColor;
-    strctTrial.m_aiCLUT(:,3:nbars+2,:)=reshape(randseed2,g_strctParadigm.Dualstim_pregen_chrombar_n,nbars,3);
-    strctTrial.m_aiCLUT(:,126:255,:)=deal((65535/255)*127);%strctTrial.m_afBackgroundColor;
-    strctTrial.m_aiCLUT(:,256,:) = deal(65535);
+%     nbars=60;
+%     randseed=rand(1,g_strctParadigm.Dualstim_pregen_chrombar_n*nbars);
+%     randseed2 = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n*nbars,3);
+%     strctTrial.barmat = zeros(g_strctParadigm.Dualstim_pregen_chrombar_n*nbars,3);
+%     pvec_edges=[0 cumsum(g_strctParadigm.barprobs)];
+%     for pp=1:7
+%         cur_indxs=find(randseed>=pvec_edges(pp) & randseed<pvec_edges(pp+1));
+%         randseed2(cur_indxs,:)=repmat(g_strctParadigm.barcolsDKLCLUT(pp,:),length(cur_indxs),1);
+%         strctTrial.barmat(cur_indxs,:)=repmat(g_strctParadigm.barcolsDKL(pp,:),length(cur_indxs),1);
+%     end
+%     strctTrial.m_aiCLUT=zeros(g_strctParadigm.Dualstim_pregen_chrombar_n,256,3);
+%     strctTrial.m_aiCLUT(:,2,:)=deal((65535/255)*127);%strctTrial.m_afBackgroundColor;
+%     strctTrial.m_aiCLUT(:,3:nbars+2,:)=reshape(randseed2,g_strctParadigm.Dualstim_pregen_chrombar_n,nbars,3);
+%     strctTrial.m_aiCLUT(:,126:255,:)=deal((65535/255)*127);%strctTrial.m_afBackgroundColor;
+%     strctTrial.m_aiCLUT(:,256,:) = deal(65535);
+    strctTrial.stimseq=repmat(randi(g_strctParadigm.Dualstim_pregen_ETbars_n,1,round(strctTrial.numFrames/2)),2,1);
+    strctTrial.stimseq=strctTrial.stimseq(:);
 
+    linearclut=linspace(0,65535,256)';
+    strctTrial.m_aiCLUT=cat(2,linearclut,linearclut,linearclut);
+            
     case 3 %use Lum-axis hartleys
-            strctTrial.stimseq=repmat(randi(length(g_strctParadigm.hartleyset.hartleys_binned),1,round(strctTrial.numFrames/2)),2,1);
+            strctTrial.stimseq=repmat(randi(384,1,round(strctTrial.numFrames/2)),2,1);
+%            strctTrial.stimseq=repmat(randi(length(g_strctParadigm.hartleyset.hartleys_binned),1,round(strctTrial.numFrames/2)),2,1);
             strctTrial.stimseq=strctTrial.stimseq(:);
         %   curseq=randi(size(g_strctParadigm.hartleyset.hartleys,3),1,strctTrial.numFrames);
         %    strctTrial.Dualstimstim = g_strctParadigm.hartleyset.hartleys(:,:,curseq);
         %    strctTrial.Dualstimstim_disp = g_strctParadigm.hartleyset.hartleys_binned(:,:,curseq)+8;
-        strctTrial.m_aiCLUT = zeros(256,3);
-        strctTrial.m_aiCLUT(2,:) = (65535/255)*[127 127 127];%strctTrial.m_afBackgroundColor;
-        strctTrial.m_aiCLUT(3,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,1};
-        strctTrial.m_aiCLUT(4,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,2};
-        strctTrial.m_aiCLUT(5,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,1};
-        strctTrial.m_aiCLUT(6,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,2};
-        strctTrial.m_aiCLUT(7,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,1};
-        strctTrial.m_aiCLUT(8,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,2};
-        strctTrial.m_aiCLUT(9:8+length(g_strctParadigm.DKLclut),:) = (65535/255)*g_strctParadigm.DKLclut;
-        strctTrial.m_aiCLUT(256,:) = deal(65535);
-
+%         strctTrial.m_aiCLUT = zeros(256,3);
+%         strctTrial.m_aiCLUT(2,:) = (65535/255)*[127 127 127];%strctTrial.m_afBackgroundColor;
+%         strctTrial.m_aiCLUT(3,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,1};
+%         strctTrial.m_aiCLUT(4,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,2};
+%         strctTrial.m_aiCLUT(5,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,1};
+%         strctTrial.m_aiCLUT(6,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,2};
+%         strctTrial.m_aiCLUT(7,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,1};
+%         strctTrial.m_aiCLUT(8,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,2};
+%         strctTrial.m_aiCLUT(9:8+length(g_strctParadigm.DKLclut),:) = (65535/255)*g_strctParadigm.DKLclut;
+%         strctTrial.m_aiCLUT(256,:) = deal(65535);
+            linearclut=linspace(0,65535,256)';
+            strctTrial.m_aiCLUT=cat(2,linearclut,linearclut,linearclut);
+            
         %strctTrial.stimuli=g_strctParadigm.hartleyset.hartleys_binned(:,:,strctTrial.stimseq,:);
 
     case 4 %use L-M axis hartleys
-            strctTrial.stimseq=repmat(randi(length(g_strctParadigm.hartleyset.hartleys_binned),1,round(strctTrial.numFrames/2))+length(g_strctParadigm.hartleyset.hartleys_binned),2,1);
+            strctTrial.stimseq=repmat(randi(384,1,round(strctTrial.numFrames/2))+384,2,1);
+%            strctTrial.stimseq=repmat(randi(length(g_strctParadigm.hartleyset.hartleys_binned),1,round(strctTrial.numFrames/2))+length(g_strctParadigm.hartleyset.hartleys_binned),2,1);
             strctTrial.stimseq=strctTrial.stimseq(:);
         %   curseq=randi(size(g_strctParadigm.hartleyset.hartleys,3),1,strctTrial.numFrames);
         %    strctTrial.Dualstimstim = g_strctParadigm.hartleyset.hartleys(:,:,curseq);
         %    strctTrial.Dualstimstim_disp = g_strctParadigm.hartleyset.hartleys_binned(:,:,curseq)+8;
-        strctTrial.m_aiCLUT = zeros(256,3);
-        strctTrial.m_aiCLUT(2,:) = (65535/255)*[127 127 127];%strctTrial.m_afBackgroundColor;
-        strctTrial.m_aiCLUT(3,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,1};
-        strctTrial.m_aiCLUT(4,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,2};
-        strctTrial.m_aiCLUT(5,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,1};
-        strctTrial.m_aiCLUT(6,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,2};
-        strctTrial.m_aiCLUT(7,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,1};
-        strctTrial.m_aiCLUT(8,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,2};
-        strctTrial.m_aiCLUT(9:8+length(g_strctParadigm.DKLclut),:) = (65535/255)*g_strctParadigm.DKLclut;
-        strctTrial.m_aiCLUT(256,:) = deal(65535);
-
+%         strctTrial.m_aiCLUT = zeros(256,3);
+%         strctTrial.m_aiCLUT(2,:) = (65535/255)*[127 127 127];%strctTrial.m_afBackgroundColor;
+%         strctTrial.m_aiCLUT(3,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,1};
+%         strctTrial.m_aiCLUT(4,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,2};
+%         strctTrial.m_aiCLUT(5,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,1};
+%         strctTrial.m_aiCLUT(6,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,2};
+%         strctTrial.m_aiCLUT(7,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,1};
+%         strctTrial.m_aiCLUT(8,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,2};
+%         strctTrial.m_aiCLUT(9:8+length(g_strctParadigm.DKLclut),:) = (65535/255)*g_strctParadigm.DKLclut;
+%         strctTrial.m_aiCLUT(256,:) = deal(65535);
+            linearclut=linspace(0,65535,256)';
+            strctTrial.m_aiCLUT=cat(2,linearclut,linearclut,linearclut);
+            
         %strctTrial.stimuli=g_strctParadigm.hartleyset.hartleys_binned(:,:,strctTrial.stimseq,:);
 
     case 5 %use S-axis hartleys
-            strctTrial.stimseq=repmat(randi(length(g_strctParadigm.hartleyset.hartleys_binned),1,round(strctTrial.numFrames/2))+2*length(g_strctParadigm.hartleyset.hartleys_binned),2,1);
+            strctTrial.stimseq=repmat(randi(384,1,round(strctTrial.numFrames/2))+2*384,2,1);
             strctTrial.stimseq=strctTrial.stimseq(:);
         %   curseq=randi(size(g_strctParadigm.hartleyset.hartleys,3),1,strctTrial.numFrames);
         %    strctTrial.Densenoisestim = g_strctParadigm.hartleyset.hartleys(:,:,curseq);
         %    strctTrial.Densenoisestim_disp = g_strctParadigm.hartleyset.hartleys_binned(:,:,curseq)+8;
-        strctTrial.m_aiCLUT = zeros(256,3);
-        strctTrial.m_aiCLUT(2,:) = (65535/255)*[127 127 127];%strctTrial.m_afBackgroundColor;
-        strctTrial.m_aiCLUT(3,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,1};
-        strctTrial.m_aiCLUT(4,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,2};
-        strctTrial.m_aiCLUT(5,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,1};
-        strctTrial.m_aiCLUT(6,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,2};
-        strctTrial.m_aiCLUT(7,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,1};
-        strctTrial.m_aiCLUT(8,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,2};
-        strctTrial.m_aiCLUT(9:8+length(g_strctParadigm.DKLclut),:) = (65535/255)*g_strctParadigm.DKLclut;
-        strctTrial.m_aiCLUT(256,:) = deal(65535);
-
+        
+%         strctTrial.m_aiCLUT = zeros(256,3);
+%         strctTrial.m_aiCLUT(2,:) = (65535/255)*[127 127 127];%strctTrial.m_afBackgroundColor;
+%         strctTrial.m_aiCLUT(3,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,1};
+%         strctTrial.m_aiCLUT(4,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,2};
+%         strctTrial.m_aiCLUT(5,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,1};
+%         strctTrial.m_aiCLUT(6,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,2};
+%         strctTrial.m_aiCLUT(7,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,1};
+%         strctTrial.m_aiCLUT(8,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,2};
+%         strctTrial.m_aiCLUT(9:8+length(g_strctParadigm.DKLclut),:) = (65535/255)*g_strctParadigm.DKLclut;
+%         strctTrial.m_aiCLUT(256,:) = deal(65535);
+            linearclut=linspace(0,65535,256)';
+            strctTrial.m_aiCLUT=cat(2,linearclut,linearclut,linearclut);
+            
         %strctTrial.stimuli=g_strctParadigm.hartleyset.hartleys_binned(:,:,strctTrial.stimseq,:);
 
     case 6 %use all color hartleys
-            %replace with correct indices
-        %    curseq=randi(size(g_strctParadigm.hartleyset.Colhartleys50,3),1,strctTrial.numFrames);
-        %     strctTrial.Densenoisestim = g_strctParadigm.hartleyset.Colhartleys50(:,:,curseq,:).*255;
-        %     strctTrial.Densenoisestim_disp = g_strctParadigm.hartleyset.Colhartleys50_binned(:,:,curseq)+8;
-            strctTrial.stimseq=repmat(randi(length(g_strctParadigm.hartleyset.hartleys_binned)*3,1,round(strctTrial.numFrames/2)),2,1);
+            strctTrial.stimseq=repmat(randi(length(g_strctParadigm.hartleyset.hartleys_binned),1,round(strctTrial.numFrames/2)),2,1);
             strctTrial.stimseq=strctTrial.stimseq(:);
 
-        strctTrial.m_aiCLUT = zeros(256,3);
-        strctTrial.m_aiCLUT(2,:) = (65535/255)*[127 127 127];%strctTrial.m_afBackgroundColor;
-        strctTrial.m_aiCLUT(3,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,1};
-        strctTrial.m_aiCLUT(4,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,2};
-        strctTrial.m_aiCLUT(5,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,1};
-        strctTrial.m_aiCLUT(6,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,2};
-        strctTrial.m_aiCLUT(7,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,1};
-        strctTrial.m_aiCLUT(8,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,2};
-        strctTrial.m_aiCLUT(9:8+length(g_strctParadigm.DKLclut),:) = (65535/255)*g_strctParadigm.DKLclut;
-        strctTrial.m_aiCLUT(256,:) = deal(65535);
-
+%         strctTrial.m_aiCLUT = zeros(256,3);
+%         strctTrial.m_aiCLUT(2,:) = (65535/255)*[127 127 127];%strctTrial.m_afBackgroundColor;
+%         strctTrial.m_aiCLUT(3,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,1};
+%         strctTrial.m_aiCLUT(4,:) = (65535/255)*g_strctParadigm.m_cPresetColors{1,2};
+%         strctTrial.m_aiCLUT(5,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,1};
+%         strctTrial.m_aiCLUT(6,:) = (65535/255)*g_strctParadigm.m_cPresetColors{2,2};
+%         strctTrial.m_aiCLUT(7,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,1};
+%         strctTrial.m_aiCLUT(8,:) = (65535/255)*g_strctParadigm.m_cPresetColors{3,2};
+%         strctTrial.m_aiCLUT(9:8+length(g_strctParadigm.DKLclut),:) = (65535/255)*g_strctParadigm.DKLclut;
+%         strctTrial.m_aiCLUT(256,:) = deal(65535);
+        
+            linearclut=linspace(0,65535,256)';
+            strctTrial.m_aiCLUT=cat(2,linearclut,linearclut,linearclut);
         %strctTrial.stimuli=g_strctParadigm.hartleyset.hartleys_binned(:,:,strctTrial.stimseq,:);
 
     case 7 % achromatic cloud
@@ -2270,11 +2290,21 @@ end
 
 %spatialscale = round(sqrt(fnTsGetVar('g_strctParadigm','DualstimScale')));
 strctTrial.DualstimSecondaryUseCloud = fnTsGetVar('g_strctParadigm','DualstimSecondaryUseCloud');
-switch strctTrial.DualstimSecondaryUseCloud
-    case 0 % bars
+%switch strctTrial.DualstimSecondaryUseCloud
+
+% Note: just pregenerating all sequences to avoid bugs when switching. No
+% repeats to avoid bugs
+
+% case 0: single-ori bars in each window 
+       strctTrial.stimseq_ET_bars=repmat(randi(g_strctParadigm.Dualstim_pregen_ETbars_n,1,round(strctTrial.numFrames/2)),2,1);
+       strctTrial.stimseq_ET_bars=strctTrial.stimseq_ET_bars(:);    
     
-    case 1 % achromatic cloud
-        % requires linear CLuT
+% case 1: alternating-ori bars in each window 
+       %same as above  
+       strctTrial.stimseq_ET_baroris = repmat([0 0 90 90],[1,ceil(strctTrial.numFrames/4)]);
+       
+% case 2: alternating-ori bars and achromatic cloud
+        % same as above, plus:
         if ~isfield(g_strctParadigm,'DensenoiseAchromcloud_binned')
             feval(g_strctParadigm.m_strCallbacks,'PregenACloudStimuli');
         end
@@ -2305,17 +2335,12 @@ switch strctTrial.DualstimSecondaryUseCloud
 
         end
 
-        % strctTrial.stimseq_ET=repmat(g_strctParadigm.DualstimAchromcloud_stimseqs_ET(g_strctParadigm.DualstimAchromcloud_trialindex_ET(g_strctParadigm.DualstimAchromcloudTrialnum),:),2,1);
-        % strctTrial.stimseq_ET=strctTrial.stimseq_ET(:);
-        %   
         % Just generate sequence of prelaoded color frames (no repeats)
-       strctTrial.stimseq_ET=repmat(randi(g_strctParadigm.Dualstim_pregen_achromcloud_n,1,round(strctTrial.numFrames/2)),2,1);
-       strctTrial.stimseq_ET=strctTrial.stimseq_ET(:);
-
-    case strctTrial.DualstimSecondaryUseCloud==2 %use color cloud 
-%         if ~isfield(g_strctParadigm,'DensenoiseChromcloud')
-%             feval(g_strctParadigm.m_strCallbacks,'PregenCCloudStimuli');
-%         end
+       strctTrial.stimseq_ET_Aclouds=repmat(randi(g_strctParadigm.Dualstim_pregen_achromcloud_n,1,round(strctTrial.numFrames/2)),2,1);
+       strctTrial.stimseq_ET_Aclouds=strctTrial.stimseq_ET_Aclouds(:);
+% case 3: achromatic cloud in both
+    % everything set
+% case 4: alternating-ori bars and color cloud
         if g_strctParadigm.DualstimChromcloudTrialnum > g_strctParadigm.DualstimBlockSizeTotal
             %{
                 g_strctParadigm.Cur_CCloud_loaded = 'randpregen';
@@ -2347,9 +2372,15 @@ switch strctTrial.DualstimSecondaryUseCloud
 
         end
      % Just generate sequence of prelaoded color frames (no repeats)
-       strctTrial.stimseq_ET=repmat(randi(g_strctParadigm.Dualstim_pregen_chromcloud_n,1,round(strctTrial.numFrames/2)),2,1);
-       strctTrial.stimseq_ET=strctTrial.stimseq(:);
-end
+       strctTrial.stimseq_ET_Cclouds=repmat(randi(g_strctParadigm.Dualstim_pregen_chromcloud_n,1,round(strctTrial.numFrames/2)),2,1);
+       strctTrial.stimseq_ET_Cclouds=strctTrial.stimseq_ET_Cclouds(:);
+       
+% case 5: color cloud in both
+    % everything set
+    
+% case 6: color cloud in one, achromatic cloud in other
+    % everything set
+% end
 toc
 
 % dbstop if warning
@@ -3297,9 +3328,9 @@ if g_strctParadigm.m_bUseChosenBackgroundColor && size(g_strctParadigm.m_strctCu
     
     % strctTrial.m_afLocalBackgroundColor = round((strctTrial.m_afBackgroundColor/65535)*255);
     
-    currentBlockStimBGColorsR = ['DualstimBackgroundRed'];
-    currentBlockStimBGColorsG = ['DualstimBackgroundGreen'];
-    currentBlockStimBGColorsB = ['DualstimBackgroundBlue'];
+    currentBlockStimBGColorsR = 'DualstimBackgroundRed';
+    currentBlockStimBGColorsG = 'DualstimBackgroundGreen';
+    currentBlockStimBGColorsB = 'DualstimBackgroundBlue';
 
     strctTrial.m_afLocalBackgroundColor = [squeeze(g_strctParadigm.(currentBlockStimBGColorsR).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsR).BufferIdx))...
         squeeze(g_strctParadigm.(currentBlockStimBGColorsG).Buffer(1,:,g_strctParadigm.(currentBlockStimBGColorsG).BufferIdx))...
