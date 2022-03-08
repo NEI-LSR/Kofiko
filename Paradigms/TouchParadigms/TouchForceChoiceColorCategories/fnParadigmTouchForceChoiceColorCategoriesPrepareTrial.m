@@ -738,11 +738,11 @@ if g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial
         
         % take the negative of the rotation angle. Psychophysics toolbox handles rotation in the opposite manner of the matlab functions that determine the angle of the choice direction
         strctCurrentTrial.m_strctChoicePeriod.m_bRandomChoiceRotationAngle = true;
-        if ~strctCurrentTrial.m_bPreAllocateStimuli
+        % if ~strctCurrentTrial.m_bPreAllocateStimuli
             strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = -rad2deg(rand(1) * (2 * pi));
-        else
-            strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = NaN;
-        end
+        % else
+        %     strctCurrentTrial.m_strctChoicePeriod.m_fRotationAngle = NaN;
+        % end
     end
 else
     strctCurrentTrial.m_strctChoicePeriod.m_bRandomChoiceRotationAngle = false;
@@ -1014,7 +1014,7 @@ if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') || 
         strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg = fnTsGetVar('g_strctParadigm', 'maxChoiceAngleDeg');
         
         
-        if ~strctCurrentTrial.m_bPreAllocateStimuli
+        %if ~strctCurrentTrial.m_bPreAllocateStimuli
             if strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg <= strctCurrentTrial.m_strctChoiceVars.m_minChoiceAngleDeg
                 strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg = strctCurrentTrial.m_strctChoiceVars.m_maxChoiceAngleDeg + 360;
             end
@@ -1038,12 +1038,12 @@ if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') || 
             else
                 strctCurrentTrial.m_strctChoiceVars.m_bChoiceRingOrderInversion = false;
             end
-        else
-            strctCurrentTrial.m_strctChoiceVars.m_bChoiceRingOrderInversion = g_strctParadigm.m_strctChoiceVars.m_bRandomRingOrderInversion;
-            strctCurrentTrial.m_strctChoiceVars.m_bRotateChoiceRing = g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial;
-            strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = g_strctParadigm.m_aiPreAllocatedTrials(strctCurrentTrial.m_iTrialNumber, (2+strctCurrentTrial.m_strctChoiceVars.m_NTargets:1+(2*strctCurrentTrial.m_strctChoiceVars.m_NTargets)));
+        %else
+        %    strctCurrentTrial.m_strctChoiceVars.m_bChoiceRingOrderInversion = g_strctParadigm.m_strctChoiceVars.m_bRandomRingOrderInversion;
+        %    strctCurrentTrial.m_strctChoiceVars.m_bRotateChoiceRing = g_strctParadigm.m_strctChoiceVars.m_bRotateChoiceRingOnEachTrial;
+        %    strctCurrentTrial.m_strctChoiceVars.m_afChoiceThetas = g_strctParadigm.m_aiPreAllocatedTrials(strctCurrentTrial.m_iTrialNumber, (2+strctCurrentTrial.m_strctChoiceVars.m_NTargets:1+(2*strctCurrentTrial.m_strctChoiceVars.m_NTargets)));
             
-        end
+        %end
         
         % OLD VERSION (does not work)
         %{
