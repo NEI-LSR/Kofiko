@@ -1415,22 +1415,29 @@ if g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_bBinaryReward
     if strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'disc') ...
             || strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'annuli') ...
             || strcmpi(g_strctParadigm.m_strctChoiceVars.m_strChoiceDisplayType, 'nestedannuli')
+
 		if g_strctParadigm.m_strctCurrentTrial.m_strctChoicePeriod.m_bIsDirectMatchTrial % if trial is a direct match, keep old reward structure
-			%if any(g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{1} == ...
-			%        g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat) && ...
-			%        any(g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_aiCueToChoiceMatchIndex{2} == ...
-			%        g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor)
+			% Assumes no juice unless proven otherwise (see criteria below)	
+			bGiveJuice = false;
+			bJuiceDropMultiplier = 0;
+			fJuiceTimeMultiplier = 0;
+			
+		
 			if any(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceSaturationID(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceSat) == ...
 					g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedSaturationID) && ...
 					any(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceColorID(g_strctParadigm.m_strctCurrentTrial.m_iCurrentlySelectedChoiceColor) == ...
-					g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID)
-				bGiveJuice = true;
-				bJuiceDropMultiplier = 1;
-				fJuiceTimeMultiplier = 1;
-			else
-				bGiveJuice = false;
-				bJuiceDropMultiplier = 0;
-				fJuiceTimeMultiplier =0;
+					g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID) %% choice correctly matches cue
+				
+				n_matches = sum(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceColorID==g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID) > 1
+				
+				%% if multiple distractors match the cue, only reward ONE
+				if sum(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceColorID==g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID) == 1 || ...
+					rand() =< 1/sum(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceColorID==g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID)
+					
+					bGiveJuice = true;
+					bJuiceDropMultiplier = 1;
+					fJuiceTimeMultiplier = 1;
+				end
 			end
 			%strctCurrentTrial.m_aiInsideChoiceRects
 			% Null trial case. Do we reward null trials? If so, check the rho to
