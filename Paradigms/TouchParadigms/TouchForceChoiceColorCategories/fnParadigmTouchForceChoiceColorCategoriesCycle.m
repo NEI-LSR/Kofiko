@@ -1432,7 +1432,7 @@ if g_strctParadigm.m_strctCurrentTrial.m_strctReward.m_bBinaryReward
 				
 				%% if multiple distractors match the cue, only reward ONE
 				if sum(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceColorID==g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID) == 1 || ...
-					rand() =< 1/sum(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceColorID==g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID)
+					rand() <= 1/sum(g_strctParadigm.m_strctCurrentTrial.m_aiActiveChoiceColorID==g_strctParadigm.m_strctCurrentTrial.m_strctCuePeriod.m_iSelectedColorID)
 					
 					bGiveJuice = true;
 					bJuiceDropMultiplier = 1;
